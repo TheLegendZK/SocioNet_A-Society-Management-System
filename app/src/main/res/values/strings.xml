@@ -1,0 +1,138 @@
+<resources>
+    <string name="app_name">SocioNet</string>
+    <string name="resident">RESIDENT</string>
+    <string name="emergency_sos">Emergency SOS</string>
+    <string name="alert_security_immediately">Alert security immediately</string>
+    <string name="alert">ALERT</string>
+    <string name="sos_long_press_hint">Long press \'ALERT\' to prevent accidental triggers</string>
+    <string name="quick_actions">QUICK ACTIONS</string>
+    <string name="pay_dues">Pay Dues</string>
+    <string name="gate_pass">Gate Pass</string>
+    <string name="complaint">Complaint</string>
+    <string name="events">Events</string>
+    <string name="community_board">Community Board</string>
+    <string name="view_all">View All</string>
+    <string name="home">Home</string>
+    <string name="notices">Notices</string>
+    <string name="issues">Issues</string>
+    <string name="profile">Profile</string>
+    <string name="pending_dues_format">₹%1$s Pending</string>
+
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="dont_have_account">Don\'t have an account? Join Society</string>
+    <string name="society_operating_system">Society Operating System</string>
+    <string name="registration_pending">Registration Pending</string>
+    <string name="registration_success_msg">Your account has been created! Please wait for Admin approval before logging in.</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="join_society">Join Society</string>
+    <string name="personal_details">Personal Details</string>
+    <string name="full_name">Full Name</string>
+    <string name="email_address">Email Address</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="residence_details">Residence Details</string>
+    <string name="select_society">Select Society</string>
+    <string name="wing">Wing</string>
+    <string name="flat">Flat</string>
+    <string name="i_am_a">I am a...</string>
+    <string name="owner_approval_note">Note: Owner accounts require Admin approval.</string>
+    <string name="submit_registration">Submit Registration</string>
+    <string name="primary_owner">Primary Owner</string>
+    <string name="tenant">Tenant</string>
+    <string name="family_member">Family Member</string>
+
+    <string name="confirm_sos">CONFIRM SOS</string>
+    <string name="sos_confirmation_msg">This will alert Security and your family immediately.</string>
+    <string name="yes_send_help">YES - SEND HELP</string>
+    <string name="cancel">Cancel</string>
+    <string name="welcome_back">Welcome Back,</string>
+    <string name="outstanding_dues">Outstanding Dues</string>
+    <string name="my_household_staff">My Household Staff</string>
+    <string name="no_staff_linked">No staff linked.</string>
+    <string name="manage_staff">Manage Staff</string>
+    <string name="latest_notices">Latest Notices</string>
+    <string name="sos">SOS</string>
+
+    <string name="admin_console">Admin Console</string>
+    <string name="hello">Hello,</string>
+    <string name="total_society_dues">Total Society Dues</string>
+    <string name="pending_approvals">Pending Approvals</string>
+    <string name="setup_society">Setup Society</string>
+    <string name="accounts">Accounts</string>
+    <string name="staff_registry">Staff Registry</string>
+
+    <string name="account_pending">Account Pending</string>
+    <string name="account_review_msg">Your registration was successful, but your account is currently under review by the Society Administrator.</string>
+
+    <string name="society_directory">Society Directory</string>
+    <string name="remove">Remove</string>
+    <string name="add">Add</string>
+
+    <string name="no_recent_notices">No recent notices.</string>
+
+    <string name="help_desk">Help Desk</string>
+    <string name="no_complaints_history">No complaints history</string>
+    <string name="new_complaint">New Complaint</string>
+    <string name="title">Title</string>
+    <string name="details">Details</string>
+    <string name="category">Category</string>
+    <string name="submit">Submit</string>
+
+    <string name="approvals">Approvals</string>
+    <string name="reject">Reject</string>
+    <string name="approve">Approve</string>
+
+    <string name="new_gate_pass">New Gate Pass</string>
+    <string name="pre_approve_entry">Pre-Approve Entry</string>
+    <string name="gate_pass_msg">Create a digital pass for your guests or deliveries to ensure smooth entry at the gate.</string>
+    <string name="visitor_name_placeholder">e.g. John Doe, Zomato</string>
+    <string name="visitor_name_company">Visitor Name / Company</string>
+    <string name="visitor_type">Visitor Type</string>
+    <string name="generate_qr_pass">Generate QR Pass</string>
+    <string name="entry_pass">ENTRY PASS</string>
+    <string name="otp_code">OTP Code</string>
+    <string name="visitor">Visitor</string>
+    <string name="close">Close</string>
+    <string name="share">Share</string>
+
+    <string name="visitor_hub">Visitor Hub</string>
+    <string name="tab_create_pass">Create Pass</string>
+    <string name="tab_approvals">Approvals</string>
+    <string name="tab_history">History</string>
+    <string name="tab_my_staff">My Staff</string>
+    <string name="otp">OTP</string>
+    <string name="approval_needed">Approval Needed</string>
+    <string name="waiting_at_gate">Waiting at Gate</string>
+    <string name="deny">Deny</string>
+    <string name="allow">Allow</string>
+    <string name="my_staff">My Staff</string>
+    <string name="recent_activity">Recent Activity</string>
+    <string name="entry_in">IN</string>
+    <string name="entry_out">OUT</string>
+
+    <string name="accounts_admin">Accounts Admin</string>
+    <string name="my_dues">My Dues</string>
+    <string name="monthly_billing_cycle">Monthly Billing Cycle</string>
+    <string name="billing_cycle_msg">Generate maintenance bills based on SqFt area.</string>
+    <string name="generate_bills_month">Generate Bills for This Month</string>
+    <string name="total_outstanding">Total Outstanding</string>
+    <string name="all_caught_up">All caught up!</string>
+    <string name="payment_history">Payment History</string>
+    <string name="pay_now">PAY NOW</string>
+    <string name="paid">PAID</string>
+
+    <string name="app_settings">App Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="notifications">Notifications</string>
+    <string name="master_toggle">Master Toggle</string>
+    <string name="visitor_alerts">Visitor Alerts</string>
+    <string name="notices_alerts">Notices Alerts</string>
+    <string name="choose_theme">Choose Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+    <string name="failed_load_settings">Failed to load settings</string>
+    <string name="failed_save_changes">Failed to save changes</string>
+</resources>

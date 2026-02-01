@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">SocioNet</string>
+    <string name="resident">RESIDENT</string>
+    <string name="emergency_sos">Emergency SOS</string>
+    <string name="alert_security_immediately">Alert security immediately</string>
+    <string name="alert">ALERT</string>
+    <string name="sos_long_press_hint">Long press \'ALERT\' to prevent accidental triggers</string>
+    <string name="quick_actions">QUICK ACTIONS</string>
+    <string name="pay_dues">Pay Dues</string>
+    <string name="gate_pass">Gate Pass</string>
+    <string name="complaint">Complaint</string>
+    <string name="events">Events</string>
+    <string name="community_board">Community Board</string>
+    <string name="view_all">View All</string>
+    <string name="home">Home</string>
+    <string name="notices">Notices</string>
+    <string name="issues">Issues</string>
+    <string name="profile">Profile</string>
+    <string name="pending_dues_format">₹%1$s Pending</string>
+
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="dont_have_account">Don\'t have an account? Join Society</string>
+    <string name="society_operating_system">Society Operating System</string>
+    <string name="registration_pending">Registration Pending</string>
+    <string name="registration_success_msg">Your account has been created! Please wait for Admin approval before logging in.</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="join_society">Join Society</string>
+    <string name="personal_details">Personal Details</string>
+    <string name="full_name">Full Name</string>
+    <string name="email_address">Email Address</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="residence_details">Residence Details</string>
+    <string name="select_society">Select Society</string>
+    <string name="wing">Wing</string>
+    <string name="flat">Flat</string>
+    <string name="i_am_a">I am a...</string>
+    <string name="owner_approval_note">Note: Owner accounts require Admin approval.</string>
+    <string name="submit_registration">Submit Registration</string>
+    <string name="primary_owner">Primary Owner</string>
+    <string name="tenant">Tenant</string>
+    <string name="family_member">Family Member</string>
+</resources>
