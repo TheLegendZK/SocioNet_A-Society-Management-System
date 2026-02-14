@@ -247,7 +247,7 @@ fun ResidentHomeScreen(
                             icon = Icons.Default.VpnKey,
                             label = "Gatepass",
                             color = Color(0xFF66BB6A),
-                            onClick = { navController.navigate(Routes.RESIDENT_CREATE_PASS) },
+                            onClick = { navController.navigate("${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId") },
                             modifier = Modifier.weight(1f)
                         )
                     }
