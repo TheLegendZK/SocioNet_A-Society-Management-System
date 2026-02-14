@@ -2,6 +2,9 @@ package com.zhd.socionet.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.data.local.BillDao
+import com.zhd.socionet.data.local.ComplaintDao
+import com.zhd.socionet.data.local.NoticeDao
 import com.zhd.socionet.data.repository.AdminRepository
 import com.zhd.socionet.data.repository.AdminRepositoryImpl
 import com.zhd.socionet.data.repository.AdminUserRepository
@@ -76,14 +79,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoticeRepository(db: FirebaseFirestore): NoticeRepository {
-        return NoticeRepositoryImpl(db)
+    fun provideNoticeRepository(db: FirebaseFirestore, dao: NoticeDao): NoticeRepository {
+        return NoticeRepositoryImpl(db, dao)
     }
 
     @Provides
     @Singleton
-    fun provideBillingRepository(db: FirebaseFirestore): BillingRepository {
-        return BillingRepositoryImpl(db)
+    fun provideBillingRepository(db: FirebaseFirestore, dao: BillDao): BillingRepository {
+        return BillingRepositoryImpl(db, dao)
     }
 
     @Provides
@@ -94,8 +97,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideComplaintRepository(db: FirebaseFirestore): ComplaintRepository {
-        return ComplaintRepositoryImpl(db)
+    fun provideComplaintRepository(db: FirebaseFirestore, dao: ComplaintDao): ComplaintRepository {
+        return ComplaintRepositoryImpl(db, dao)
     }
 
     @Provides

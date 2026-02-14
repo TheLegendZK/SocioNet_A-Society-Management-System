@@ -3,11 +3,14 @@ package com.zhd.socionet.data.repository
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.zhd.socionet.data.local.BillDao
+import com.zhd.socionet.data.local.BillEntity
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.Society
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +22,8 @@ interface BillingRepository {
 
 @Singleton
 class BillingRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val dao: BillDao
 ) : BillingRepository {
 
     override suspend fun generateMonthlyBills(societyId: String, monthName: String): Result<Int> {
@@ -76,30 +80,37 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getBillsForFlat(flatId: String): List<Bill> {
-        return try {
+        try {
             val snapshot = firestore.collection("bills")
                 .whereEqualTo("flatId", flatId)
                 .orderBy("billDate", Query.Direction.DESCENDING)
                 .get().await()
-            snapshot.toObjects(Bill::class.java)
-        } catch (e: Exception) {
-            emptyList()
-        }
+            val list = snapshot.toObjects(Bill::class.java)
+            dao.insertBills(list.map { it.toEntity() })
+        } catch (e: Exception) { e.printStackTrace() }
+
+        return dao.getBillsForFlat(flatId).map { it.toDomain() }
     }
 
     override suspend fun payBill(billId: String, userId: String): Result<Unit> {
         return try {
             firestore.collection("bills").document(billId)
-                .update(
-                    mapOf(
-                        "isPaid" to true,
-                        "paidByUserId" to userId,
-                        "paymentTransactionId" to "TXN_${System.currentTimeMillis()}" // Simulated
-                    )
-                ).await()
+                .update("isPaid", true, "paidByUserId", userId, "paymentTransactionId", "TXN_${System.currentTimeMillis()}")
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 }
+
+fun Bill.toEntity() =
+    BillEntity(id, flatId, month, amountDue, isPaid, billDate.toDate().time, dueDate.toDate().time)
+
+fun BillEntity.toDomain() = Bill(
+    id, flatId, month, Timestamp(Date(billDate)), Timestamp(
+        Date(
+            dueDate
+        )
+    ), amountDue, 0.0, isPaid
+)

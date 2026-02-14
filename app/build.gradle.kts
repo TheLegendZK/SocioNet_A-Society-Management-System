@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -79,7 +79,13 @@ dependencies {
     // Optional: Add SVG support
     implementation(libs.coil.svg)
 
-    implementation(libs.coil.kt.coil.compose)
+    // Room Database
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // Serialization (Optional, useful for TypeConverters)
+    implementation(libs.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
