@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -139,6 +140,51 @@ fun AdminDashboardScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f)
                         )
+                    }
+                }
+
+                val user = profileState.userProfile
+                if (user != null && !user.assignedFlatId.isNullOrBlank()) {
+                    item(span = { GridItemSpan(2) }) {
+                        SoftCard(
+                            onClick = {
+                                navController.navigate("${Routes.RESIDENT_HOME}/${user.assignedFlatId}/${user.id}")
+                            },
+                            backgroundColor = SoftTheme.surface
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = SoftTheme.primary.copy(alpha = 0.1f),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.Default.Home,
+                                            null,
+                                            tint = SoftTheme.primary
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "My Residence",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SoftTheme.textPrimary
+                                    )
+                                    Text(
+                                        text = "Switch to Resident View (${user.assignedFlatId.replace("_", " ").split(" ").last()})",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = SoftTheme.textSecondary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

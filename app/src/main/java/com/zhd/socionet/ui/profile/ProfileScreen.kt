@@ -21,10 +21,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,6 +59,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioPasswordField
 import com.zhd.socionet.ui.common.SocioTextField
@@ -67,6 +71,8 @@ import com.zhd.socionet.ui.common.SoftTheme
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     userId: String,
+    currentViewType: String = "resident",
+    onSwitchRole: (String) -> Unit = {},
     onBack: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -194,6 +200,39 @@ fun ProfileScreen(
                         }
 
                         Spacer(Modifier.height(32.dp))
+
+                        val isSuperAdmin = user.roles.contains(UserRole.SUPER_ADMIN)
+                        val isOwner = user.roles.contains(UserRole.OWNER) || user.roles.contains(UserRole.TENANT)
+
+                        if (isSuperAdmin && isOwner) {
+                            SoftCard(
+                                backgroundColor = SoftTheme.primary.copy(alpha = 0.05f),
+                                onClick = {
+                                    if (currentViewType == "admin") onSwitchRole("resident") else onSwitchRole("admin")
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if(currentViewType == "admin") Icons.Default.Home else Icons.Default.AdminPanelSettings,
+                                        contentDescription = null,
+                                        tint = SoftTheme.primary
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = if(currentViewType == "admin") "Switch to Resident View" else "Switch to Admin Console",
+                                        fontWeight = FontWeight.Bold,
+                                        color = SoftTheme.primary
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Icon(Icons.Default.SwapHoriz, null, tint = SoftTheme.primary)
+                                }
+                            }
+                            Spacer(Modifier.height(16.dp))
+                        }
 
                         // Details Card
                         SoftCard {
