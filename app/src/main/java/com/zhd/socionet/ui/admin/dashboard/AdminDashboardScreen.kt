@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VerifiedUser
@@ -36,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import com.zhd.socionet.R
 import com.zhd.socionet.ui.admin.approval.AdminApprovalViewModel
 import com.zhd.socionet.ui.common.SoftAccent
@@ -64,6 +67,16 @@ fun AdminDashboardScreen(
 ) {
     val approvalState = approvalViewModel.uiState
     val profileState = profileViewModel.uiState
+    val user = profileState.userProfile
+
+    val societyId = user?.assignedFlatId?.substringBefore("_") ?: ""
+
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+    LaunchedEffect(currentUserId) {
+        if (currentUserId != null) {
+            profileViewModel.loadProfile(currentUserId)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         // Background Header Gradient
@@ -277,6 +290,18 @@ fun AdminDashboardScreen(
                         color = SoftAccent
                     ) {
                         navController.navigate(Routes.ADMIN_POST_NOTICE)
+                    }
+                }
+                item {
+                    AdminActionCard(
+                        title = "Directory",
+                        icon = Icons.Default.Contacts,
+                        color = Color(0xFF9C27B0)
+                    ) {
+                        // Pass true for Admin access + Dynamic ID
+                        if (societyId.isNotEmpty()) {
+                            navController.navigate("${Routes.SOCIETY_DIRECTORY}/true/$societyId")
+                        }
                     }
                 }
                 

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
@@ -88,6 +89,10 @@ fun ResidentHomeScreen(
     val billingState = billingViewModel.uiState
     val staffState = staffViewModel.uiState
     val noticeState = noticeViewModel.uiState
+
+    val societyId = remember(flatId) {
+        flatId.substringBefore("_")
+    }
 
     LaunchedEffect(userId) { if (userId.isNotBlank()) profileViewModel.loadProfile(userId) }
     LaunchedEffect(profileState.userProfile) {
@@ -183,6 +188,7 @@ fun ResidentHomeScreen(
                     .padding(padding)
                     .fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // 1. WELCOME SECTION
@@ -248,6 +254,18 @@ fun ResidentHomeScreen(
                             label = "Gatepass",
                             color = Color(0xFF66BB6A),
                             onClick = { navController.navigate("${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        QuickActionCard(
+                            icon = Icons.Default.Contacts,
+                            label = "Directory",
+                            color = Color(0xFF9C27B0),
+                            onClick = {
+                                // Pass false for Resident (Restricted Info) and dynamic societyId
+                                if (societyId.isNotBlank()) {
+                                    navController.navigate("${Routes.SOCIETY_DIRECTORY}/false/$societyId")
+                                }
+                            },
                             modifier = Modifier.weight(1f)
                         )
                     }

@@ -24,6 +24,9 @@ object Routes {
     const val RESIDENT_COMPLAINTS = "resident_complaints"
     const val RESIDENT_STAFF = "resident_staff"
 
+    // --- Directory Module (New) ---
+    const val SOCIETY_DIRECTORY = "society_directory"
+
     // --- Security Module ---
     const val SECURITY_DASHBOARD = "security_dashboard"
     const val SECURITY_SCANNER = "security_qr_scanner"
@@ -41,5 +44,6 @@ object NavArgs {
     const val FLAT_ID = "flatId"
     const val VISITOR_ID = "visitorId"
     const val NOTICE_ID = "noticeId"
-
+    const val IS_ADMIN = "isAdmin"
+    const val SOCIETY_ID = "societyId"
 }

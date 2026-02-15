@@ -28,6 +28,7 @@ import com.zhd.socionet.ui.auth.RegisterScreen
 import com.zhd.socionet.ui.billing.BillingScreen
 import com.zhd.socionet.ui.common.AdaptiveAppShell
 import com.zhd.socionet.ui.common.NavItem
+import com.zhd.socionet.ui.directory.SocietyDirectoryScreen
 import com.zhd.socionet.ui.profile.ProfileScreen
 import com.zhd.socionet.ui.profile.ProfileViewModel
 import com.zhd.socionet.ui.resident.complaints.ResidentComplaintScreen
@@ -45,7 +46,7 @@ import com.zhd.socionet.ui.splash.SplashScreen
 @Composable
 fun SocioNetNavGraph(
     navController: NavHostController,
-    startDestination: String = Routes.LOGIN,
+    startDestination: String = Routes.SPLASH,
 ) {
     NavHost(navController = navController, startDestination = startDestination) {
 
@@ -260,6 +261,27 @@ fun SocioNetNavGraph(
             }()
         }
         composable(Routes.ADMIN_STAFF_REGISTRY) { adminShell { StaffRegistryScreen(onBack = { navController.popBackStack() }) }() }
+
+        // --- DIRECTORY SCREEN (Shared) ---
+        composable(
+            route = "${Routes.SOCIETY_DIRECTORY}/{${NavArgs.IS_ADMIN}}/{${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(
+                navArgument(NavArgs.IS_ADMIN) { type = NavType.BoolType },
+                navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val isAdmin = backStack.arguments?.getBoolean(NavArgs.IS_ADMIN) ?: false
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
+
+            val content = @Composable {
+                SocietyDirectoryScreen(
+                    isAdmin = isAdmin,
+                    societyId = societyId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            if (isAdmin) adminShell { content() }() else residentShell { content() }()
+        }
 
         // --- PROFILE & SETTINGS ---
         composable(

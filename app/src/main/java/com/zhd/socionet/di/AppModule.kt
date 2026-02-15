@@ -23,6 +23,8 @@ import com.zhd.socionet.data.repository.ProfileRepository
 import com.zhd.socionet.data.repository.ProfileRepositoryImpl
 import com.zhd.socionet.data.repository.SecurityRepository
 import com.zhd.socionet.data.repository.SecurityRepositoryImpl
+import com.zhd.socionet.data.repository.SocietyRepository
+import com.zhd.socionet.data.repository.SocietyRepositoryImpl
 import com.zhd.socionet.data.repository.SosRepositoryImpl
 import com.zhd.socionet.data.repository.StaffRepository
 import com.zhd.socionet.data.repository.StaffRepositoryImpl
@@ -111,5 +113,11 @@ object AppModule {
     @Singleton
     fun provideSosRepository(db: FirebaseFirestore): SosRepositoryImpl {
         return SosRepositoryImpl(db)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSocietyRepository(db: FirebaseFirestore): SocietyRepository {
+        return SocietyRepositoryImpl(db)
     }
 }
