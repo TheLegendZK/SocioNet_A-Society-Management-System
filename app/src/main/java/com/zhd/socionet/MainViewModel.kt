@@ -1,22 +1,26 @@
 package com.zhd.socionet
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.SettingsPreferences
 import com.zhd.socionet.data.model.ThemeMode
+import com.zhd.socionet.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _currentTheme = MutableStateFlow(ThemeMode.SYSTEM)
@@ -32,13 +36,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun listenToSettings(userId: String) {
-        firestore.collection(AppConstants.COLL_USERS).document(userId)
-            .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
-            .addSnapshotListener { snapshot, _ ->
-                if (snapshot != null && snapshot.exists()) {
-                    val prefs = snapshot.toObject(SettingsPreferences::class.java)
-                    _currentTheme.update { prefs?.themeMode ?: ThemeMode.SYSTEM }
-                }
+        viewModelScope.launch {
+            settingsRepository.getThemeMode(userId).collectLatest { theme ->
+                _currentTheme.value = theme
             }
+        }
     }
 }

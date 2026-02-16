@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.data.repository.BillingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,14 +42,25 @@ class BillingViewModel @Inject constructor(
     fun generateBillsForCurrentMonth(societyId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, adminMessage = null) }
-            // Simulate processing time or call repository
-            // repository.generateBills(societyId)
-            delay(1500)
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    adminMessage = "Bills generated successfully for the current month."
-                )
+
+            // FIX: Removed fake delay and implemented real repository call
+            val currentMonth = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date())
+            val result = repository.generateMonthlyBills(societyId, currentMonth)
+
+            result.onSuccess { count ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        adminMessage = "Success! Generated $count bills for $currentMonth."
+                    )
+                }
+            }.onFailure { e ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        adminMessage = "Error: ${e.message}"
+                    )
+                }
             }
         }
     }

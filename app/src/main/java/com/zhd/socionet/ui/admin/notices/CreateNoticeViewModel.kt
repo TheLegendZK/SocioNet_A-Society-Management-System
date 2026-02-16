@@ -3,7 +3,7 @@ package com.zhd.socionet.ui.admin.notices
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Notice
-import com.zhd.socionet.data.repository.AdminRepository
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateNoticeViewModel @Inject constructor(
     private val noticeRepository: NoticeRepository,
-    private val adminRepository: AdminRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateNoticeUiState())
@@ -24,7 +24,7 @@ class CreateNoticeViewModel @Inject constructor(
 
     fun loadWings(societyId: String) {
         viewModelScope.launch {
-            val wings = listOf("A", "B", "C") 
+            val wings = authRepository.fetchWings(societyId)
             _uiState.update { it.copy(availableWings = wings) }
         }
     }

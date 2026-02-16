@@ -103,4 +103,10 @@ object AppModule {
     fun provideSocietyRepository(db: FirebaseFirestore): SocietyRepository {
         return SocietyRepositoryImpl(db)
     }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(db: FirebaseFirestore): SettingsRepository {
+        return SettingsRepositoryImpl(db)
+    }
 }

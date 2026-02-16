@@ -2,6 +2,7 @@ package com.zhd.socionet.ui.security.scanner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.repository.SecurityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SecurityScannerViewModel @Inject constructor(
-    private val repository: SecurityRepository
+    private val repository: SecurityRepository,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScannerUiState())
@@ -50,7 +52,8 @@ class SecurityScannerViewModel @Inject constructor(
 
     private fun markCheckIn(entry: GateEntry) {
         viewModelScope.launch {
-            val checkInResult = repository.markEntryAsCheckedIn(entry.id, "guard_001")
+            val guardId = auth.currentUser?.uid ?: "unknown_guard"
+            val checkInResult = repository.markEntryAsCheckedIn(entry.id, guardId)
 
             checkInResult.onSuccess {
                 _uiState.update { it.copy(

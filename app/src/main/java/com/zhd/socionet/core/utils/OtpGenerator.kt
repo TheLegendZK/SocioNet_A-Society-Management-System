@@ -1,18 +1,22 @@
 package com.zhd.socionet.core.utils
 
+import java.security.SecureRandom
 import javax.inject.Inject
-import javax.inject.Singleton
-import kotlin.random.Random
 
 interface OtpGenerator {
-    fun generateOtp(length: Int = 6): String
+    fun generateOtp(): String
 }
 
-@Singleton
 class OtpGeneratorImpl @Inject constructor() : OtpGenerator {
-    override fun generateOtp(length: Int): String {
-        val min = Math.pow(10.0, (length - 1).toDouble()).toInt()
-        val max = Math.pow(10.0, length.toDouble()).toInt() - 1
-        return Random.nextInt(min, max).toString()
+
+    // FIX: Replaced kotlin.random.Random with java.security.SecureRandom
+    // SecureRandom is cryptographically strong and appropriate for security tokens like OTPs.
+    private val secureRandom = SecureRandom()
+
+    override fun generateOtp(): String {
+        // Generates a number between 0 and 999999
+        val number = secureRandom.nextInt(1000000)
+        // Formats it to 6 digits with leading zeros (e.g., 5 -> "000005")
+        return String.format("%06d", number)
     }
 }

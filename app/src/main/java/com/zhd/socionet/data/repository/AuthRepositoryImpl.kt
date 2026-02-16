@@ -16,6 +16,7 @@ interface AuthRepository {
         societyId: String,
         wing: String,
     ): List<Pair<String, String>>
+
     suspend fun checkFlatOccupancy(flatId: String): String?
 }
 
@@ -49,7 +50,8 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun fetchWings(societyId: String): List<String> {
-        val doc = firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
+        val doc =
+            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
         return (doc.get("wings") as? List<String>) ?: emptyList()
     }
 
@@ -60,7 +62,11 @@ class AuthRepositoryImpl @Inject constructor(
             .get().await()
 
         return snapshot.documents.map { it.id to (it.getString("flatNumber") ?: "0") }
-            .sortedBy { it.second.toIntOrNull() ?: 0 }
+            .sortedWith(compareBy<Pair<String, String>> { pair ->
+                pair.second.filter { it.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE
+            }.thenBy { pair ->
+                pair.second.filter { it.isLetter() }
+            })
     }
 
     override suspend fun checkFlatOccupancy(flatId: String): String? {
