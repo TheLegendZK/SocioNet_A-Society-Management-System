@@ -296,7 +296,7 @@ fun SocioNetNavGraph(
                 onNavigateToStaffAttendance = {
                     // Logic to get societyId for security staff
                     // For now, using a placeholder if profile not loaded
-                    navController.navigate("${Routes.SECURITY_STAFF}/WbZ6qVoyNlMi1Quch8o3")
+                    navController.navigate("${Routes.SECURITY_STAFF}/${NavArgs.SOCIETY_ID}")
                 },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }

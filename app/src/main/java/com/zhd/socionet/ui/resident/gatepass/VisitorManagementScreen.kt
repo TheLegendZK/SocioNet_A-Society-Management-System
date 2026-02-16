@@ -94,8 +94,11 @@ fun VisitorManagementScreen(
         stringResource(R.string.tab_my_staff)
     )
 
+    val societyId = remember(hostFlatId) {
+        hostFlatId.substringBefore("_") // Dynamically extracts Society ID from Flat ID
+    }
     LaunchedEffect(Unit) {
-        viewModel.loadLinkedStaffAndLogs("WbZ6qVoyNlMi1Quch8o3", hostFlatId)
+        viewModel.loadLinkedStaffAndLogs(societyId, hostFlatId)
     }
     LaunchedEffect(selectedTab) {
         when (selectedTab) {
