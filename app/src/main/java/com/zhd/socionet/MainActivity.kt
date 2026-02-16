@@ -9,6 +9,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
@@ -30,7 +32,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
-            val isDarkTheme = when (mainViewModel.currentTheme) {
+            val currentTheme by mainViewModel.currentTheme.collectAsState()
+
+            val isDarkTheme = when (currentTheme) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -42,8 +46,10 @@ class MainActivity : ComponentActivity() {
                     if (!view.isInEditMode) {
                         SideEffect {
                             val window = (view.context as Activity).window
-                            // Set backgrounds to transparent to let our SoftUI background show through
+                            // Set backgrounds too transparent to let our SoftUI background show through
+                            @Suppress("DEPRECATION")
                             window.statusBarColor = Color.Transparent.toArgb()
+                            @Suppress("DEPRECATION")
                             window.navigationBarColor = Color.Transparent.toArgb()
 
                             // Adjust Icon Colors (Dark icons for Light mode, Light icons for Dark mode)

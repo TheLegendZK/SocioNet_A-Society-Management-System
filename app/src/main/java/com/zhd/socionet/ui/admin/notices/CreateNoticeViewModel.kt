@@ -1,72 +1,64 @@
 package com.zhd.socionet.ui.admin.notices
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Notice
 import com.zhd.socionet.data.repository.AdminRepository
 import com.zhd.socionet.data.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateNoticeViewModel @Inject constructor(
     private val noticeRepository: NoticeRepository,
-    private val adminRepository: AdminRepository // To get list of Wings
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(CreateNoticeUiState())
-        private set
+    private val _uiState = MutableStateFlow(CreateNoticeUiState())
+    val uiState: StateFlow<CreateNoticeUiState> = _uiState.asStateFlow()
 
-    init {
-        loadWings()
-    }
-
-    private fun loadWings() {
-        // In a real app, we'd fetch the specific society ID from the logged-in admin's profile.
-        // Hardcoded here for the prototype flow.
-        val societyId = "WbZ6qVoyNlMi1Quch8o3" // Replace with dynamic ID
+    fun loadWings(societyId: String) {
         viewModelScope.launch {
-            // We reuse the AdminRepo to fetch wings for the dropdown
-            // Assuming we added a getSociety function there, or we hardcode for now
-            val wings = listOf("A", "B", "C") // simplified for this step
-            uiState = uiState.copy(availableWings = wings)
+            val wings = listOf("A", "B", "C") 
+            _uiState.update { it.copy(availableWings = wings) }
         }
     }
 
     fun onFieldChange(title: String, content: String) {
-        uiState = uiState.copy(title = title, content = content)
+        _uiState.update { it.copy(title = title, content = content) }
     }
 
     fun onPrioritySelected(priority: String) {
-        uiState = uiState.copy(priority = priority)
+        _uiState.update { it.copy(priority = priority) }
     }
 
     fun onAudienceSelected(audience: String) {
-        uiState = uiState.copy(targetAudience = audience)
+        _uiState.update { it.copy(targetAudience = audience) }
     }
 
     fun postNotice(adminId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
 
             val notice = Notice(
-                title = uiState.title,
-                content = uiState.content,
-                priority = uiState.priority,
-                targetAudience = uiState.targetAudience,
+                title = _uiState.value.title,
+                content = _uiState.value.content,
+                priority = _uiState.value.priority,
+                targetAudience = _uiState.value.targetAudience,
                 postedByAdminId = adminId
             )
 
             val result = noticeRepository.createNotice(notice)
 
             if (result.isSuccess) {
-                uiState = uiState.copy(isLoading = false, isSuccess = true)
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } else {
-                uiState = uiState.copy(isLoading = false, errorMessage = "Failed to post notice")
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Failed to post notice") }
             }
         }
     }

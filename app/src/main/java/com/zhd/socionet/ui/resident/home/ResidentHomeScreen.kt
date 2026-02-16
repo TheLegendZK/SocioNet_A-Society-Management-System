@@ -3,51 +3,14 @@ package com.zhd.socionet.ui.resident.home
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.VpnKey
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -85,10 +48,10 @@ fun ResidentHomeScreen(
     noticeViewModel: NoticeBoardViewModel = hiltViewModel(),
     sosViewModel: SosViewModel = hiltViewModel()
 ) {
-    val profileState = profileViewModel.uiState
-    val billingState = billingViewModel.uiState
-    val staffState = staffViewModel.uiState
-    val noticeState = noticeViewModel.uiState
+    val profileState by profileViewModel.uiState.collectAsState()
+    val billingState by billingViewModel.uiState.collectAsState()
+    val staffState by staffViewModel.uiState.collectAsState()
+    val noticeState by noticeViewModel.uiState.collectAsState()
 
     val societyId = remember(flatId) {
         flatId.substringBefore("_")
@@ -105,7 +68,8 @@ fun ResidentHomeScreen(
     LaunchedEffect(flatId) {
         if (flatId.isNotBlank()) {
             billingViewModel.loadBills(flatId)
-            staffViewModel.loadStaff("WbZ6qVoyNlMi1Quch8o3")
+            // FIXED: Using societyId instead of hardcoded ID
+            staffViewModel.loadStaff(societyId)
         }
     }
 
@@ -150,7 +114,6 @@ fun ResidentHomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
-        // Background Header Gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -191,7 +154,6 @@ fun ResidentHomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // 1. WELCOME SECTION
                 item {
                     Column(
                         modifier = Modifier
@@ -214,7 +176,7 @@ fun ResidentHomeScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text = "Hello, ${user?.fullName ?: stringResource(R.string.resident)}!",
+                            text = "${stringResource(R.string.hello)} ${user?.fullName ?: stringResource(R.string.resident)}!",
                             style = MaterialTheme.typography.headlineSmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -227,7 +189,6 @@ fun ResidentHomeScreen(
                     }
                 }
 
-                // QUICK ACTIONS
                 item {
                     Row(
                         modifier = Modifier
@@ -237,31 +198,30 @@ fun ResidentHomeScreen(
                     ) {
                         QuickActionCard(
                             icon = Icons.Default.Build,
-                            label = "Complaints",
-                            color = Color(0xFF42A5F5),
+                            label = stringResource(R.string.complaints),
+                            color = SoftTheme.info,
                             onClick = { if (flatId.isNotBlank() && userId.isNotBlank()) navController.navigate("${Routes.RESIDENT_COMPLAINTS}/$flatId/$userId") },
                             modifier = Modifier.weight(1f)
                         )
                         QuickActionCard(
                             icon = Icons.Default.Warning,
-                            label = "SOS",
+                            label = stringResource(R.string.sos),
                             color = SoftAccent,
                             onClick = { showSosDialog = true },
                             modifier = Modifier.weight(1f)
                         )
                         QuickActionCard(
                             icon = Icons.Default.VpnKey,
-                            label = "Gatepass",
-                            color = Color(0xFF66BB6A),
+                            label = stringResource(R.string.gate_pass),
+                            color = SoftTheme.success,
                             onClick = { navController.navigate("${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId") },
                             modifier = Modifier.weight(1f)
                         )
                         QuickActionCard(
                             icon = Icons.Default.Contacts,
-                            label = "Directory",
-                            color = Color(0xFF9C27B0),
+                            label = stringResource(R.string.directory),
+                            color = SoftTheme.purple,
                             onClick = {
-                                // Pass false for Resident (Restricted Info) and dynamic societyId
                                 if (societyId.isNotBlank()) {
                                     navController.navigate("${Routes.SOCIETY_DIRECTORY}/false/$societyId")
                                 }
@@ -271,7 +231,6 @@ fun ResidentHomeScreen(
                     }
                 }
 
-                // 2. DUES CARD
                 item {
                     PaddingWrapper {
                         SoftCard {
@@ -306,7 +265,6 @@ fun ResidentHomeScreen(
                     }
                 }
 
-                // 3. MY STAFF CARD
                 item {
                     PaddingWrapper {
                         SoftCard {
@@ -358,7 +316,6 @@ fun ResidentHomeScreen(
                     }
                 }
 
-                // 4. LATEST NOTICES
                 if (noticeState.notices.isNotEmpty()) {
                     item {
                         PaddingWrapper {

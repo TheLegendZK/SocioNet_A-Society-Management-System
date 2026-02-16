@@ -1,18 +1,7 @@
 package com.zhd.socionet.ui.admin.staff
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,33 +9,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.zhd.socionet.R
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
@@ -56,10 +29,15 @@ import com.zhd.socionet.ui.common.SoftTheme
 @Composable
 fun StaffRegistryScreen(
     viewModel: StaffRegistryViewModel = hiltViewModel(),
+    societyId: String,
     onBack: () -> Unit
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(societyId) {
+        viewModel.loadStaff(societyId)
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         Box(
@@ -81,7 +59,7 @@ fun StaffRegistryScreen(
             containerColor = Color.Transparent,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Staff Registry", fontWeight = FontWeight.Bold, color = Color.White) },
+                    title = { Text(stringResource(R.string.staff_registry_title), fontWeight = FontWeight.Bold, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
@@ -189,36 +167,36 @@ fun StaffRegistryScreen(
         
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Add New Staff", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.add_staff_member), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SocioTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = "Full Name"
+                        label = stringResource(R.string.name)
                     )
                     SocioTextField(
                         value = role,
                         onValueChange = { role = it },
-                        label = "Role (e.g. Electrician, Maid)"
+                        label = stringResource(R.string.role)
                     )
                     SocioTextField(
                         value = phone,
                         onValueChange = { phone = it },
-                        label = "Phone Number"
+                        label = stringResource(R.string.phone_number)
                     )
                 }
             },
             confirmButton = {
                 SocioButton(
                     text = "Register",
-                    onClick = { viewModel.addStaff(name, role, phone); showDialog = false },
+                    onClick = { viewModel.addStaff(name, role, phone, societyId); showDialog = false },
                     modifier = Modifier.width(100.dp).height(44.dp)
                 )
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel", color = SoftTheme.textSecondary)
+                    Text(stringResource(R.string.cancel), color = SoftTheme.textSecondary)
                 }
             },
             containerColor = SoftTheme.surface,

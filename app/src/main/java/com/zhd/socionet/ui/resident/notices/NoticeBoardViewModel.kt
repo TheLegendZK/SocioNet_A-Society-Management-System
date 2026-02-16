@@ -1,14 +1,15 @@
 package com.zhd.socionet.ui.resident.notices
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Notice
 import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.data.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,18 +18,18 @@ class NoticeBoardViewModel @Inject constructor(
     private val repository: NoticeRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(NoticeBoardUiState())
-        private set
+    private val _uiState = MutableStateFlow(NoticeBoardUiState())
+    val uiState: StateFlow<NoticeBoardUiState> = _uiState.asStateFlow()
 
     fun loadNotices(userWing: String, userRoles: List<UserRole>) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
 
             // Determine if user is an owner
             val isOwner = userRoles.contains(UserRole.OWNER)
 
             val notices = repository.getNoticesForUser(userWing, isOwner)
-            uiState = uiState.copy(isLoading = false, notices = notices)
+            _uiState.update { it.copy(isLoading = false, notices = notices) }
         }
     }
 }

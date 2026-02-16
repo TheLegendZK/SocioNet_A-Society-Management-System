@@ -2,32 +2,12 @@ package com.zhd.socionet.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.utils.OtpGenerator
+import com.zhd.socionet.core.utils.OtpGeneratorImpl
 import com.zhd.socionet.data.local.BillDao
 import com.zhd.socionet.data.local.ComplaintDao
 import com.zhd.socionet.data.local.NoticeDao
-import com.zhd.socionet.data.repository.AdminRepository
-import com.zhd.socionet.data.repository.AdminRepositoryImpl
-import com.zhd.socionet.data.repository.AdminUserRepository
-import com.zhd.socionet.data.repository.AdminUserRepositoryImpl
-import com.zhd.socionet.data.repository.AuthRepository
-import com.zhd.socionet.data.repository.AuthRepositoryImpl
-import com.zhd.socionet.data.repository.BillingRepository
-import com.zhd.socionet.data.repository.BillingRepositoryImpl
-import com.zhd.socionet.data.repository.ComplaintRepository
-import com.zhd.socionet.data.repository.ComplaintRepositoryImpl
-import com.zhd.socionet.data.repository.GatePassRepository
-import com.zhd.socionet.data.repository.GatePassRepositoryImpl
-import com.zhd.socionet.data.repository.NoticeRepository
-import com.zhd.socionet.data.repository.NoticeRepositoryImpl
-import com.zhd.socionet.data.repository.ProfileRepository
-import com.zhd.socionet.data.repository.ProfileRepositoryImpl
-import com.zhd.socionet.data.repository.SecurityRepository
-import com.zhd.socionet.data.repository.SecurityRepositoryImpl
-import com.zhd.socionet.data.repository.SocietyRepository
-import com.zhd.socionet.data.repository.SocietyRepositoryImpl
-import com.zhd.socionet.data.repository.SosRepositoryImpl
-import com.zhd.socionet.data.repository.StaffRepository
-import com.zhd.socionet.data.repository.StaffRepositoryImpl
+import com.zhd.socionet.data.repository.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,8 +26,11 @@ object AppModule {
     @Singleton
     fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
+    @Provides
+    @Singleton
+    fun provideOtpGenerator(): OtpGenerator = OtpGeneratorImpl()
+
     // --- Repository Bindings ---
-    // In a larger app, we'd use @Binds in an abstract module, but this is clearer for now.
 
     @Provides
     @Singleton

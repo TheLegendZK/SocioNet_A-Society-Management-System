@@ -1,13 +1,14 @@
 package com.zhd.socionet.ui.admin.complaints
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Complaint
 import com.zhd.socionet.data.repository.ComplaintRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,8 +17,8 @@ class AdminComplaintViewModel @Inject constructor(
     private val repository: ComplaintRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(AdminComplaintUiState())
-        private set
+    private val _uiState = MutableStateFlow(AdminComplaintUiState())
+    val uiState: StateFlow<AdminComplaintUiState> = _uiState.asStateFlow()
 
     init {
         loadAllComplaints()
@@ -25,9 +26,9 @@ class AdminComplaintViewModel @Inject constructor(
 
     fun loadAllComplaints() {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val allComplaints = repository.getAllComplaints()
-            uiState = uiState.copy(isLoading = false, complaints = allComplaints)
+            _uiState.update { it.copy(isLoading = false, complaints = allComplaints) }
         }
     }
 
@@ -35,11 +36,12 @@ class AdminComplaintViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.updateStatus(complaint.id, newStatus)
             if (result.isSuccess) {
-                // Optimistic Update: Update list locally to feel instant
-                val updatedList = uiState.complaints.map {
-                    if (it.id == complaint.id) it.copy(status = newStatus) else it
+                _uiState.update { state ->
+                    val updatedList = state.complaints.map {
+                        if (it.id == complaint.id) it.copy(status = newStatus) else it
+                    }
+                    state.copy(complaints = updatedList)
                 }
-                uiState = uiState.copy(complaints = updatedList)
             }
         }
     }

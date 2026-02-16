@@ -4,6 +4,7 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun getUserProfile(userId: String): Result<UserProfile> {
         return try {
-            val snapshot = firestore.collection("users").document(userId).get().await()
+            val snapshot = firestore.collection(AppConstants.COLL_USERS).document(userId).get().await()
             val profile = snapshot.toObject(UserProfile::class.java)
             if (profile != null) {
                 Result.success(profile)
@@ -38,14 +39,11 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> {
         return try {
-            // Update Firestore
-            firestore.collection("users").document(profile.id).set(profile).await()
+            firestore.collection(AppConstants.COLL_USERS).document(profile.id).set(profile).await()
 
-            // Also update Firebase Auth Profile (DisplayName/PhotoURL) for consistency
             val user = auth.currentUser
             val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(profile.fullName)
-                // .setPhotoUri(Uri.parse(profile.profilePhotoUrl)) // If you implement photo upload
                 .build()
             user?.updateProfile(profileUpdates)?.await()
 
@@ -60,10 +58,7 @@ class ProfileRepositoryImpl @Inject constructor(
             val user = auth.currentUser ?: throw Exception("No user logged in")
             val credential = EmailAuthProvider.getCredential(user.email!!, currentPass)
 
-            // Re-authenticate first
             user.reauthenticate(credential).await()
-
-            // Update password
             user.updatePassword(newPass).await()
             Result.success(Unit)
         } catch (e: Exception) {

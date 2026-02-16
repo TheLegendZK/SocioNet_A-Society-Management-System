@@ -1,13 +1,14 @@
 package com.zhd.socionet.ui.admin.staff
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,35 +17,30 @@ class StaffRegistryViewModel @Inject constructor(
     private val repository: StaffRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(StaffRegistryUiState())
-        private set
-
-    init {
-        // Hardcoded for demo. In real app, get from Admin Profile.
-        loadStaff("WbZ6qVoyNlMi1Quch8o3")
-    }
+    private val _uiState = MutableStateFlow(StaffRegistryUiState())
+    val uiState: StateFlow<StaffRegistryUiState> = _uiState.asStateFlow()
 
     fun loadStaff(societyId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val staffList = repository.getStaffList(societyId)
-            uiState = uiState.copy(isLoading = false, staffList = staffList)
+            _uiState.update { it.copy(isLoading = false, staffList = staffList) }
         }
     }
 
-    fun addStaff(name: String, role: String, phone: String) {
+    fun addStaff(name: String, role: String, phone: String, societyId: String) {
         viewModelScope.launch {
             val newStaff = ServiceStaff(
                 name = name,
                 role = role,
                 phoneNumber = phone,
-                societyId = "WbZ6qVoyNlMi1Quch8o3",
+                societyId = societyId,
                 isActive = true
             )
 
             val result = repository.addStaff(newStaff)
             if (result.isSuccess) {
-                loadStaff("WbZ6qVoyNlMi1Quch8o3") // Refresh list
+                loadStaff(societyId)
             }
         }
     }
@@ -54,11 +50,12 @@ class StaffRegistryViewModel @Inject constructor(
             val newStatus = !staff.isActive
             val result = repository.updateStaffStatus(staff.id, newStatus)
             if (result.isSuccess) {
-                // Optimistic Update
-                val updatedList = uiState.staffList.map {
-                    if (it.id == staff.id) it.copy(isActive = newStatus) else it
+                _uiState.update { state ->
+                    val updatedList = state.staffList.map {
+                        if (it.id == staff.id) it.copy(isActive = newStatus) else it
+                    }
+                    state.copy(staffList = updatedList)
                 }
-                uiState = uiState.copy(staffList = updatedList)
             }
         }
     }

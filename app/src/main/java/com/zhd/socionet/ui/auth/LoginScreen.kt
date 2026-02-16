@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +53,7 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
     Box(
@@ -75,7 +76,7 @@ fun LoginScreen(
             SoftCard {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
-                        text = "Welcome Back",
+                        text = stringResource(R.string.welcome_back_title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = SoftTheme.textPrimary
@@ -118,7 +119,7 @@ fun LoginScreen(
                             modifier = Modifier.align(Alignment.End)
                         ) {
                             Text(
-                                "Forgot Password?",
+                                stringResource(R.string.forgot_password),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = SoftTheme.primary
                             )
@@ -160,7 +161,7 @@ fun LoginScreen(
                 )
                 TextButton(onClick = onNavigateToRegister) {
                     Text(
-                        text = "Register Now",
+                        text = stringResource(R.string.register_now),
                         color = SoftTheme.primary,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold

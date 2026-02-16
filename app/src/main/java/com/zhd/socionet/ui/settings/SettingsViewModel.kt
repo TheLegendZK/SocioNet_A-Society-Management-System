@@ -1,16 +1,18 @@
 package com.zhd.socionet.ui.settings
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.SettingsPreferences
 import com.zhd.socionet.data.model.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -21,11 +23,8 @@ class SettingsViewModel @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(SettingsPreferences())
-        private set
-
-    var isLoading by mutableStateOf(false)
-    var errorMessage by mutableStateOf<String?>(null)
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     private val fcm = FirebaseMessaging.getInstance()
 
@@ -36,27 +35,25 @@ class SettingsViewModel @Inject constructor(
     private fun loadSettings() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            isLoading = true
+            _uiState.update { it.copy(isLoading = true) }
             try {
-                val snapshot = firestore.collection("users").document(userId)
-                    .collection("config").document("settings")
+                val snapshot = firestore.collection(AppConstants.COLL_USERS).document(userId)
+                    .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
                     .get().await()
 
                 if (snapshot.exists()) {
                     val prefs = snapshot.toObject(SettingsPreferences::class.java)
                     if (prefs != null) {
-                        uiState = prefs
-                        // Sync FCM topics with loaded prefs (in case of new install)
+                        _uiState.update { it.copy(prefs = prefs) }
                         syncFcmTopics(prefs)
                     }
                 } else {
-                    // First time? Create default
-                    saveSettings(uiState)
+                    saveSettings(_uiState.value.prefs)
                 }
             } catch (e: Exception) {
-                errorMessage = "Failed to load settings"
+                _uiState.update { it.copy(errorMessage = "Failed to load settings") }
             } finally {
-                isLoading = false
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -65,47 +62,43 @@ class SettingsViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                firestore.collection("users").document(userId)
-                    .collection("config").document("settings")
+                firestore.collection(AppConstants.COLL_USERS).document(userId)
+                    .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
                     .set(newState).await()
-                // Update local state only after success
-                uiState = newState
+                _uiState.update { it.copy(prefs = newState) }
             } catch (e: Exception) {
-                errorMessage = "Failed to save changes"
+                _uiState.update { it.copy(errorMessage = "Failed to save changes") }
             }
         }
     }
 
-    // --- ACTIONS ---
-
     fun toggleNotifications(enabled: Boolean) {
-        val newState = uiState.copy(notificationsEnabled = enabled)
+        val newState = _uiState.value.prefs.copy(notificationsEnabled = enabled)
         saveSettings(newState)
         syncFcmTopics(newState)
     }
 
     fun toggleVisitorAlerts(enabled: Boolean) {
-        val newState = uiState.copy(notifyOnVisitors = enabled)
+        val newState = _uiState.value.prefs.copy(notifyOnVisitors = enabled)
         saveSettings(newState)
-        if (enabled && uiState.notificationsEnabled) fcm.subscribeToTopic("visitors")
+        if (enabled && _uiState.value.prefs.notificationsEnabled) fcm.subscribeToTopic("visitors")
         else fcm.unsubscribeFromTopic("visitors")
     }
 
     fun toggleNoticeAlerts(enabled: Boolean) {
-        val newState = uiState.copy(notifyOnNotices = enabled)
+        val newState = _uiState.value.prefs.copy(notifyOnNotices = enabled)
         saveSettings(newState)
-        if (enabled && uiState.notificationsEnabled) fcm.subscribeToTopic("notices")
+        if (enabled && _uiState.value.prefs.notificationsEnabled) fcm.subscribeToTopic("notices")
         else fcm.unsubscribeFromTopic("notices")
     }
 
     fun togglePaymentAlerts(enabled: Boolean) {
-        val newState = uiState.copy(notifyOnPayments = enabled)
+        val newState = _uiState.value.prefs.copy(notifyOnPayments = enabled)
         saveSettings(newState)
-        // Payment alerts are usually targeted by User ID, handled by backend
     }
 
     fun setTheme(mode: ThemeMode) {
-        val newState = uiState.copy(themeMode = mode)
+        val newState = _uiState.value.prefs.copy(themeMode = mode)
         saveSettings(newState)
     }
 
@@ -121,3 +114,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 }
+
+data class SettingsUiState(
+    val prefs: SettingsPreferences = SettingsPreferences(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+)

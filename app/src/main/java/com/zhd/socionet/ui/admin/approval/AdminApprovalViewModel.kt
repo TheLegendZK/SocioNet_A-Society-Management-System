@@ -1,13 +1,14 @@
 package com.zhd.socionet.ui.admin.approval
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.repository.AdminUserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,20 +17,14 @@ class AdminApprovalViewModel @Inject constructor(
     private val repository: AdminUserRepository
 ) : ViewModel() {
 
-    // Public getter, private setter (Fixes the visibility issue pattern)
-    var uiState by mutableStateOf(AdminApprovalUiState())
-        private set
+    private val _uiState = MutableStateFlow(AdminApprovalUiState())
+    val uiState: StateFlow<AdminApprovalUiState> = _uiState.asStateFlow()
 
-    init {
-        loadPendingRequests()
-    }
-
-    private fun loadPendingRequests() {
+    fun loadPendingRequests(societyId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
-            // Hardcoded Society ID for now. In real app, get from Admin's profile.
-            val users = repository.getPendingUsers("WbZ6qVoyNlMi1Quch8o3")
-            uiState = uiState.copy(isLoading = false, pendingUsers = users)
+            _uiState.update { it.copy(isLoading = true) }
+            val users = repository.getPendingUsers(societyId)
+            _uiState.update { it.copy(isLoading = false, pendingUsers = users) }
         }
     }
 
@@ -37,13 +32,14 @@ class AdminApprovalViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.approveUser(user.id)
             if (result.isSuccess) {
-                // Remove from list locally to update UI instantly
-                uiState = uiState.copy(
-                    pendingUsers = uiState.pendingUsers.filter { it.id != user.id },
-                    message = "Approved ${user.fullName}"
-                )
+                _uiState.update { state ->
+                    state.copy(
+                        pendingUsers = state.pendingUsers.filter { it.id != user.id },
+                        message = "Approved ${user.fullName}"
+                    )
+                }
             } else {
-                uiState = uiState.copy(message = "Failed to approve: ${result.exceptionOrNull()?.message}")
+                _uiState.update { it.copy(message = "Failed to approve: ${result.exceptionOrNull()?.message}") }
             }
         }
     }
@@ -52,18 +48,20 @@ class AdminApprovalViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.rejectUser(user.id)
             if (result.isSuccess) {
-                uiState = uiState.copy(
-                    pendingUsers = uiState.pendingUsers.filter { it.id != user.id },
-                    message = "Rejected ${user.fullName}"
-                )
+                _uiState.update { state ->
+                    state.copy(
+                        pendingUsers = state.pendingUsers.filter { it.id != user.id },
+                        message = "Rejected ${user.fullName}"
+                    )
+                }
             } else {
-                uiState = uiState.copy(message = "Failed to reject")
+                _uiState.update { it.copy(message = "Failed to reject") }
             }
         }
     }
 
     fun clearMessage() {
-        uiState = uiState.copy(message = null)
+        _uiState.update { it.copy(message = null) }
     }
 }
 

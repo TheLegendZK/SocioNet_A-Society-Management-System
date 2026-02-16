@@ -1,8 +1,5 @@
 package com.zhd.socionet.ui.resident.complaints
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Complaint
@@ -10,6 +7,10 @@ import com.zhd.socionet.data.model.ComplaintCategory
 import com.zhd.socionet.data.model.ComplaintScope
 import com.zhd.socionet.data.repository.ComplaintRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,14 +19,14 @@ class ComplaintViewModel @Inject constructor(
     private val repository: ComplaintRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(ComplaintUiState())
-        private set
+    private val _uiState = MutableStateFlow(ComplaintUiState())
+    val uiState: StateFlow<ComplaintUiState> = _uiState.asStateFlow()
 
     fun loadComplaints(flatId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val list = repository.getComplaintsForFlat(flatId)
-            uiState = uiState.copy(isLoading = false, complaints = list)
+            _uiState.update { it.copy(isLoading = false, complaints = list) }
         }
     }
 
@@ -37,13 +38,13 @@ class ComplaintViewModel @Inject constructor(
         userId: String
     ) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val complaint = Complaint(
                 title = title,
                 description = description,
                 category = category,
-                scope = ComplaintScope.PERSONAL, // Defaulting to Personal for now
+                scope = ComplaintScope.PERSONAL,
                 flatId = flatId,
                 raisedByUserId = userId,
                 status = "OPEN"
@@ -52,24 +53,23 @@ class ComplaintViewModel @Inject constructor(
             val result = repository.fileComplaint(complaint)
 
             if (result.isSuccess) {
-                // Refresh list and close dialog
                 val updatedList = repository.getComplaintsForFlat(flatId)
-                uiState = uiState.copy(
+                _uiState.update { it.copy(
                     isLoading = false,
                     isSuccess = true,
                     complaints = updatedList
-                )
+                ) }
             } else {
-                uiState = uiState.copy(
+                _uiState.update { it.copy(
                     isLoading = false,
                     errorMessage = "Failed to submit complaint"
-                )
+                ) }
             }
         }
     }
 
     fun resetSuccess() {
-        uiState = uiState.copy(isSuccess = false)
+        _uiState.update { it.copy(isSuccess = false) }
     }
 }
 

@@ -8,6 +8,13 @@ object AppConstants {
     const val COLL_GATE_ENTRIES = "gate_entries"
     const val COLL_NOTICES = "notices"
     const val COLL_BILLS = "bills"
+    const val COLL_SERVICE_STAFF = "service_staff"
+    const val COLL_COMPLAINTS = "complaints"
+    const val COLL_CONFIG = "config"
+    const val COLL_EMERGENCY_ALERTS = "emergency_alerts"
+
+    // Firestore Document Names
+    const val DOC_SETTINGS = "settings"
 
     // Storage Paths
     const val PATH_PROFILE_PICS = "profile_photos/"

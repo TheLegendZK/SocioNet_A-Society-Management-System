@@ -1,14 +1,15 @@
 package com.zhd.socionet.ui.security.staff
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.repository.GatePassRepository
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,26 +19,25 @@ class SecurityStaffViewModel @Inject constructor(
     private val gateRepo: GatePassRepository
 ) : ViewModel() {
 
-    var staffList by mutableStateOf<List<ServiceStaff>>(emptyList())
-    var isLoading by mutableStateOf(false)
+    private val _uiState = MutableStateFlow(SecurityStaffUiState())
+    val uiState: StateFlow<SecurityStaffUiState> = _uiState.asStateFlow()
 
-    init {
-        loadStaff()
-    }
-
-    private fun loadStaff() {
+    fun loadStaff(societyId: String) {
         viewModelScope.launch {
-            isLoading = true
-            // Hardcoded society
-            staffList = staffRepo.getStaffList("WbZ6qVoyNlMi1Quch8o3")
-            isLoading = false
+            _uiState.update { it.copy(isLoading = true) }
+            val list = staffRepo.getStaffList(societyId)
+            _uiState.update { it.copy(isLoading = false, staffList = list) }
         }
     }
 
     fun markAttendance(staff: ServiceStaff, action: String) {
         viewModelScope.launch {
             gateRepo.logStaffEntry(staff.id, staff.name, action)
-            // In a real app, we'd show a Snackbar here
         }
     }
 }
+
+data class SecurityStaffUiState(
+    val staffList: List<ServiceStaff> = emptyList(),
+    val isLoading: Boolean = false
+)

@@ -1,6 +1,7 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.Society
 import kotlinx.coroutines.tasks.await
@@ -19,11 +20,10 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun createSociety(society: Society): Result<String> {
         return try {
-            // Generate a unique ID if not provided (e.g., "royal_palms_mumbai")
-            val societyId = society.id.ifBlank { firestore.collection("societies").document().id }
+            val societyId = society.id.ifBlank { firestore.collection(AppConstants.COLL_SOCIETIES).document().id }
             val finalSociety = society.copy(id = societyId)
 
-            firestore.collection("societies").document(societyId).set(finalSociety).await()
+            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).set(finalSociety).await()
             Result.success(societyId)
         } catch (e: Exception) {
             Result.failure(e)
@@ -34,10 +34,8 @@ class AdminRepositoryImpl @Inject constructor(
         return try {
             val batch = firestore.batch()
 
-            // Firestore limits batches to 500 ops.
-            // In a real huge society, we'd chunk this. For now, assuming <500 flats per setup.
             flats.forEach { flat ->
-                val docRef = firestore.collection("flats").document(flat.id)
+                val docRef = firestore.collection(AppConstants.COLL_FLATS).document(flat.id)
                 batch.set(docRef, flat)
             }
 

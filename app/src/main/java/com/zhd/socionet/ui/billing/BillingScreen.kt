@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -59,15 +61,17 @@ fun BillingScreen(
     userId: String,
     isAdmin: Boolean,
     societyId: String = "",
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         if (!isAdmin && flatId != null) viewModel.loadBills(flatId)
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(SoftTheme.bg)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,7 +93,9 @@ fun BillingScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = if (isAdmin) stringResource(R.string.accounts_admin) else stringResource(R.string.my_dues),
+                            text = if (isAdmin) stringResource(R.string.accounts_admin) else stringResource(
+                                R.string.my_dues
+                            ),
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
@@ -107,7 +113,9 @@ fun BillingScreen(
                 )
             }
         ) { padding ->
-            Column(modifier = Modifier.padding(padding).padding(horizontal = 24.dp)) {
+            Column(modifier = Modifier
+                .padding(padding)
+                .padding(horizontal = 24.dp)) {
                 if (isAdmin) {
                     Spacer(Modifier.height(16.dp))
                     SoftCard {
@@ -132,7 +140,7 @@ fun BillingScreen(
                             if (uiState.adminMessage != null) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
-                                    text = uiState.adminMessage,
+                                    text = uiState.adminMessage!!,
                                     color = SoftTheme.primary,
                                     style = MaterialTheme.typography.bodySmall,
                                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -142,7 +150,10 @@ fun BillingScreen(
                     }
                 } else {
                     Spacer(Modifier.height(16.dp))
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
                             text = stringResource(R.string.total_outstanding),
                             style = MaterialTheme.typography.labelLarge,
@@ -157,9 +168,17 @@ fun BillingScreen(
                         if (uiState.totalOutstanding <= 0.0) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(top = 8.dp).background(Color.White.copy(alpha = 0.2f), CircleShape).padding(horizontal = 12.dp, vertical = 4.dp)
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
                             ) {
-                                Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(R.string.all_caught_up),
@@ -181,21 +200,38 @@ fun BillingScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (uiState.isLoading) {
-                        Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator(color = SoftTheme.primary)
                         }
                     } else if (uiState.bills.isEmpty()) {
                         SoftCard {
                             Text(
                                 text = "No billing history found",
-                                modifier = Modifier.padding(vertical = 32.dp).align(Alignment.CenterHorizontally),
+                                modifier = Modifier
+                                    .padding(vertical = 32.dp)
+                                    .align(Alignment.CenterHorizontally),
                                 color = SoftTheme.textSecondary
                             )
                         }
                     } else {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(bottom = 24.dp)
+                        ) {
                             items(uiState.bills) { bill ->
-                                BillItem(bill, onPay = { viewModel.payBill(bill, userId) })
+                                BillItem(
+                                    bill,
+                                    onPay = {
+                                        if (flatId != null) {
+                                            viewModel.payBill(bill.id, userId, flatId)
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -255,7 +291,9 @@ fun BillItem(bill: Bill, onPay: () -> Unit) {
                 } else {
                     Button(
                         onClick = onPay,
-                        modifier = Modifier.height(36.dp).padding(top = 8.dp),
+                        modifier = Modifier
+                            .height(36.dp)
+                            .padding(top = 8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = SoftTheme.primary),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)

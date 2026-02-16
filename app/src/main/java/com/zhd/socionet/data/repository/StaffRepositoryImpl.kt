@@ -2,6 +2,7 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.ServiceStaff
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class StaffRepositoryImpl @Inject constructor(
 
     override suspend fun addStaff(staff: ServiceStaff): Result<Unit> {
         return try {
-            val docRef = firestore.collection("service_staff").document()
+            val docRef = firestore.collection(AppConstants.COLL_SERVICE_STAFF).document()
             val finalStaff = staff.copy(id = docRef.id)
             docRef.set(finalStaff).await()
             Result.success(Unit)
@@ -33,7 +34,7 @@ class StaffRepositoryImpl @Inject constructor(
 
     override suspend fun getStaffList(societyId: String): List<ServiceStaff> {
         return try {
-            val snapshot = firestore.collection("service_staff")
+            val snapshot = firestore.collection(AppConstants.COLL_SERVICE_STAFF)
                 .whereEqualTo("societyId", societyId)
                 .get().await()
             snapshot.toObjects(ServiceStaff::class.java)
@@ -44,7 +45,7 @@ class StaffRepositoryImpl @Inject constructor(
 
     override suspend fun updateStaffStatus(staffId: String, isActive: Boolean): Result<Unit> {
         return try {
-            firestore.collection("service_staff").document(staffId)
+            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("isActive", isActive)
                 .await()
             Result.success(Unit)
@@ -55,7 +56,7 @@ class StaffRepositoryImpl @Inject constructor(
 
     override suspend fun linkStaffToFlat(staffId: String, flatId: String): Result<Unit> {
         return try {
-            firestore.collection("service_staff").document(staffId)
+            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("employerFlatIds", FieldValue.arrayUnion(flatId))
                 .await()
             Result.success(Unit)
@@ -66,7 +67,7 @@ class StaffRepositoryImpl @Inject constructor(
 
     override suspend fun unlinkStaffFromFlat(staffId: String, flatId: String): Result<Unit> {
         return try {
-            firestore.collection("service_staff").document(staffId)
+            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("employerFlatIds", FieldValue.arrayRemove(flatId))
                 .await()
             Result.success(Unit)

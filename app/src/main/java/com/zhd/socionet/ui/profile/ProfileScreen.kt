@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +77,7 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onLogout: () -> Unit
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     var showEditDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
@@ -89,7 +90,7 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { viewModel.clearMessages() },
             title = { Text("Success", fontWeight = FontWeight.Bold) },
-            text = { Text(uiState.successMessage) },
+            text = { Text(uiState.successMessage!!) },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearMessages() }) {
                     Text("OK", fontWeight = FontWeight.Bold)

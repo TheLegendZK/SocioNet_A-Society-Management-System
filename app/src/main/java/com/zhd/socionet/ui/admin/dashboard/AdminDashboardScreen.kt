@@ -1,43 +1,16 @@
 package com.zhd.socionet.ui.admin.dashboard
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apartment
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -55,6 +28,7 @@ import com.zhd.socionet.ui.admin.approval.AdminApprovalViewModel
 import com.zhd.socionet.ui.common.SoftAccent
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
+import com.zhd.socionet.ui.navigation.NavArgs
 import com.zhd.socionet.ui.navigation.Routes
 import com.zhd.socionet.ui.profile.ProfileViewModel
 
@@ -65,8 +39,8 @@ fun AdminDashboardScreen(
     approvalViewModel: AdminApprovalViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val approvalState = approvalViewModel.uiState
-    val profileState = profileViewModel.uiState
+    val approvalState by approvalViewModel.uiState.collectAsState()
+    val profileState by profileViewModel.uiState.collectAsState()
     val user = profileState.userProfile
 
     val societyId = user?.assignedFlatId?.substringBefore("_") ?: ""
@@ -78,8 +52,13 @@ fun AdminDashboardScreen(
         }
     }
 
+    LaunchedEffect(societyId) {
+        if (societyId.isNotEmpty()) {
+            approvalViewModel.loadPendingRequests(societyId)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
-        // Background Header Gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,7 +100,6 @@ fun AdminDashboardScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Welcome and Stats Card
                 item(span = { GridItemSpan(2) }) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
@@ -134,7 +112,7 @@ fun AdminDashboardScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = profileState.userProfile?.fullName?.take(1) ?: "A",
+                                    text = user?.fullName?.take(1) ?: "A",
                                     color = Color.White,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold
@@ -143,20 +121,19 @@ fun AdminDashboardScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text = "Welcome, ${profileState.userProfile?.fullName ?: "Admin"}",
+                            text = stringResource(R.string.welcome_admin, user?.fullName ?: "Admin"),
                             style = MaterialTheme.typography.headlineSmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Society Administrator",
+                            text = stringResource(R.string.society_administrator),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
 
-                val user = profileState.userProfile
                 if (user != null && !user.assignedFlatId.isNullOrBlank()) {
                     item(span = { GridItemSpan(2) }) {
                         SoftCard(
@@ -185,13 +162,13 @@ fun AdminDashboardScreen(
                                 Spacer(Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "My Residence",
+                                        text = stringResource(R.string.my_residence),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = SoftTheme.textPrimary
                                     )
                                     Text(
-                                        text = "Switch to Resident View (${user.assignedFlatId.replace("_", " ").split(" ").last()})",
+                                        text = stringResource(R.string.switch_to_resident_view, profileState.displayFlatId ?: ""),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = SoftTheme.textSecondary
                                     )
@@ -203,7 +180,11 @@ fun AdminDashboardScreen(
 
                 item(span = { GridItemSpan(2) }) {
                     SoftCard(
-                        onClick = { navController.navigate(Routes.ADMIN_APPROVALS) },
+                        onClick = {
+                            if (societyId.isNotEmpty()) {
+                                navController.navigate("${Routes.ADMIN_APPROVALS}/$societyId")
+                            }
+                        },
                         backgroundColor = if(approvalState.pendingUsers.isNotEmpty()) SoftAccent.copy(alpha = 0.1f) else SoftTheme.surface
                     ) {
                         Row(
@@ -234,7 +215,7 @@ fun AdminDashboardScreen(
                                         color = SoftTheme.textPrimary
                                     )
                                     Text(
-                                        text = "New user registration requests",
+                                        text = stringResource(R.string.new_user_requests),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = SoftTheme.textSecondary
                                     )
@@ -260,7 +241,7 @@ fun AdminDashboardScreen(
                     AdminActionCard(
                         title = stringResource(R.string.setup_society),
                         icon = Icons.Default.Apartment,
-                        color = Color(0xFF42A5F5)
+                        color = SoftTheme.info
                     ) {
                         navController.navigate(Routes.ADMIN_MANAGE_FLATS)
                     }
@@ -269,36 +250,43 @@ fun AdminDashboardScreen(
                     AdminActionCard(
                         title = stringResource(R.string.accounts),
                         icon = Icons.Default.AttachMoney,
-                        color = Color(0xFF66BB6A)
+                        color = SoftTheme.success
                     ) {
-                        navController.navigate(Routes.ADMIN_BILLING)
+                        if (societyId.isNotEmpty()) {
+                            navController.navigate("${Routes.ADMIN_BILLING}/$societyId")
+                        }
                     }
                 }
                 item {
                     AdminActionCard(
                         title = stringResource(R.string.staff_registry),
                         icon = Icons.Default.Badge,
-                        color = Color(0xFFFFA726)
+                        color = SoftTheme.warning
                     ) {
-                        navController.navigate(Routes.ADMIN_STAFF_REGISTRY)
+                        if (societyId.isNotEmpty()) {
+                            navController.navigate("${Routes.ADMIN_STAFF_REGISTRY}/$societyId")
+                        }
                     }
                 }
                 item {
                     AdminActionCard(
-                        title = "Post Notice",
+                        title = stringResource(R.string.post_notice),
                         icon = Icons.Default.Campaign,
                         color = SoftAccent
                     ) {
-                        navController.navigate(Routes.ADMIN_POST_NOTICE)
+                        if (societyId.isNotEmpty()) {
+                            navController.navigate("${Routes.ADMIN_POST_NOTICE}?${NavArgs.SOCIETY_ID}=$societyId")
+                        } else {
+                            navController.navigate(Routes.ADMIN_POST_NOTICE)
+                        }
                     }
                 }
                 item {
                     AdminActionCard(
-                        title = "Directory",
+                        title = stringResource(R.string.directory),
                         icon = Icons.Default.Contacts,
-                        color = Color(0xFF9C27B0)
+                        color = SoftTheme.purple
                     ) {
-                        // Pass true for Admin access + Dynamic ID
                         if (societyId.isNotEmpty()) {
                             navController.navigate("${Routes.SOCIETY_DIRECTORY}/true/$societyId")
                         }

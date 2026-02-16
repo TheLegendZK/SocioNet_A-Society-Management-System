@@ -1,13 +1,14 @@
 package com.zhd.socionet.ui.directory
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.repository.SocietyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,26 +17,25 @@ class SocietyDirectoryViewModel @Inject constructor(
     private val repository: SocietyRepository,
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(SocietyDirectoryUiState())
-        private set
+    private val _uiState = MutableStateFlow(SocietyDirectoryUiState())
+    val uiState: StateFlow<SocietyDirectoryUiState> = _uiState.asStateFlow()
 
     fun loadDirectory(societyId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val result = repository.getSocietyResidents(societyId)
 
             result.onSuccess { users ->
-                // Sort by Flat ID (e.g. A_101, A_102)
                 val sortedUsers = users.sortedBy { it.assignedFlatId }
-                uiState = uiState.copy(isLoading = false, residents = sortedUsers)
-            }.onFailure {
-                uiState = uiState.copy(isLoading = false, errorMessage = it.message)
+                _uiState.update { it.copy(isLoading = false, residents = sortedUsers) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
-        uiState = uiState.copy(searchQuery = query)
+        _uiState.update { it.copy(searchQuery = query) }
     }
 }
 

@@ -1,13 +1,14 @@
 package com.zhd.socionet.ui.resident.staff
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,14 +17,14 @@ class ResidentStaffViewModel @Inject constructor(
     private val repository: StaffRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(ResidentStaffUiState())
-        private set
+    private val _uiState = MutableStateFlow(ResidentStaffUiState())
+    val uiState: StateFlow<ResidentStaffUiState> = _uiState.asStateFlow()
 
     fun loadStaff(societyId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val list = repository.getStaffList(societyId)
-            uiState = uiState.copy(isLoading = false, allStaff = list)
+            _uiState.update { it.copy(isLoading = false, allStaff = list) }
         }
     }
 
@@ -39,7 +40,7 @@ class ResidentStaffViewModel @Inject constructor(
 
             if (result.isSuccess) {
                 // Optimistic Update: Update the local list instantly
-                val updatedList = uiState.allStaff.map { item ->
+                val updatedList = _uiState.value.allStaff.map { item ->
                     if (item.id == staff.id) {
                         val newEmployers = if (isCurrentlyLinked) {
                             item.employerFlatIds - flatId
@@ -49,7 +50,7 @@ class ResidentStaffViewModel @Inject constructor(
                         item.copy(employerFlatIds = newEmployers)
                     } else item
                 }
-                uiState = uiState.copy(allStaff = updatedList)
+                _uiState.update { it.copy(allStaff = updatedList) }
             }
         }
     }

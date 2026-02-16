@@ -1,38 +1,15 @@
 package com.zhd.socionet.ui.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -57,16 +34,14 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    // Form State
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Dropdowns
     var socExpanded by remember { mutableStateOf(false) }
     var wingExpanded by remember { mutableStateOf(false) }
     var flatExpanded by remember { mutableStateOf(false) }
@@ -94,7 +69,7 @@ fun RegisterScreen(
             .background(SoftTheme.bg)
     ) {
         AuthHeader(
-            title = "Join Us",
+            title = stringResource(R.string.join_society),
             subtitle = "Create your account to get started"
         )
 
@@ -154,7 +129,6 @@ fun RegisterScreen(
                         color = SoftTheme.primary
                     )
 
-                    // Society
                     ExposedDropdownMenuBox(expanded = socExpanded, onExpandedChange = { socExpanded = it }) {
                         SocioTextField(
                             value = uiState.societies.find { it.first == uiState.selectedSocietyId }?.second ?: "",
@@ -180,7 +154,6 @@ fun RegisterScreen(
 
                     if (uiState.selectedSocietyId.isNotEmpty()) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            // Wing
                             ExposedDropdownMenuBox(expanded = wingExpanded, onExpandedChange = { wingExpanded = it }, modifier = Modifier.weight(1f)) {
                                 SocioTextField(
                                     value = uiState.selectedWing, onValueChange = {}, readOnly = true,
@@ -201,7 +174,6 @@ fun RegisterScreen(
                                     }
                                 }
                             }
-                            // Flat
                             ExposedDropdownMenuBox(expanded = flatExpanded, onExpandedChange = { flatExpanded = it }, modifier = Modifier.weight(1f)) {
                                 SocioTextField(
                                     value = uiState.flats.find { it.first == uiState.selectedFlatId }?.second ?: "",
@@ -226,7 +198,6 @@ fun RegisterScreen(
                         }
                     }
 
-                    // Role
                     ExposedDropdownMenuBox(expanded = roleExpanded, onExpandedChange = { roleExpanded = it }) {
                         SocioTextField(
                             value = when(uiState.selectedRole) {

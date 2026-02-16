@@ -1,11 +1,9 @@
 package com.zhd.socionet.ui.resident.gatepass
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import com.zhd.socionet.core.utils.OtpGenerator
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.ServiceStaff
@@ -13,73 +11,73 @@ import com.zhd.socionet.data.model.VisitorType
 import com.zhd.socionet.data.repository.GatePassRepository
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class GatePassViewModel @Inject constructor(
     private val repository: GatePassRepository,
-    private val staffRepository: StaffRepository
+    private val staffRepository: StaffRepository,
+    private val otpGenerator: OtpGenerator
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(GatePassUiState())
-        private set
+    private val _uiState = MutableStateFlow(GatePassUiState())
+    val uiState: StateFlow<GatePassUiState> = _uiState.asStateFlow()
 
-    // --- REAL TIME LOADER ---
     fun loadPendingRequests(flatId: String) {
         viewModelScope.launch {
-            // This stays open and updates whenever Firestore changes
             repository.getPendingRequestsFlow(flatId).collectLatest { requests ->
-                uiState = uiState.copy(pendingRequests = requests)
+                _uiState.update { it.copy(pendingRequests = requests) }
             }
         }
     }
 
     fun loadHistory(flatId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             val history = repository.getPastPasses(flatId)
-            uiState = uiState.copy(isLoading = false, visitorHistory = history)
+            _uiState.update { it.copy(isLoading = false, visitorHistory = history) }
         }
     }
 
-    // --- Actions ---
-
     fun onVisitorNameChanged(name: String) {
-        uiState = uiState.copy(visitorName = name)
+        _uiState.update { it.copy(visitorName = name) }
     }
 
     fun onVisitorTypeChanged(type: VisitorType) {
-        uiState = uiState.copy(visitorType = type)
+        _uiState.update { it.copy(visitorType = type) }
     }
 
     fun generatePass(hostFlatId: String, hostUserId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true, errorMessage = null)
-            if (uiState.visitorName.isBlank()) {
-                uiState = uiState.copy(isLoading = false, errorMessage = "Visitor Name is required")
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            if (_uiState.value.visitorName.isBlank()) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Visitor Name is required") }
                 return@launch
             }
 
-            val otp = Random.nextInt(100000, 999999).toString()
+            val otp = otpGenerator.generateOtp()
             val entry = GateEntry(
-                visitorName = uiState.visitorName,
-                visitorType = uiState.visitorType,
+                visitorName = _uiState.value.visitorName,
+                visitorType = _uiState.value.visitorType,
                 hostFlatId = hostFlatId,
                 hostUserId = hostUserId,
                 entryCode = otp,
                 entryTime = Timestamp(Date()),
-                status = EntryStatus.APPROVED // Pre-approved
+                status = EntryStatus.APPROVED
             )
 
             val result = repository.createGatePass(entry)
-            result.onSuccess { passId ->
-                uiState = uiState.copy(isLoading = false, isSuccess = true, generatedPassId = passId, generatedOtp = otp)
-            }.onFailure {
-                uiState = uiState.copy(isLoading = false, errorMessage = it.message)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isLoading = false, isSuccess = true, generatedPassId = result.getOrNull(), generatedOtp = otp) }
+            } else {
+                _uiState.update { it.copy(isLoading = false, errorMessage = result.exceptionOrNull()?.message) }
             }
         }
     }
@@ -87,37 +85,28 @@ class GatePassViewModel @Inject constructor(
     fun respondToRequest(entry: GateEntry, accept: Boolean) {
         viewModelScope.launch {
             val status = if (accept) EntryStatus.APPROVED else EntryStatus.DENIED
-            val result = repository.respondToRequest(entry.id, status)
-            // No need to manually update list, the Flow will auto-update!
+            repository.respondToRequest(entry.id, status)
         }
     }
 
     fun loadLinkedStaffAndLogs(societyId: String, flatId: String) {
         viewModelScope.launch {
-            // 1. Get all staff in society
             val allStaff = staffRepository.getStaffList(societyId)
-
-            // 2. Filter only those linked to THIS flat
             val myStaff = allStaff.filter { it.employerFlatIds.contains(flatId) }
 
             if (myStaff.isNotEmpty()) {
                 val myStaffIds = myStaff.map { it.id }
-
-                // 3. Start observing their logs
                 repository.getStaffLogsFlow(myStaffIds).collectLatest { logs ->
-                    uiState = uiState.copy(
-                        linkedStaff = myStaff,
-                        staffLogs = logs
-                    )
+                    _uiState.update { it.copy(linkedStaff = myStaff, staffLogs = logs) }
                 }
             } else {
-                uiState = uiState.copy(linkedStaff = emptyList())
+                _uiState.update { it.copy(linkedStaff = emptyList()) }
             }
         }
     }
 
     fun resetState() {
-        uiState = uiState.copy(isSuccess = false, generatedPassId = null, generatedOtp = null, visitorName = "")
+        _uiState.update { it.copy(isSuccess = false, generatedPassId = null, generatedOtp = null, visitorName = "") }
     }
 }
 
@@ -129,10 +118,8 @@ data class GatePassUiState(
     val generatedPassId: String? = null,
     val generatedOtp: String? = null,
     val errorMessage: String? = null,
-
     val pendingRequests: List<GateEntry> = emptyList(),
     val visitorHistory: List<GateEntry> = emptyList(),
-
-    val linkedStaff: List<ServiceStaff> = emptyList(), // List of your maids/drivers
-    val staffLogs: List<GateEntry> = emptyList()       // Their entry history
+    val linkedStaff: List<ServiceStaff> = emptyList(),
+    val staffLogs: List<GateEntry> = emptyList()
 )

@@ -21,7 +21,7 @@
     <string name="login">Login</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="dont_have_account">Don\'t have an account? Join Society</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
     <string name="society_operating_system">Society Operating System</string>
     <string name="registration_pending">Registration Pending</string>
     <string name="registration_success_msg">Your account has been created! Please wait for Admin approval before logging in.</string>
@@ -135,4 +135,49 @@
     <string name="theme_system">System</string>
     <string name="failed_load_settings">Failed to load settings</string>
     <string name="failed_save_changes">Failed to save changes</string>
+
+    <string name="welcome_back_title">Welcome Back</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="register_now">Register Now</string>
+    <string name="visitor_name_required">Visitor Name is required</string>
+    <string name="post_notice">Post Notice</string>
+    <string name="directory">Directory</string>
+    <string name="complaints">Complaints</string>
+    <string name="my_residence">My Residence</string>
+    <string name="new_user_requests">New user registration requests</string>
+    <string name="welcome_admin">Welcome, %1$s</string>
+    <string name="society_administrator">Society Administrator</string>
+    <string name="switch_to_resident_view">Switch to Resident View (%1$s)</string>
+
+    <string name="success">Success</string>
+    <string name="ok">OK</string>
+    <string name="create_notice">Create Notice</string>
+    <string name="new_announcement">New Announcement</string>
+    <string name="subject_headline">Subject / Headline</string>
+    <string name="notice_details">Notice Details</string>
+    <string name="priority">Priority</string>
+    <string name="audience">Audience</string>
+    <string name="broadcast_notice">Broadcast Notice</string>
+    <string name="notice_success_msg">Community notice has been broadcasted successfully.</string>
+    <string name="failed_post_notice">Failed to post notice</string>
+
+    <string name="resident_help_desk">Resident Help Desk</string>
+    <string name="manage_complaints">Manage Complaints</string>
+    <string name="no_complaints_reported">No complaints reported yet</string>
+
+    <string name="society_setup">Society Setup</string>
+    <string name="society_name">Society Name</string>
+    <string name="address">Address</string>
+    <string name="registration_number">Registration Number</string>
+    <string name="wing_configurations">Wing Configurations</string>
+    <string name="add_wing">Add Wing</string>
+    <string name="floors">Floors</string>
+    <string name="flats_per_floor">Flats Per Floor</string>
+    <string name="save_setup">Save Setup</string>
+    <string name="failed_create_flats">Failed to create flats.</string>
+
+    <string name="staff_registry_title">Staff Registry</string>
+    <string name="add_staff_member">Add Staff Member</string>
+    <string name="name">Name</string>
+    <string name="role">Role</string>
 </resources>

@@ -1,14 +1,15 @@
 package com.zhd.socionet.ui.security.scanner
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.repository.SecurityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,10 +18,8 @@ class SecurityScannerViewModel @Inject constructor(
     private val repository: SecurityRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(ScannerUiState())
-        private set
-
-    // --- Actions ---
+    private val _uiState = MutableStateFlow(ScannerUiState())
+    val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
 
     fun onOtpEntered(otp: String) {
         if (otp.length == 6) {
@@ -34,51 +33,46 @@ class SecurityScannerViewModel @Inject constructor(
 
     private fun verifyPass(isQr: Boolean, code: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true, scanResult = null)
+            _uiState.update { it.copy(isLoading = true, scanResult = null) }
 
-            // 1. Verify Validity
             val result = if (isQr) repository.verifyEntryByQr(code) else repository.verifyEntryByOtp(code)
 
             result.onSuccess { entry ->
-                // 2. Mark as Checked In (Real World: The Guard doesn't need to click twice)
                 markCheckIn(entry)
-            }.onFailure {
-                uiState = uiState.copy(
+            }.onFailure {exception ->
+                _uiState.update { it.copy(
                     isLoading = false,
-                    scanResult = ScanResult.Error(it.message ?: "Unknown Error")
-                )
+                    scanResult = ScanResult.Error(exception.message ?: "Unknown Error")
+                ) }
             }
         }
     }
 
     private fun markCheckIn(entry: GateEntry) {
         viewModelScope.launch {
-            // Hardcoded guard ID for demo. Real app gets it from Auth.
             val checkInResult = repository.markEntryAsCheckedIn(entry.id, "guard_001")
 
             checkInResult.onSuccess {
-                uiState = uiState.copy(
+                _uiState.update { it.copy(
                     isLoading = false,
                     scanResult = ScanResult.Success(entry)
-                )
-                // Auto-reset screen after 3 seconds so guard is ready for next car
+                ) }
                 delay(3000)
                 resetScanner()
             }.onFailure {
-                uiState = uiState.copy(
+                _uiState.update { it.copy(
                     isLoading = false,
                     scanResult = ScanResult.Error("Database Error: Could not check in.")
-                )
+                ) }
             }
         }
     }
 
     fun resetScanner() {
-        uiState = ScannerUiState()
+        _uiState.update { ScannerUiState() }
     }
 }
 
-// --- UI States ---
 data class ScannerUiState(
     val isLoading: Boolean = false,
     val scanResult: ScanResult? = null

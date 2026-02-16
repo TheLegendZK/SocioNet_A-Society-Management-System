@@ -2,6 +2,11 @@ package com.zhd.socionet.core.theme
 
 import androidx.compose.ui.graphics.Color
 
+val SoftInfo = Color(0xFF42A5F5)
+val SoftSuccess = Color(0xFF66BB6A)
+val SoftWarning = Color(0xFFFFA726)
+val SoftPurple = Color(0xFF9C27B0)
+
 val primaryLight = Color(0xFF0001BB)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFF0000FF)

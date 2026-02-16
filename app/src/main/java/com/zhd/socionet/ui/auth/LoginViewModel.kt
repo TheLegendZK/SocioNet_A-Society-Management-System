@@ -1,14 +1,16 @@
 package com.zhd.socionet.ui.auth
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -19,19 +21,19 @@ class LoginViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(LoginUiState())
-        private set
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun login(email: String, pass: String, onLoginSuccess: (UserProfile) -> Unit) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 // 1. Auth
                 val authResult = auth.signInWithEmailAndPassword(email, pass).await()
                 val uid = authResult.user?.uid ?: throw Exception("Login failed")
 
                 // 2. Fetch Profile to know Role
-                val doc = firestore.collection("users").document(uid).get().await()
+                val doc = firestore.collection(AppConstants.COLL_USERS).document(uid).get().await()
                 val profile = doc.toObject(UserProfile::class.java)
 
                 if (profile == null) {
@@ -40,7 +42,7 @@ class LoginViewModel @Inject constructor(
                     onLoginSuccess(profile)
                 }
             } catch (e: Exception) {
-                uiState = uiState.copy(isLoading = false, errorMessage = e.message)
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
     }

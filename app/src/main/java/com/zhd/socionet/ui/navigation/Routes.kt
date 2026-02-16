@@ -30,7 +30,7 @@ object Routes {
     // --- Security Module ---
     const val SECURITY_DASHBOARD = "security_dashboard"
     const val SECURITY_SCANNER = "security_qr_scanner"
-    const val SECURITY_MANUAL_ENTRY = "security_manual_entry" // New
+    const val SECURITY_MANUAL_ENTRY = "security_manual_entry"
     const val SECURITY_STAFF = "security_staff_attendance"
 
     // --- Profile ---
@@ -46,4 +46,5 @@ object NavArgs {
     const val NOTICE_ID = "noticeId"
     const val IS_ADMIN = "isAdmin"
     const val SOCIETY_ID = "societyId"
+    const val USER_ID = "userId"
 }

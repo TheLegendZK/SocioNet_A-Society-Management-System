@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.zhd.socionet.core.theme.*
 
 val LocalDarkTheme = compositionLocalOf { false }
 
@@ -29,6 +30,12 @@ object SoftTheme {
 
     val shadowDark: Color
         @Composable get() = if (LocalDarkTheme.current) Color.Black.copy(alpha = 0.5f) else Color(0xFFA3B1C6).copy(alpha = 0.3f)
+
+    // Semantic Colors
+    val info: Color = SoftInfo
+    val success: Color = SoftSuccess
+    val warning: Color = SoftWarning
+    val purple: Color = SoftPurple
 }
 
 val SoftAccent = Color(0xFFFF6B6B)

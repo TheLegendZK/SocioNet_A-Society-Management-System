@@ -2,48 +2,15 @@ package com.zhd.socionet.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -63,15 +30,13 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
-    val uiState = viewModel.uiState
-    val isLoading = viewModel.isLoading
+    val uiState by viewModel.uiState.collectAsState()
     var showThemeDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel.errorMessage) {
-        viewModel.errorMessage?.let {
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.errorMessage = null
         }
     }
 
@@ -110,7 +75,7 @@ fun SettingsScreen(
                 )
             }
         ) { padding ->
-            if (isLoading) {
+            if (uiState.isLoading) {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
                 }
@@ -153,7 +118,7 @@ fun SettingsScreen(
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = when (uiState.themeMode) {
+                                        text = when (uiState.prefs.themeMode) {
                                             ThemeMode.LIGHT -> stringResource(R.string.theme_light)
                                             ThemeMode.DARK -> stringResource(R.string.theme_dark)
                                             ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
@@ -179,19 +144,19 @@ fun SettingsScreen(
                         SoftCard {
                             SettingsSwitchRow(
                                 title = stringResource(R.string.master_toggle),
-                                checked = uiState.notificationsEnabled
+                                checked = uiState.prefs.notificationsEnabled
                             ) { viewModel.toggleNotifications(it) }
 
-                            if (uiState.notificationsEnabled) {
+                            if (uiState.prefs.notificationsEnabled) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = SoftTheme.textSecondary.copy(alpha = 0.1f))
                                 SettingsSwitchRow(
                                     title = stringResource(R.string.visitor_alerts),
-                                    checked = uiState.notifyOnVisitors,
+                                    checked = uiState.prefs.notifyOnVisitors,
                                     isSub = true
                                 ) { viewModel.toggleVisitorAlerts(it) }
                                 SettingsSwitchRow(
                                     title = stringResource(R.string.notices_alerts),
-                                    checked = uiState.notifyOnNotices,
+                                    checked = uiState.prefs.notifyOnNotices,
                                     isSub = true
                                 ) { viewModel.toggleNoticeAlerts(it) }
                             }
@@ -219,7 +184,7 @@ fun SettingsScreen(
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = uiState.version,
+                                        text = uiState.prefs.version,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = SoftTheme.textSecondary
                                     )
@@ -243,7 +208,7 @@ fun SettingsScreen(
             },
             text = {
                 Column {
-                    ThemeMode.values().forEach { mode ->
+                    ThemeMode.entries.forEach { mode ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -254,7 +219,7 @@ fun SettingsScreen(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(selected = mode == uiState.themeMode, onClick = null)
+                            RadioButton(selected = mode == uiState.prefs.themeMode, onClick = null)
                             Spacer(Modifier.width(16.dp))
                             Text(
                                 text = when (mode) {

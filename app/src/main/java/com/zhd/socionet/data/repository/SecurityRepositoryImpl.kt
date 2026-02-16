@@ -2,6 +2,7 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import kotlinx.coroutines.tasks.await
@@ -21,8 +22,7 @@ class SecurityRepositoryImpl @Inject constructor(
 
     override suspend fun verifyEntryByOtp(otp: String): Result<GateEntry> {
         return try {
-            // In real world, we also filter by "Today" to prevent old OTPs
-            val snapshot = firestore.collection("gate_entries")
+            val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
                 .whereEqualTo("entryCode", otp)
                 .whereIn("status", listOf(EntryStatus.APPROVED.name, EntryStatus.PENDING_APPROVAL.name))
                 .get().await()
@@ -40,7 +40,7 @@ class SecurityRepositoryImpl @Inject constructor(
 
     override suspend fun verifyEntryByQr(passId: String): Result<GateEntry> {
         return try {
-            val doc = firestore.collection("gate_entries").document(passId).get().await()
+            val doc = firestore.collection(AppConstants.COLL_GATE_ENTRIES).document(passId).get().await()
             if (!doc.exists()) {
                 Result.failure(Exception("Invalid QR Code"))
             } else {
@@ -58,7 +58,7 @@ class SecurityRepositoryImpl @Inject constructor(
 
     override suspend fun markEntryAsCheckedIn(entryId: String, guardId: String): Result<Unit> {
         return try {
-            firestore.collection("gate_entries").document(entryId)
+            firestore.collection(AppConstants.COLL_GATE_ENTRIES).document(entryId)
                 .update(
                     mapOf(
                         "status" to EntryStatus.CHECKED_IN,

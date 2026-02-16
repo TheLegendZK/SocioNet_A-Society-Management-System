@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -54,9 +55,7 @@ fun SocioNetNavGraph(
         composable(Routes.SPLASH) {
             SplashScreen(onNavigate = { dest ->
                 navController.navigate(dest) {
-                    popUpTo(
-                        Routes.SPLASH
-                    ) { inclusive = true }
+                    popUpTo(Routes.SPLASH) { inclusive = true }
                 }
             })
         }
@@ -77,9 +76,7 @@ fun SocioNetNavGraph(
         composable(Routes.REGISTER) { RegisterScreen(onNavigateToLogin = { navController.navigateUp() }) }
         composable(Routes.PENDING_APPROVAL) {
             PendingApprovalScreen(onBackToLogin = {
-                navController.navigate(
-                    Routes.LOGIN
-                ) { popUpTo(0) }
+                navController.navigate(Routes.LOGIN) { popUpTo(0) }
             })
         }
 
@@ -87,34 +84,14 @@ fun SocioNetNavGraph(
         fun residentShell(content: @Composable () -> Unit) = @Composable {
             val backStack = navController.currentBackStackEntry
             val flatId = backStack?.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack?.arguments?.getString("userId")
+            val userId = backStack?.arguments?.getString(NavArgs.USER_ID)
                 ?: FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
             val residentNavItems = listOf(
-                NavItem(
-                    "Home",
-                    "${Routes.RESIDENT_HOME}/$flatId/$userId",
-                    Icons.Default.Home,
-                    selectedRoutePrefix = Routes.RESIDENT_HOME
-                ),
-                NavItem(
-                    "Gate Pass",
-                    "${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId",
-                    Icons.Default.QrCode,
-                    selectedRoutePrefix = Routes.RESIDENT_CREATE_PASS
-                ),
-                NavItem(
-                    "Notices",
-                    Routes.RESIDENT_NOTICES,
-                    Icons.Default.Campaign,
-                    selectedRoutePrefix = Routes.RESIDENT_NOTICES
-                ),
-                NavItem(
-                    "Profile",
-                    "${Routes.PROFILE_SCREEN}/$userId?type=resident",
-                    Icons.Default.Person,
-                    selectedRoutePrefix = Routes.PROFILE_SCREEN
-                )
+                NavItem("Home", "${Routes.RESIDENT_HOME}/$flatId/$userId", Icons.Default.Home, selectedRoutePrefix = Routes.RESIDENT_HOME),
+                NavItem("Gate Pass", "${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId", Icons.Default.QrCode, selectedRoutePrefix = Routes.RESIDENT_CREATE_PASS),
+                NavItem("Notices", Routes.RESIDENT_NOTICES, Icons.Default.Campaign, selectedRoutePrefix = Routes.RESIDENT_NOTICES),
+                NavItem("Profile", "${Routes.PROFILE_SCREEN}/$userId?type=resident", Icons.Default.Person, selectedRoutePrefix = Routes.PROFILE_SCREEN)
             )
             AdaptiveAppShell(navController, residentNavItems) { content() }
         }
@@ -123,84 +100,55 @@ fun SocioNetNavGraph(
         fun adminShell(content: @Composable () -> Unit) = @Composable {
             val adminId = FirebaseAuth.getInstance().currentUser?.uid ?: "admin"
             val adminNavItems = listOf(
-                NavItem(
-                    "Dashboard",
-                    Routes.ADMIN_DASHBOARD,
-                    Icons.Default.Dashboard,
-                    selectedRoutePrefix = Routes.ADMIN_DASHBOARD
-                ),
-                NavItem(
-                    "Complaints",
-                    Routes.ADMIN_COMPLAINTS,
-                    Icons.Default.Report,
-                    selectedRoutePrefix = Routes.ADMIN_COMPLAINTS
-                ),
-                NavItem(
-                    "Notices",
-                    Routes.ADMIN_POST_NOTICE,
-                    Icons.Default.Campaign,
-                    selectedRoutePrefix = Routes.ADMIN_POST_NOTICE
-                ),
-                NavItem(
-                    "Profile",
-                    "${Routes.PROFILE_SCREEN}/$adminId?type=admin",
-                    Icons.Default.Person,
-                    selectedRoutePrefix = Routes.PROFILE_SCREEN
-                )
+                NavItem("Dashboard", Routes.ADMIN_DASHBOARD, Icons.Default.Dashboard, selectedRoutePrefix = Routes.ADMIN_DASHBOARD),
+                NavItem("Complaints", Routes.ADMIN_COMPLAINTS, Icons.Default.Report, selectedRoutePrefix = Routes.ADMIN_COMPLAINTS),
+                NavItem("Notices", Routes.ADMIN_POST_NOTICE, Icons.Default.Campaign, selectedRoutePrefix = Routes.ADMIN_POST_NOTICE),
+                NavItem("Profile", "${Routes.PROFILE_SCREEN}/$adminId?type=admin", Icons.Default.Person, selectedRoutePrefix = Routes.PROFILE_SCREEN)
             )
             AdaptiveAppShell(navController, adminNavItems) { content() }
         }
 
         // --- RESIDENT SCREENS ---
         composable(
-            route = "${Routes.RESIDENT_HOME}/{${NavArgs.FLAT_ID}}/{userId}",
+            route = "${Routes.RESIDENT_HOME}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument("userId") { type = NavType.StringType })
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType })
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack.arguments?.getString("userId") ?: ""
+            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
             residentShell { ResidentHomeScreen(navController, flatId, userId) }()
         }
 
         composable(
-            route = "${Routes.RESIDENT_CREATE_PASS}/{${NavArgs.FLAT_ID}}/{userId}",
+            route = "${Routes.RESIDENT_CREATE_PASS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument("userId") { type = NavType.StringType })
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType })
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack.arguments?.getString("userId") ?: ""
+            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
             residentShell {
-                VisitorManagementScreen(
-                    hostFlatId = flatId,
-                    hostUserId = userId,
-                    onBackClick = { navController.popBackStack() })
+                VisitorManagementScreen(hostFlatId = flatId, hostUserId = userId, onBackClick = { navController.popBackStack() })
             }()
         }
 
         composable(Routes.RESIDENT_NOTICES) {
             residentShell {
-                NoticeBoardScreen(
-                    userWing = "A",
-                    userRoles = listOf(UserRole.OWNER),
-                    onBack = { navController.popBackStack() })
+                NoticeBoardScreen(userWing = "A", userRoles = listOf(UserRole.OWNER), onBack = { navController.popBackStack() })
             }()
         }
 
         composable(
-            "${Routes.RESIDENT_COMPLAINTS}/{${NavArgs.FLAT_ID}}/{userId}",
+            "${Routes.RESIDENT_COMPLAINTS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument("userId") { type = NavType.StringType })
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType })
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack.arguments?.getString("userId") ?: ""
+            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
             residentShell {
-                ResidentComplaintScreen(
-                    flatId = flatId,
-                    userId = userId,
-                    onBack = { navController.popBackStack() })
+                ResidentComplaintScreen(flatId = flatId, userId = userId, onBack = { navController.popBackStack() })
             }()
         }
 
@@ -210,57 +158,79 @@ fun SocioNetNavGraph(
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
             residentShell {
-                ResidentStaffScreen(
-                    flatId = flatId,
-                    onBack = { navController.popBackStack() })
+                ResidentStaffScreen(flatId = flatId, onBack = { navController.popBackStack() })
             }()
         }
 
         composable(
-            route = "${Routes.RESIDENT_PAYMENTS}/{${NavArgs.FLAT_ID}}/{userId}",
+            route = "${Routes.RESIDENT_PAYMENTS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument("userId") { type = NavType.StringType })
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType })
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack.arguments?.getString("userId") ?: ""
+            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
             residentShell {
-                ResidentPaymentsScreen(
-                    flatId = flatId,
-                    userId = userId,
-                    onBack = { navController.popBackStack() })
+                ResidentPaymentsScreen(flatId = flatId, userId = userId, onBack = { navController.popBackStack() })
             }()
         }
 
         // --- ADMIN SCREENS ---
         composable(Routes.ADMIN_DASHBOARD) { adminShell { AdminDashboardScreen(navController) }() }
-        composable(Routes.ADMIN_COMPLAINTS) { adminShell { AdminComplaintScreen(onBack = { navController.popBackStack() }) }() }
-        composable(Routes.ADMIN_POST_NOTICE) {
+        
+        composable(Routes.ADMIN_COMPLAINTS) { 
+            adminShell { AdminComplaintScreen(onBack = { navController.popBackStack() }) }() 
+        }
+
+        composable(
+            route = "${Routes.ADMIN_POST_NOTICE}?${NavArgs.SOCIETY_ID}={${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { 
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null 
+            })
+        ) { backStack ->
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
             adminShell {
                 CreateNoticeScreen(
                     adminId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                    societyId = societyId,
                     onBack = { navController.popBackStack() })
             }()
         }
         composable(Routes.ADMIN_MANAGE_FLATS) {
             adminShell {
-                AdminSetupScreen(
-                    onSetupComplete = { navController.popBackStack() },
-                    onBack = { navController.popBackStack() })
+                AdminSetupScreen(onSetupComplete = { navController.popBackStack() }, onBack = { navController.popBackStack() })
             }()
         }
-        composable(Routes.ADMIN_APPROVALS) { adminShell { AdminApprovalScreen(onBack = { navController.popBackStack() }) }() }
-        composable(Routes.ADMIN_BILLING) {
+        composable(
+            route = "${Routes.ADMIN_APPROVALS}/{${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType })
+        ) { backStack ->
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
+            adminShell { AdminApprovalScreen(societyId = societyId, onBack = { navController.popBackStack() }) }() 
+        }
+        composable(
+            route = "${Routes.ADMIN_BILLING}/{${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType })
+        ) { backStack ->
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
             adminShell {
                 BillingScreen(
                     userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
                     flatId = null,
                     isAdmin = true,
-                    societyId = "WbZ6qVoyNlMi1Quch8o3",
+                    societyId = societyId,
                     onBack = { navController.popBackStack() })
             }()
         }
-        composable(Routes.ADMIN_STAFF_REGISTRY) { adminShell { StaffRegistryScreen(onBack = { navController.popBackStack() }) }() }
+        composable(
+            route = "${Routes.ADMIN_STAFF_REGISTRY}/{${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType })
+        ) { backStack ->
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
+            adminShell { StaffRegistryScreen(societyId = societyId, onBack = { navController.popBackStack() }) }() 
+        }
 
         // --- DIRECTORY SCREEN (Shared) ---
         composable(
@@ -274,36 +244,28 @@ fun SocioNetNavGraph(
             val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
 
             val content = @Composable {
-                SocietyDirectoryScreen(
-                    isAdmin = isAdmin,
-                    societyId = societyId,
-                    onBack = { navController.popBackStack() }
-                )
+                SocietyDirectoryScreen(isAdmin = isAdmin, societyId = societyId, onBack = { navController.popBackStack() })
             }
             if (isAdmin) adminShell { content() }() else residentShell { content() }()
         }
 
         // --- PROFILE & SETTINGS ---
         composable(
-            route = "${Routes.PROFILE_SCREEN}/{userId}?type={type}",
+            route = "${Routes.PROFILE_SCREEN}/{${NavArgs.USER_ID}}?type={type}",
             arguments = listOf(
-                navArgument("userId") { type = NavType.StringType },
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType },
                 navArgument("type") { type = NavType.StringType; defaultValue = "resident" })
         ) { backStack ->
-            val userId = backStack.arguments?.getString("userId") ?: ""
+            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
             val type = backStack.arguments?.getString("type") ?: "resident"
             val viewModel: ProfileViewModel = hiltViewModel()
             val onSwitch = { target: String ->
                 if (target == "admin") {
                     navController.navigate(Routes.ADMIN_DASHBOARD) {
-                        popUpTo(Routes.ADMIN_DASHBOARD) {
-                            inclusive = true
-                        }
+                        popUpTo(Routes.ADMIN_DASHBOARD) { inclusive = true }
                     }
                 } else {
-                    // We need to know flat ID to switch to resident.
-                    // The ViewModel is loaded, so we check the state.
-                    val user = viewModel.uiState.userProfile
+                    val user = viewModel.uiState.value.userProfile
                     if (user != null && !user.assignedFlatId.isNullOrBlank()) {
                         navController.navigate("${Routes.RESIDENT_HOME}/${user.assignedFlatId}/${user.id}") {
                             popUpTo(Routes.RESIDENT_HOME) { inclusive = true }
@@ -318,11 +280,7 @@ fun SocioNetNavGraph(
                     onSwitchRole = { onSwitch(it) },
                     onBack = { navController.popBackStack() },
                     onLogout = {
-                        navController.navigate(Routes.LOGIN) {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
+                        navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                     }
                 )
             }
@@ -335,21 +293,25 @@ fun SocioNetNavGraph(
         composable(Routes.SECURITY_DASHBOARD) {
             SecurityScannerScreen(
                 onNavigateToManualEntry = { navController.navigate(Routes.SECURITY_MANUAL_ENTRY) },
-                onNavigateToStaffAttendance = { navController.navigate(Routes.SECURITY_STAFF) },
+                onNavigateToStaffAttendance = {
+                    // Logic to get societyId for security staff
+                    // For now, using a placeholder if profile not loaded
+                    navController.navigate("${Routes.SECURITY_STAFF}/WbZ6qVoyNlMi1Quch8o3")
+                },
                 onLogout = {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(0) {
-                            inclusive = true
-                        }
-                    }
+                    navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 }
             )
         }
         composable(Routes.SECURITY_MANUAL_ENTRY) {
-            ManualEntryScreen(
-                onEntryLogged = { navController.popBackStack() },
-                onBack = { navController.popBackStack() })
+            ManualEntryScreen(onEntryLogged = { navController.popBackStack() }, onBack = { navController.popBackStack() })
         }
-        composable(Routes.SECURITY_STAFF) { SecurityStaffScreen(onBack = { navController.popBackStack() }) }
+        composable(
+            route = "${Routes.SECURITY_STAFF}/{${NavArgs.SOCIETY_ID}}",
+            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType })
+        ) { backStack ->
+            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
+            SecurityStaffScreen(societyId = societyId, onBack = { navController.popBackStack() })
+        }
     }
 }

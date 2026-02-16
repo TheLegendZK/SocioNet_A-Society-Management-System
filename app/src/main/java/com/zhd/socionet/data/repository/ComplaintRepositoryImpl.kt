@@ -3,6 +3,7 @@ package com.zhd.socionet.data.repository
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.local.ComplaintDao
 import com.zhd.socionet.data.local.ComplaintEntity
 import com.zhd.socionet.data.model.Complaint
@@ -16,7 +17,7 @@ import javax.inject.Singleton
 interface ComplaintRepository {
     suspend fun fileComplaint(complaint: Complaint): Result<Unit>
     suspend fun getComplaintsForFlat(flatId: String): List<Complaint>
-    suspend fun getAllComplaints(): List<Complaint> // <--- NEW FOR ADMIN
+    suspend fun getAllComplaints(): List<Complaint>
     suspend fun updateStatus(complaintId: String, newStatus: String): Result<Unit>
 }
 
@@ -28,7 +29,7 @@ class ComplaintRepositoryImpl @Inject constructor(
 
     override suspend fun fileComplaint(complaint: Complaint): Result<Unit> {
         return try {
-            val docRef = firestore.collection("complaints").document()
+            val docRef = firestore.collection(AppConstants.COLL_COMPLAINTS).document()
             val finalComplaint = complaint.copy(id = docRef.id, createdAt = Timestamp.now())
             docRef.set(finalComplaint).await()
             dao.insertComplaints(listOf(finalComplaint.toEntity()))
@@ -40,7 +41,7 @@ class ComplaintRepositoryImpl @Inject constructor(
 
     override suspend fun getComplaintsForFlat(flatId: String): List<Complaint> {
         try {
-            val snapshot = firestore.collection("complaints")
+            val snapshot = firestore.collection(AppConstants.COLL_COMPLAINTS)
                 .whereEqualTo("flatId", flatId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get().await()
@@ -49,14 +50,12 @@ class ComplaintRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        // Return local data
         return dao.getComplaintsForFlat(flatId).map { it.toDomain() }
     }
 
     override suspend fun getAllComplaints(): List<Complaint> {
-        // Admin usually needs live data, but we cache it too
         try {
-            val snapshot = firestore.collection("complaints")
+            val snapshot = firestore.collection(AppConstants.COLL_COMPLAINTS)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get().await()
             val list = snapshot.toObjects(Complaint::class.java)
@@ -69,13 +68,10 @@ class ComplaintRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateStatus(complaintId: String, newStatus: String): Result<Unit> {
-        // This is a write operation, so we hit API then update local
         return try {
-            firestore.collection("complaints").document(complaintId)
+            firestore.collection(AppConstants.COLL_COMPLAINTS).document(complaintId)
                 .update("status", newStatus)
                 .await()
-            // We can't easily update just one field in Room with our simple DAO,
-            // but the next fetch will sync it. For MVP, this is fine.
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
