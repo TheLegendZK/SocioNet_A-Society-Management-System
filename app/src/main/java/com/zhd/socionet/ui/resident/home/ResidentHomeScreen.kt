@@ -223,7 +223,7 @@ fun ResidentHomeScreen(
                             color = SoftTheme.purple,
                             onClick = {
                                 if (societyId.isNotBlank()) {
-                                    navController.navigate("${Routes.SOCIETY_DIRECTORY}/false/$societyId")
+                                    navController.navigate("${Routes.SOCIETY_DIRECTORY}/false/$societyId?flatId=$flatId&userId=$userId")
                                 }
                             },
                             modifier = Modifier.weight(1f)
@@ -307,7 +307,7 @@ fun ResidentHomeScreen(
                             }
                             Spacer(Modifier.height(16.dp))
                             TextButton(
-                                onClick = { if (flatId.isNotBlank()) navController.navigate("${Routes.RESIDENT_STAFF}/$flatId") },
+                                onClick = { if (flatId.isNotBlank()) navController.navigate("${Routes.RESIDENT_STAFF}/$flatId/$userId") },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(stringResource(R.string.manage_staff), fontWeight = FontWeight.Bold)
@@ -330,7 +330,7 @@ fun ResidentHomeScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = SoftTheme.textPrimary
                                 )
-                                TextButton(onClick = { navController.navigate(Routes.RESIDENT_NOTICES) }) {
+                                TextButton(onClick = { navController.navigate("${Routes.RESIDENT_NOTICES}/$flatId/$userId") }) {
                                     Text(
                                         text = stringResource(R.string.view_all),
                                         color = SoftTheme.primary,
