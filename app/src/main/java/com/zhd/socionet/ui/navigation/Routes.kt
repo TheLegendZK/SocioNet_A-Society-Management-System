@@ -1,5 +1,8 @@
 package com.zhd.socionet.ui.navigation
 
+import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.model.UserRole
+
 object Routes {
     // --- Authentication ---
     const val LOGIN = "login_screen"
@@ -24,7 +27,7 @@ object Routes {
     const val RESIDENT_COMPLAINTS = "resident_complaints"
     const val RESIDENT_STAFF = "resident_staff"
 
-    // --- Directory Module (New) ---
+    // --- Directory Module ---
     const val SOCIETY_DIRECTORY = "society_directory"
 
     // --- Security Module ---
@@ -38,6 +41,38 @@ object Routes {
 
     // --- Settings ---
     const val SETTINGS_SCREEN = "settings_screen"
+
+    // --- ROUTE BUILDERS (Safe Navigation) ---
+
+    fun buildResidentHome(flatId: String, userId: String) = "$RESIDENT_HOME/$flatId/$userId"
+
+    fun buildResidentCreatePass(flatId: String, userId: String) = "$RESIDENT_CREATE_PASS/$flatId/$userId"
+
+    fun buildResidentNotices(flatId: String, userId: String) = "$RESIDENT_NOTICES/$flatId/$userId"
+
+    fun buildResidentComplaints(flatId: String, userId: String) = "$RESIDENT_COMPLAINTS/$flatId/$userId"
+
+    fun buildResidentStaff(flatId: String, userId: String) = "$RESIDENT_STAFF/$flatId/$userId"
+
+    fun buildResidentPayments(flatId: String, userId: String) = "$RESIDENT_PAYMENTS/$flatId/$userId"
+
+    fun buildAdminApprovals(societyId: String) = "$ADMIN_APPROVALS/$societyId"
+
+    fun buildAdminBilling(societyId: String) = "$ADMIN_BILLING/$societyId"
+
+    fun buildAdminStaffRegistry(societyId: String) = "$ADMIN_STAFF_REGISTRY/$societyId"
+
+    fun buildAdminPostNotice(societyId: String) = "$ADMIN_POST_NOTICE?${NavArgs.SOCIETY_ID}=$societyId"
+
+    fun buildSecurityStaff(societyId: String) = "$SECURITY_STAFF/$societyId"
+
+    fun buildDirectory(isAdmin: Boolean, societyId: String, flatId: String? = null, userId: String? = null): String {
+        return "$SOCIETY_DIRECTORY/$isAdmin/$societyId?flatId=${flatId ?: ""}&userId=${userId ?: ""}"
+    }
+
+    fun buildProfile(userId: String, type: String = "resident", flatId: String? = null): String {
+        return "$PROFILE_SCREEN/$userId?type=$type&flatId=${flatId ?: ""}"
+    }
 }
 
 object NavArgs {
@@ -47,4 +82,16 @@ object NavArgs {
     const val IS_ADMIN = "isAdmin"
     const val SOCIETY_ID = "societyId"
     const val USER_ID = "userId"
+}
+
+// --- NAVIGATION LOGIC ---
+object NavigationRouter {
+    fun getHomeDestination(profile: UserProfile): String {
+        return when {
+            profile.roles.contains(UserRole.SUPER_ADMIN) -> Routes.ADMIN_DASHBOARD
+            profile.roles.contains(UserRole.SECURITY_GUARD) -> Routes.SECURITY_DASHBOARD
+            !profile.isVerified -> Routes.PENDING_APPROVAL
+            else -> Routes.buildResidentHome(profile.assignedFlatId ?: "0", profile.id)
+        }
+    }
 }

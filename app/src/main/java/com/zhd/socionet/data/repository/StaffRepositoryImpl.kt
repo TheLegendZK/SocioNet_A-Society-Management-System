@@ -33,6 +33,7 @@ class StaffRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getStaffList(societyId: String): List<ServiceStaff> {
+        if (societyId.isBlank()) return emptyList()
         return try {
             val snapshot = firestore.collection(AppConstants.COLL_SERVICE_STAFF)
                 .whereEqualTo("societyId", societyId)
@@ -44,6 +45,7 @@ class StaffRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateStaffStatus(staffId: String, isActive: Boolean): Result<Unit> {
+        if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("isActive", isActive)
@@ -55,6 +57,7 @@ class StaffRepositoryImpl @Inject constructor(
     }
 
     override suspend fun linkStaffToFlat(staffId: String, flatId: String): Result<Unit> {
+        if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("employerFlatIds", FieldValue.arrayUnion(flatId))
@@ -66,6 +69,7 @@ class StaffRepositoryImpl @Inject constructor(
     }
 
     override suspend fun unlinkStaffFromFlat(staffId: String, flatId: String): Result<Unit> {
+        if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
                 .update("employerFlatIds", FieldValue.arrayRemove(flatId))

@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val repository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -27,21 +27,13 @@ class LoginViewModel @Inject constructor(
     fun login(email: String, pass: String, onLoginSuccess: (UserProfile) -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            try {
-                // 1. Auth
-                val authResult = auth.signInWithEmailAndPassword(email, pass).await()
-                val uid = authResult.user?.uid ?: throw Exception("Login failed")
 
-                // 2. Fetch Profile to know Role
-                val doc = firestore.collection(AppConstants.COLL_USERS).document(uid).get().await()
-                val profile = doc.toObject(UserProfile::class.java)
+            val result = repository.loginUser(email, pass)
 
-                if (profile == null) {
-                    throw Exception("User profile not found")
-                } else {
-                    onLoginSuccess(profile)
-                }
-            } catch (e: Exception) {
+            result.onSuccess { profile ->
+                _uiState.update { it.copy(isLoading = false) }
+                onLoginSuccess(profile)
+            }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }

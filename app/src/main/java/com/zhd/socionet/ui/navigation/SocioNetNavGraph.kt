@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.runtime.Composable
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -62,12 +62,8 @@ fun SocioNetNavGraph(
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
                 onLoginSuccess = { profile ->
-                    val dest = when {
-                        profile.roles.contains(UserRole.SUPER_ADMIN) -> Routes.ADMIN_DASHBOARD
-                        profile.roles.contains(UserRole.SECURITY_GUARD) -> Routes.SECURITY_DASHBOARD
-                        !profile.isVerified -> Routes.PENDING_APPROVAL
-                        else -> "${Routes.RESIDENT_HOME}/${profile.assignedFlatId ?: "0"}/${profile.id}"
-                    }
+                    // REFACTORED: Uses testable NavigationRouter logic
+                    val dest = NavigationRouter.getHomeDestination(profile)
                     navController.navigate(dest) { popUpTo(Routes.LOGIN) { inclusive = true } }
                 }
             )
@@ -85,25 +81,25 @@ fun SocioNetNavGraph(
                 val residentNavItems = listOf(
                     NavItem(
                         "Home",
-                        "${Routes.RESIDENT_HOME}/$flatId/$userId",
+                        Routes.buildResidentHome(flatId, userId),
                         Icons.Default.Home,
                         selectedRoutePrefix = Routes.RESIDENT_HOME
                     ),
                     NavItem(
                         "Gate Pass",
-                        "${Routes.RESIDENT_CREATE_PASS}/$flatId/$userId",
+                        Routes.buildResidentCreatePass(flatId, userId),
                         Icons.Default.QrCode,
                         selectedRoutePrefix = Routes.RESIDENT_CREATE_PASS
                     ),
                     NavItem(
                         "Notices",
-                        "${Routes.RESIDENT_NOTICES}/$flatId/$userId",
+                        Routes.buildResidentNotices(flatId, userId),
                         Icons.Default.Campaign,
                         selectedRoutePrefix = Routes.RESIDENT_NOTICES
                     ),
                     NavItem(
                         "Profile",
-                        "${Routes.PROFILE_SCREEN}/$userId?type=resident&flatId=$flatId",
+                        Routes.buildProfile(userId, "resident", flatId),
                         Icons.Default.Person,
                         selectedRoutePrefix = Routes.PROFILE_SCREEN
                     )
@@ -135,7 +131,7 @@ fun SocioNetNavGraph(
                 ),
                 NavItem(
                     "Profile",
-                    "${Routes.PROFILE_SCREEN}/$adminId?type=admin",
+                    Routes.buildProfile(adminId, "admin"),
                     Icons.Default.Person,
                     selectedRoutePrefix = Routes.PROFILE_SCREEN
                 )
@@ -313,7 +309,6 @@ fun SocioNetNavGraph(
         ) { backStack ->
             val isAdmin = backStack.arguments?.getBoolean(NavArgs.IS_ADMIN) ?: false
             val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
-            // Extract optional args for resident shell
             val flatId = backStack.arguments?.getString("flatId") ?: ""
             val userId = backStack.arguments?.getString("userId") ?: ""
 
@@ -354,7 +349,8 @@ fun SocioNetNavGraph(
                 } else {
                     val user = viewModel.uiState.value.userProfile
                     if (user != null && !user.assignedFlatId.isNullOrBlank()) {
-                        navController.navigate("${Routes.RESIDENT_HOME}/${user.assignedFlatId}/${user.id}") {
+                        val route = Routes.buildResidentHome(user.assignedFlatId, user.id)
+                        navController.navigate(route) {
                             popUpTo(Routes.RESIDENT_HOME) { inclusive = true }
                         }
                     }
@@ -374,7 +370,6 @@ fun SocioNetNavGraph(
             if (type == "admin") {
                 adminShell { content() }()
             } else {
-                // Pass the flatId we received (or empty if not provided)
                 residentShell(flatId, userId) { content() }()
             }
         }
@@ -386,9 +381,7 @@ fun SocioNetNavGraph(
             SecurityScannerScreen(
                 onNavigateToManualEntry = { navController.navigate(Routes.SECURITY_MANUAL_ENTRY) },
                 onNavigateToStaffAttendance = {
-                    // Logic to get societyId for security staff
-                    // For now, using a placeholder if profile not loaded
-                    navController.navigate("${Routes.SECURITY_STAFF}/${NavArgs.SOCIETY_ID}")
+                    navController.navigate(Routes.buildSecurityStaff(NavArgs.SOCIETY_ID))
                 },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }

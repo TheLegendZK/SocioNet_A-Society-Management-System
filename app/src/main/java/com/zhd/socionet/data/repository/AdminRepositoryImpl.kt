@@ -35,8 +35,10 @@ class AdminRepositoryImpl @Inject constructor(
             val batch = firestore.batch()
 
             flats.forEach { flat ->
-                val docRef = firestore.collection(AppConstants.COLL_FLATS).document(flat.id)
-                batch.set(docRef, flat)
+                if (flat.id.isNotBlank()) {
+                    val docRef = firestore.collection(AppConstants.COLL_FLATS).document(flat.id)
+                    batch.set(docRef, flat)
+                }
             }
 
             batch.commit().await()

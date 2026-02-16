@@ -2,43 +2,36 @@ package com.zhd.socionet.ui.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.UserRole
+import com.zhd.socionet.data.repository.AuthRepository
+import com.zhd.socionet.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val authRepository: AuthRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     fun checkAuthStatus(onResult: (String?) -> Unit) {
         viewModelScope.launch {
-            val currentUser = auth.currentUser
-            // Artificial delay to show logo (optional)
+            // Delay to show branding
             delay(1500)
 
-            if (currentUser == null) {
+            val currentUserId = authRepository.getCurrentUserId()
+
+            if (currentUserId == null) {
                 onResult(null) // Not logged in
             } else {
-                try {
-                    // Fetch Profile to determine Role
-                    val doc = firestore.collection("users").document(currentUser.uid).get().await()
-                    val profile = doc.toObject(UserProfile::class.java)
-
-                    if (profile != null) {
-                        onResult(determineDestination(profile))
-                    } else {
-                        onResult(null) // User exists in Auth but no Profile in DB
-                    }
-                } catch (e: Exception) {
-                    onResult(null) // Error fetching profile
+                val result = profileRepository.getUserProfile(currentUserId)
+                result.onSuccess { profile ->
+                    onResult(determineDestination(profile))
+                }.onFailure {
+                    onResult(null) // Logged in but profile missing or error
                 }
             }
         }

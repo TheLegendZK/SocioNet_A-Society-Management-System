@@ -27,6 +27,7 @@ class AdminUserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun approveUser(userId: String): Result<Unit> {
+        if (userId.isBlank()) return Result.failure(Exception("User ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_USERS).document(userId)
                 .update("verified", true)
@@ -38,6 +39,7 @@ class AdminUserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun rejectUser(userId: String): Result<Unit> {
+        if (userId.isBlank()) return Result.failure(Exception("User ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_USERS).document(userId).delete().await()
             Result.success(Unit)

@@ -2,10 +2,12 @@
 agp = "9.0.1"
 coil = "3.3.0"
 coreKtx = "1.17.0"
+coreTesting = "2.2.0"
 gson = "2.13.2"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
+kotlinxCoroutinesTest = "1.7.3"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
 kotlin = "2.3.10"
@@ -13,6 +15,7 @@ composeBom = "2026.02.00"
 ksp = "2.3.5"
 material3WindowSizeClass = "1.4.0"
 materialIconsExtended = "1.7.8"
+mockk = "1.13.8"
 navigationCompose = "2.9.7"
 hilt = "2.59.1"
 hiltNavigationCompose = "1.3.0"
@@ -24,6 +27,7 @@ googleServices = "4.4.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
@@ -72,6 +76,8 @@ coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version
 
 # Optional: For SVG support
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

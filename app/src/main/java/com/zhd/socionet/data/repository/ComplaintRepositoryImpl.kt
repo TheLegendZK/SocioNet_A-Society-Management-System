@@ -40,6 +40,7 @@ class ComplaintRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getComplaintsForFlat(flatId: String): List<Complaint> {
+        if (flatId.isBlank()) return emptyList()
         try {
             val snapshot = firestore.collection(AppConstants.COLL_COMPLAINTS)
                 .whereEqualTo("flatId", flatId)
@@ -68,6 +69,7 @@ class ComplaintRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateStatus(complaintId: String, newStatus: String): Result<Unit> {
+        if (complaintId.isBlank()) return Result.failure(Exception("Complaint ID is required"))
         return try {
             firestore.collection(AppConstants.COLL_COMPLAINTS).document(complaintId)
                 .update("status", newStatus)

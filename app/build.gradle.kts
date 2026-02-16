@@ -87,6 +87,11 @@ dependencies {
     // Serialization (Optional, useful for TypeConverters)
     implementation(libs.gson)
 
+    // Test Implementation
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.core.testing)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

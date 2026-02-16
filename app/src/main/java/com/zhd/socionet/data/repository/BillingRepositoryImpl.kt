@@ -3,6 +3,7 @@ package com.zhd.socionet.data.repository
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.local.BillDao
 import com.zhd.socionet.data.local.BillEntity
 import com.zhd.socionet.data.model.Bill
@@ -27,9 +28,10 @@ class BillingRepositoryImpl @Inject constructor(
 ) : BillingRepository {
 
     override suspend fun generateMonthlyBills(societyId: String, monthName: String): Result<Int> {
+        if (societyId.isBlank()) return Result.failure(Exception("Society ID is required"))
         return try {
             // 1. Fetch Society Rules (Rate per SqFt)
-            val societyDoc = firestore.collection("societies").document(societyId).get().await()
+            val societyDoc = firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
             val society = societyDoc.toObject(Society::class.java)
                 ?: throw Exception("Society not found")
 
@@ -38,7 +40,7 @@ class BillingRepositoryImpl @Inject constructor(
             }
 
             // 2. Fetch All Flats
-            val flatsSnapshot = firestore.collection("flats")
+            val flatsSnapshot = firestore.collection(AppConstants.COLL_FLATS)
                 .whereEqualTo("societyId", societyId)
                 .get().await()
             val flats = flatsSnapshot.toObjects(Flat::class.java)
@@ -57,7 +59,7 @@ class BillingRepositoryImpl @Inject constructor(
                 if (flat.sqFtArea > 0) { // Only bill configured flats
                     val amount = flat.sqFtArea * society.maintenanceRatePerSqFt
 
-                    val billRef = firestore.collection("bills").document()
+                    val billRef = firestore.collection(AppConstants.COLL_BILLS).document()
                     val bill = Bill(
                         id = billRef.id,
                         flatId = flat.id,
@@ -80,8 +82,9 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getBillsForFlat(flatId: String): List<Bill> {
+        if (flatId.isBlank()) return emptyList()
         try {
-            val snapshot = firestore.collection("bills")
+            val snapshot = firestore.collection(AppConstants.COLL_BILLS)
                 .whereEqualTo("flatId", flatId)
                 .orderBy("billDate", Query.Direction.DESCENDING)
                 .get().await()
@@ -93,8 +96,9 @@ class BillingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun payBill(billId: String, userId: String): Result<Unit> {
+        if (billId.isBlank()) return Result.failure(Exception("Bill ID is required"))
         return try {
-            firestore.collection("bills").document(billId)
+            firestore.collection(AppConstants.COLL_BILLS).document(billId)
                 .update("isPaid", true, "paidByUserId", userId, "paymentTransactionId", "TXN_${System.currentTimeMillis()}")
                 .await()
             Result.success(Unit)

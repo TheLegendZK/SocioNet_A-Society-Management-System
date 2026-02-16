@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.SettingsPreferences
 import com.zhd.socionet.data.model.ThemeMode
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    auth: FirebaseAuth,
+    private val authRepository: AuthRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
@@ -27,10 +28,13 @@ class MainViewModel @Inject constructor(
     val currentTheme: StateFlow<ThemeMode> = _currentTheme.asStateFlow()
 
     init {
-        auth.addAuthStateListener { firebaseAuth ->
-            val user = firebaseAuth.currentUser
-            if (user != null) {
-                listenToSettings(user.uid)
+        viewModelScope.launch {
+            authRepository.observeAuthState().collectLatest { userId ->
+                if (userId != null) {
+                    listenToSettings(userId)
+                }
+                // If userId is null (logged out), we could reset theme to System,
+                // but keeping last known theme is also fine UX.
             }
         }
     }
