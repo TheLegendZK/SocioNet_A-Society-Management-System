@@ -53,6 +53,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
 import com.zhd.socionet.R
+import com.zhd.socionet.core.utils.ShareUtils
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.ServiceStaff
@@ -207,6 +209,7 @@ fun VisitorManagementScreen(
 fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: String) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
     if (uiState.isSuccess) {
@@ -284,14 +287,13 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                 }
                 Button(
                     onClick = {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                "Gate Pass for ${uiState.visitorName}\nOTP: ${uiState.generatedOtp}\n\nShow to Security."
-                            )
-                        }
-                        context.startActivity(Intent.createChooser(shareIntent, "Share Pass"))
+                        ShareUtils.shareGatePass(
+                            context = context,
+                            visitorName = uiState.visitorName,
+                            otp = uiState.generatedOtp ?: "000000",
+                            qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${uiState.generatedPassId}",
+                            scope = scope
+                        )
                     },
                     modifier = Modifier
                         .weight(1f)
