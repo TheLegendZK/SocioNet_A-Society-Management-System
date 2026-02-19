@@ -28,7 +28,7 @@ fun QrCodeScanner(
     modifier: Modifier = Modifier,
     onQrCodeScanned: (String) -> Unit
 ) {
-    val context = LocalContext.current
+    LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val barcodeScanner = remember { BarcodeScanning.getClient() }
