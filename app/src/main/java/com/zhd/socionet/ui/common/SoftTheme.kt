@@ -5,7 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.zhd.socionet.core.theme.*
+import com.zhd.socionet.core.theme.SoftInfo
+import com.zhd.socionet.core.theme.SoftPurple
+import com.zhd.socionet.core.theme.SoftSuccess
+import com.zhd.socionet.core.theme.SoftWarning
 
 val LocalDarkTheme = compositionLocalOf { false }
 

@@ -1,6 +1,5 @@
 package com.zhd.socionet.ui.billing
 
-import com.google.firebase.Timestamp
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.data.repository.BillingRepository
 import com.zhd.socionet.utils.MainDispatcherRule
@@ -14,7 +13,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.Date
 
 class BillingViewModelTest {
 

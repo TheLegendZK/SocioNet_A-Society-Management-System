@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.getValue
 
 // FIX: Created a dedicated Repository for Settings to adhere to Clean Architecture (MVVM).
 // ViewModels should not access Firestore directly.

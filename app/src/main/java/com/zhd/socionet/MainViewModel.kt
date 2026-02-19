@@ -2,10 +2,6 @@ package com.zhd.socionet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
-import com.zhd.socionet.data.model.SettingsPreferences
 import com.zhd.socionet.data.model.ThemeMode
 import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SettingsRepository
@@ -14,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
