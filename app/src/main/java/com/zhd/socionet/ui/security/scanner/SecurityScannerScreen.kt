@@ -1,5 +1,9 @@
 package com.zhd.socionet.ui.security.scanner
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -44,6 +47,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,11 +59,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
@@ -77,6 +83,28 @@ fun SecurityScannerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val context = LocalContext.current
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasCameraPermission = granted
+        }
+    )
+
+    LaunchedEffect(key1 = true) {
+        if (!hasCameraPermission) {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         Box(
@@ -165,7 +193,11 @@ fun SecurityScannerScreen(
 
                 Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                     if (selectedTab == 0) {
-                        QrScanView(onSimulateScan = { viewModel.onQrScanned(it) })
+                        QrScanView(
+                            hasPermission = hasCameraPermission,
+                            onRequestPermission = { launcher.launch(Manifest.permission.CAMERA) },
+                            onQrScanned = { viewModel.onQrScanned(it) }
+                        )
                     } else {
                         ManualOtpView(onSubmit = { viewModel.onOtpEntered(it) })
                     }
@@ -186,22 +218,43 @@ fun SecurityScannerScreen(
 }
 
 @Composable
-fun QrScanView(onSimulateScan: (String) -> Unit) {
+fun QrScanView(
+    hasPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onQrScanned: (String) -> Unit
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(280.dp)
+                .size(300.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(Color.Black)
                 .padding(2.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.CameraAlt, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Camera Active", color = Color.White.copy(alpha = 0.5f), style = MaterialTheme.typography.labelMedium)
+            if (hasPermission) {
+                QrCodeScanner(
+                    modifier = Modifier.fillMaxSize(),
+                    onQrCodeScanned = onQrScanned
+                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
+                    Icon(Icons.Default.CameraAlt, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Camera permission is required to scan QR codes",
+                        color = Color.White.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = onRequestPermission) {
+                        Text("Grant Permission")
+                    }
+                }
             }
             
+            // Scanner Overlay
             Box(modifier = Modifier.fillMaxSize().padding(20.dp)) {
                 Box(modifier = Modifier.size(40.dp).align(Alignment.TopStart).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(topStart = 12.dp)))
                 Box(modifier = Modifier.size(40.dp).align(Alignment.TopEnd).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(topEnd = 12.dp)))
@@ -216,14 +269,6 @@ fun QrScanView(onSimulateScan: (String) -> Unit) {
             color = SoftTheme.textPrimary,
             fontWeight = FontWeight.Medium
         )
-        Spacer(modifier = Modifier.height(32.dp))
-        OutlinedButton(
-            onClick = { onSimulateScan("SIMULATED_PASS_ID") },
-            shape = CircleShape,
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = SoftTheme.primary)
-        ) {
-            Text("Simulate Scan", fontWeight = FontWeight.Bold)
-        }
     }
 }
 
@@ -293,7 +338,7 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
     val isSuccess = result is ScanResult.Success
     val backgroundColor = if (isSuccess) Color(0xFF4CAF50) else Color(0xFFF44336)
     val icon = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.GppBad
-    val title = if (isSuccess) "ACCESS GRANTED" else "ACCESS DENIED"
+    val title = if (isSuccess) "ACCESS GRANTED" else "ACCESS DEIED"
 
     Box(
         modifier = Modifier

@@ -24,12 +24,13 @@ class SecurityScannerViewModel @Inject constructor(
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
 
     fun onOtpEntered(otp: String) {
-        if (otp.length == 6) {
+        if (otp.length == 6 && !_uiState.value.isLoading) {
             verifyPass(isQr = false, code = otp)
         }
     }
 
     fun onQrScanned(passId: String) {
+        if (_uiState.value.isLoading || _uiState.value.scanResult != null) return
         verifyPass(isQr = true, code = passId)
     }
 
