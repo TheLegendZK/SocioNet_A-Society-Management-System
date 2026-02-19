@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.ui.common.SocioButton
@@ -311,5 +311,5 @@ fun BillItem(bill: Bill, onPay: () -> Unit) {
 }
 
 fun formatCurrency(amount: Double): String {
-    return NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(amount)
+    return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).format(amount)
 }

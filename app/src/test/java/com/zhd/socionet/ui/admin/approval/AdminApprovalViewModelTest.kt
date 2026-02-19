@@ -105,6 +105,6 @@ class AdminApprovalViewModelTest {
         // Then
         val state = viewModel.uiState.value
         assertTrue(state.message!!.contains("Failed to approve"))
-        assertTrue(state.message!!.contains(errorMsg))
+        assertTrue(state.message.contains(errorMsg))
     }
 }

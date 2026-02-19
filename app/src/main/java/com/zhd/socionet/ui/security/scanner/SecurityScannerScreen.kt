@@ -37,16 +37,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +60,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -76,7 +76,7 @@ fun SecurityScannerScreen(
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         Box(
@@ -104,7 +104,7 @@ fun SecurityScannerScreen(
                             Icon(Icons.AutoMirrored.Filled.Logout, "Logout", tint = Color.Red)
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.White
                     )
@@ -132,14 +132,14 @@ fun SecurityScannerScreen(
             }
         ) { padding ->
             Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-                TabRow(
+                SecondaryTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
                     contentColor = Color.White,
                     divider = {},
-                    indicator = { tabPositions ->
+                    indicator = {
                         TabRowDefaults.SecondaryIndicator(
-                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            Modifier.tabIndicatorOffset(selectedTab),
                             color = Color.White,
                             height = 3.dp
                         )

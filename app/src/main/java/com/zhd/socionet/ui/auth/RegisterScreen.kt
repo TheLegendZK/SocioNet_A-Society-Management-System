@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -43,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.SocioButton
@@ -159,7 +160,7 @@ fun RegisterScreen(
                             onValueChange = {}, readOnly = true,
                             label = stringResource(R.string.select_society),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = socExpanded) },
-                            modifier = Modifier.menuAnchor(),
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                             leadingIcon = { Icon(Icons.Default.Business, null, tint = SoftTheme.primary) }
                         )
                         ExposedDropdownMenu(
@@ -183,7 +184,7 @@ fun RegisterScreen(
                                     value = uiState.selectedWing, onValueChange = {}, readOnly = true,
                                     label = stringResource(R.string.wing),
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = wingExpanded) },
-                                    modifier = Modifier.menuAnchor()
+                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                                 )
                                 ExposedDropdownMenu(
                                     expanded = wingExpanded,
@@ -204,7 +205,7 @@ fun RegisterScreen(
                                     onValueChange = {}, readOnly = true,
                                     label = stringResource(R.string.flat),
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = flatExpanded) },
-                                    modifier = Modifier.menuAnchor()
+                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                                 )
                                 ExposedDropdownMenu(
                                     expanded = flatExpanded,
@@ -233,7 +234,7 @@ fun RegisterScreen(
                             onValueChange = {}, readOnly = true,
                             label = stringResource(R.string.i_am_a),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleExpanded) },
-                            modifier = Modifier.menuAnchor()
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(
                             expanded = roleExpanded,

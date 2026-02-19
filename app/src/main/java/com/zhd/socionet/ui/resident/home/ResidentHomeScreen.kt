@@ -1,7 +1,7 @@
 package com.zhd.socionet.ui.resident.home
 
 import android.content.Intent
-import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Campaign
@@ -58,7 +58,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.net.toUri
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.zhd.socionet.R
 import com.zhd.socionet.core.utils.DateUtils
@@ -84,7 +85,7 @@ fun ResidentHomeScreen(
     billingViewModel: BillingViewModel = hiltViewModel(),
     staffViewModel: ResidentStaffViewModel = hiltViewModel(),
     noticeViewModel: NoticeBoardViewModel = hiltViewModel(),
-    sosViewModel: SosViewModel = hiltViewModel()
+    sosViewModel: SosViewModel = hiltViewModel(),
 ) {
     val profileState by profileViewModel.uiState.collectAsState()
     val billingState by billingViewModel.uiState.collectAsState()
@@ -106,7 +107,6 @@ fun ResidentHomeScreen(
     LaunchedEffect(flatId) {
         if (flatId.isNotBlank()) {
             billingViewModel.loadBills(flatId)
-            // FIXED: Using societyId instead of hardcoded ID
             staffViewModel.loadStaff(societyId)
         }
     }
@@ -117,7 +117,7 @@ fun ResidentHomeScreen(
 
     fun launchSms() {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("sms:")
+            data = "sms:".toUri()
             putExtra("sms_body", "HELP! Emergency at ${user?.assignedFlatId ?: flatId}. Please help!")
         }
         context.startActivity(intent)
@@ -177,7 +177,7 @@ fun ResidentHomeScreen(
                             Icon(Icons.Default.Settings, null, tint = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.White
                     )
@@ -284,7 +284,7 @@ fun ResidentHomeScreen(
                                         color = SoftTheme.textSecondary
                                     )
                                     Text(
-                                        text = NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(billingState.totalOutstanding),
+                                        text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).format(billingState.totalOutstanding),
                                         style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.ExtraBold,
                                         color = if (billingState.totalOutstanding > 0) SoftAccent else SoftTheme.primary
@@ -296,7 +296,7 @@ fun ResidentHomeScreen(
                                     contentPadding = PaddingValues(0.dp),
                                     modifier = Modifier.size(40.dp)
                                 ) {
-                                    Icon(Icons.Default.ArrowForwardIos, null, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
@@ -346,6 +346,7 @@ fun ResidentHomeScreen(
                             Spacer(Modifier.height(16.dp))
                             TextButton(
                                 onClick = { if (flatId.isNotBlank()) navController.navigate("${Routes.RESIDENT_STAFF}/$flatId/$userId") },
+                                border = BorderStroke(1.dp, SoftTheme.primary),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(stringResource(R.string.manage_staff), fontWeight = FontWeight.Bold)
@@ -397,7 +398,7 @@ fun QuickActionCard(
     label: String,
     color: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         onClick = onClick,

@@ -142,7 +142,7 @@
     <string name="visitor_name_required">Visitor Name is required</string>
     <string name="post_notice">Post Notice</string>
     <string name="directory">Directory</string>
-    <string name="complaints">Complaints</string>
+    <string name="complaints">Complaint</string>
     <string name="my_residence">My Residence</string>
     <string name="new_user_requests">New user registration requests</string>
     <string name="welcome_admin">Welcome, %1$s</string>

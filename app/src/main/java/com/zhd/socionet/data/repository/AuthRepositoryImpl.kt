@@ -91,7 +91,8 @@ class AuthRepositoryImpl @Inject constructor(
         if (societyId.isBlank()) return emptyList()
         val doc =
             firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
-        return (doc.get("wings") as? List<String>) ?: emptyList()
+        val wingsList = doc.get("wings") as? List<*>
+        return wingsList?.filterIsInstance<String>() ?: emptyList()
     }
 
     override suspend fun fetchFlats(societyId: String, wing: String): List<Pair<String, String>> {

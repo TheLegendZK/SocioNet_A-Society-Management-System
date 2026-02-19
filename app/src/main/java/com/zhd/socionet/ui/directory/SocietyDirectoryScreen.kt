@@ -47,7 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.ui.common.SocioTextField
@@ -97,7 +97,7 @@ fun SocietyDirectoryScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.White,
                         navigationIconContentColor = Color.White

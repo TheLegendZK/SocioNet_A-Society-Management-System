@@ -39,18 +39,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,7 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.EntryStatus
@@ -86,7 +85,7 @@ fun VisitorManagementScreen(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf(
         stringResource(R.string.tab_create_pass),
         stringResource(R.string.tab_approvals),
@@ -107,7 +106,9 @@ fun VisitorManagementScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(SoftTheme.bg)) {
         // Background Header Gradient
         Box(
             modifier = Modifier
@@ -129,7 +130,13 @@ fun VisitorManagementScreen(
             topBar = {
                 Column {
                     CenterAlignedTopAppBar(
-                        title = { Text(stringResource(R.string.visitor_hub), fontWeight = FontWeight.ExtraBold, color = Color.White) },
+                        title = {
+                            Text(
+                                stringResource(R.string.visitor_hub),
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                        },
                         navigationIcon = {
                             IconButton(onClick = onBackClick) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
@@ -141,20 +148,18 @@ fun VisitorManagementScreen(
                             navigationIconContentColor = Color.White
                         )
                     )
-                    ScrollableTabRow(
+                    SecondaryScrollableTabRow(
                         selectedTabIndex = selectedTab,
                         containerColor = Color.Transparent,
                         contentColor = Color.White,
                         edgePadding = 24.dp,
                         divider = {},
-                        indicator = { tabPositions ->
-                            if (selectedTab < tabPositions.size) {
-                                TabRowDefaults.SecondaryIndicator(
-                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                                    color = Color.White,
-                                    height = 3.dp
-                                )
-                            }
+                        indicator = {
+                            TabRowDefaults.SecondaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(selectedTab),
+                                color = Color.White,
+                                height = 3.dp
+                            )
                         }
                     ) {
                         tabs.forEachIndexed { index, title ->
@@ -176,10 +181,18 @@ fun VisitorManagementScreen(
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Box(modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()) {
                 when (selectedTab) {
                     0 -> CreatePassContent(viewModel, hostFlatId, hostUserId)
-                    1 -> RequestsList(uiState.pendingRequests) { entry, accept -> viewModel.respondToRequest(entry, accept) }
+                    1 -> RequestsList(uiState.pendingRequests) { entry, accept ->
+                        viewModel.respondToRequest(
+                            entry,
+                            accept
+                        )
+                    }
+
                     2 -> HistoryList(uiState.visitorHistory)
                     3 -> StaffTrackingList(uiState.linkedStaff, uiState.staffLogs)
                 }
@@ -195,12 +208,17 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
 
     if (uiState.isSuccess) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             SoftCard {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(12.dp)) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(12.dp)
+                ) {
                     Text(
                         text = stringResource(R.string.entry_pass),
                         style = MaterialTheme.typography.titleLarge,
@@ -209,7 +227,11 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                         letterSpacing = 4.sp
                     )
                     Spacer(Modifier.height(24.dp))
-                    Box(modifier = Modifier.background(Color.White, MaterialTheme.shapes.medium).padding(16.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .background(Color.White, MaterialTheme.shapes.medium)
+                            .padding(16.dp)
+                    ) {
                         Image(
                             painter = rememberAsyncImagePainter("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${uiState.generatedPassId}"),
                             contentDescription = "QR Code",
@@ -241,10 +263,15 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                 }
             }
             Spacer(Modifier.height(48.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 OutlinedButton(
                     onClick = { viewModel.resetState() },
-                    modifier = Modifier.weight(1f).height(56.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(stringResource(R.string.close), fontWeight = FontWeight.Bold)
@@ -253,11 +280,16 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                     onClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "Gate Pass for ${uiState.visitorName}\nOTP: ${uiState.generatedOtp}\n\nShow to Security.")
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "Gate Pass for ${uiState.visitorName}\nOTP: ${uiState.generatedOtp}\n\nShow to Security."
+                            )
                         }
                         context.startActivity(Intent.createChooser(shareIntent, "Share Pass"))
                     },
-                    modifier = Modifier.weight(1f).height(56.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(Icons.Default.Share, null)
@@ -267,14 +299,17 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
             }
         }
     } else {
-        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
             Text(
                 text = stringResource(R.string.pre_approve_entry),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            
+
             SoftCard {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     SocioTextField(
@@ -292,13 +327,23 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                         )
                         Spacer(Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(VisitorType.GUEST, VisitorType.DELIVERY, VisitorType.CAB).forEach { type ->
+                            listOf(
+                                VisitorType.GUEST,
+                                VisitorType.DELIVERY,
+                                VisitorType.CAB
+                            ).forEach { type ->
                                 FilterChip(
                                     selected = uiState.visitorType == type,
                                     onClick = { viewModel.onVisitorTypeChanged(type) },
                                     label = { Text(type.name) },
                                     leadingIcon = if (uiState.visitorType == type) {
-                                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                                        {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                null,
+                                                modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                            )
+                                        }
                                     } else null,
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = SoftTheme.primary.copy(alpha = 0.1f),
@@ -329,14 +374,26 @@ fun RequestsList(requests: List<GateEntry>, onRespond: (GateEntry, Boolean) -> U
     if (requests.isEmpty()) {
         EmptyStateView(Icons.Default.VerifiedUser, "No pending requests")
     } else {
-        LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(requests) { entry ->
                 SoftCard {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(color = SoftAccent.copy(alpha = 0.1f), shape = CircleShape, modifier = Modifier.size(40.dp)) {
+                            Surface(
+                                color = SoftAccent.copy(alpha = 0.1f),
+                                shape = CircleShape,
+                                modifier = Modifier.size(40.dp)
+                            ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.NotificationsActive, null, tint = SoftAccent, modifier = Modifier.size(20.dp))
+                                    Icon(
+                                        Icons.Default.NotificationsActive,
+                                        null,
+                                        tint = SoftAccent,
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
                             }
                             Spacer(Modifier.width(16.dp))
@@ -360,7 +417,10 @@ fun RequestsList(requests: List<GateEntry>, onRespond: (GateEntry, Boolean) -> U
                             color = SoftTheme.textSecondary
                         )
                         Spacer(Modifier.height(20.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             OutlinedButton(
                                 onClick = { onRespond(entry, false) },
                                 modifier = Modifier.weight(1f),
@@ -372,7 +432,11 @@ fun RequestsList(requests: List<GateEntry>, onRespond: (GateEntry, Boolean) -> U
                             Button(
                                 onClick = { onRespond(entry, true) },
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0xFF4CAF50
+                                    )
+                                ),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text(stringResource(R.string.allow), fontWeight = FontWeight.Bold)
@@ -390,14 +454,19 @@ fun HistoryList(history: List<GateEntry>) {
     if (history.isEmpty()) {
         EmptyStateView(Icons.Default.History, "No entry history found")
     } else {
-        LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(history) { entry ->
                 SoftCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         val isCheckIn = entry.status == EntryStatus.CHECKED_IN
                         Surface(
                             shape = CircleShape,
-                            color = (if (isCheckIn) Color(0xFF4CAF50) else SoftTheme.textSecondary).copy(alpha = 0.1f),
+                            color = (if (isCheckIn) Color(0xFF4CAF50) else SoftTheme.textSecondary).copy(
+                                alpha = 0.1f
+                            ),
                             modifier = Modifier.size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -443,7 +512,10 @@ fun HistoryList(history: List<GateEntry>) {
 
 @Composable
 fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
-    LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    LazyColumn(
+        contentPadding = PaddingValues(24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
         item {
             Text(
                 text = stringResource(R.string.my_staff),
@@ -453,7 +525,11 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
             )
             Spacer(Modifier.height(16.dp))
             if (myStaff.isEmpty()) {
-                Text(stringResource(R.string.no_staff_linked), color = SoftTheme.textSecondary, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.no_staff_linked),
+                    color = SoftTheme.textSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     myStaff.forEach { staff ->
@@ -498,11 +574,18 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
                 color = SoftTheme.textPrimary
             )
         }
-        
+
         if (logs.isEmpty()) {
             item {
                 SoftCard(backgroundColor = SoftTheme.bg.copy(alpha = 0.5f)) {
-                    Text("No recent staff activity", modifier = Modifier.fillMaxWidth().padding(16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = SoftTheme.textSecondary)
+                    Text(
+                        "No recent staff activity",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = SoftTheme.textSecondary
+                    )
                 }
             }
         } else {
@@ -512,7 +595,9 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
                         val isCheckIn = log.status == EntryStatus.CHECKED_IN
                         Surface(
                             shape = CircleShape,
-                            color = (if (isCheckIn) Color(0xFF4CAF50) else Color(0xFFF44336)).copy(alpha = 0.1f),
+                            color = (if (isCheckIn) Color(0xFF4CAF50) else Color(0xFFF44336)).copy(
+                                alpha = 0.1f
+                            ),
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -533,7 +618,11 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "${if (isCheckIn) "Checked In" else "Checked Out"} • ${formatTime(log.entryTime)}",
+                                text = "${if (isCheckIn) "Checked In" else "Checked Out"} • ${
+                                    formatTime(
+                                        log.entryTime
+                                    )
+                                }",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = SoftTheme.textSecondary
                             )
@@ -552,7 +641,12 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, null, modifier = Modifier.size(64.dp), tint = SoftTheme.textSecondary.copy(alpha = 0.3f))
+        Icon(
+            icon,
+            null,
+            modifier = Modifier.size(64.dp),
+            tint = SoftTheme.textSecondary.copy(alpha = 0.3f)
+        )
         Spacer(Modifier.height(16.dp))
         Text(message, color = SoftTheme.textSecondary, style = MaterialTheme.typography.bodyLarge)
     }

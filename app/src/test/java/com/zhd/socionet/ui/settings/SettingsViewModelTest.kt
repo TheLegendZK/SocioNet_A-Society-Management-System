@@ -1,6 +1,7 @@
 package com.zhd.socionet.ui.settings
 
 import com.zhd.socionet.data.model.SettingsPreferences
+import com.zhd.socionet.data.model.ThemeMode
 import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SettingsRepository
 import com.zhd.socionet.utils.MainDispatcherRule
@@ -10,7 +11,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -21,14 +24,15 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val authRepository: AuthRepository = mockk()
-    private val settingsRepository: SettingsRepository = mockk(relaxed = true) // Relaxed for Unit returns
+    private val settingsRepository: SettingsRepository = mockk(relaxed = true)
     private lateinit var viewModel: SettingsViewModel
+
+    private val userId = "user_123"
 
     @Before
     fun setup() {
-        every { authRepository.getCurrentUserId() } returns "user_123"
-        // Default settings behavior
-        coEvery { settingsRepository.getSettings("user_123") } returns Result.success(SettingsPreferences())
+        every { authRepository.getCurrentUserId() } returns userId
+        coEvery { settingsRepository.getSettings(userId) } returns Result.success(SettingsPreferences())
         coEvery { settingsRepository.updateSettings(any(), any()) } returns Result.success(Unit)
 
         viewModel = SettingsViewModel(authRepository, settingsRepository)
@@ -36,38 +40,71 @@ class SettingsViewModelTest {
 
     @Test
     fun `loadSettings fetches prefs on init`() = runTest {
-        // Assert
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
-        coVerify(exactly = 1) { settingsRepository.getSettings("user_123") }
-        // Verify default subscription sync
+        coVerify(exactly = 1) { settingsRepository.getSettings(userId) }
         verify { settingsRepository.setNotificationTopic("all_alerts", true) }
     }
 
     @Test
+    fun `loadSettings failure updates error message`() = runTest {
+        // Reset and mock failure
+        coEvery { settingsRepository.getSettings(userId) } returns Result.failure(Exception("Load failed"))
+        
+        // Re-init to trigger loadSettings
+        viewModel = SettingsViewModel(authRepository, settingsRepository)
+
+        val state = viewModel.uiState.value
+        assertEquals("Failed to load settings", state.errorMessage)
+    }
+
+    @Test
     fun `toggleNotifications updates repo and topics`() = runTest {
-        // When
         viewModel.toggleNotifications(false)
 
-        // Then
         val state = viewModel.uiState.value
         assertFalse(state.prefs.notificationsEnabled)
 
-        coVerify { settingsRepository.updateSettings("user_123", match { !it.notificationsEnabled }) }
-        // Verify unsubscribing from everything
+        coVerify { settingsRepository.updateSettings(userId, match { !it.notificationsEnabled }) }
         verify { settingsRepository.setNotificationTopic("all_alerts", false) }
+        verify { settingsRepository.setNotificationTopic("notices", false) }
+        verify { settingsRepository.setNotificationTopic("visitors", false) }
     }
 
     @Test
     fun `toggleVisitorAlerts updates specific topic`() = runTest {
-        // Given notifications are ON by default
-
-        // When
         viewModel.toggleVisitorAlerts(false)
 
-        // Then
         val state = viewModel.uiState.value
         assertFalse(state.prefs.notifyOnVisitors)
         verify { settingsRepository.setNotificationTopic("visitors", false) }
+    }
+
+    @Test
+    fun `toggleNoticeAlerts updates specific topic`() = runTest {
+        viewModel.toggleNoticeAlerts(false)
+
+        val state = viewModel.uiState.value
+        assertFalse(state.prefs.notifyOnNotices)
+        verify { settingsRepository.setNotificationTopic("notices", false) }
+    }
+
+    @Test
+    fun `setTheme updates state and repository`() = runTest {
+        viewModel.setTheme(ThemeMode.DARK)
+
+        val state = viewModel.uiState.value
+        assertEquals(ThemeMode.DARK, state.prefs.themeMode)
+        coVerify { settingsRepository.updateSettings(userId, match { it.themeMode == ThemeMode.DARK }) }
+    }
+
+    @Test
+    fun `saveSettings failure updates error message`() = runTest {
+        coEvery { settingsRepository.updateSettings(any(), any()) } returns Result.failure(Exception("Save failed"))
+
+        viewModel.setTheme(ThemeMode.LIGHT)
+
+        val state = viewModel.uiState.value
+        assertEquals("Failed to save changes", state.errorMessage)
     }
 }

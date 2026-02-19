@@ -83,7 +83,7 @@ class BillingViewModelTest {
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
         assertTrue(state.adminMessage!!.contains("Success"))
-        assertTrue(state.adminMessage!!.contains("$count"))
+        assertTrue(state.adminMessage.contains("$count"))
     }
 
     @Test
