@@ -1,7 +1,9 @@
 package com.zhd.socionet.di
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import com.zhd.socionet.core.utils.OtpGenerator
 import com.zhd.socionet.core.utils.OtpGeneratorImpl
 import com.zhd.socionet.data.local.BillDao
@@ -35,6 +37,7 @@ import com.zhd.socionet.data.repository.StaffRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -49,6 +52,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
     @Provides
     @Singleton
@@ -112,8 +119,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideProfileRepository(auth: FirebaseAuth, db: FirebaseFirestore): ProfileRepository {
-        return ProfileRepositoryImpl(auth, db)
+    fun provideProfileRepository(
+        auth: FirebaseAuth, 
+        db: FirebaseFirestore,
+        storage: FirebaseStorage,
+        @ApplicationContext context: Context
+    ): ProfileRepository {
+        return ProfileRepositoryImpl(auth, db, storage, context)
     }
 
     @Provides

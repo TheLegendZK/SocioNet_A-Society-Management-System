@@ -1,6 +1,10 @@
 package com.zhd.socionet.ui.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.MeetingRoom
@@ -51,15 +56,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioPasswordField
@@ -81,6 +89,13 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
     var showEditDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let { viewModel.uploadProfilePicture(it) }
+        }
+    )
 
     LaunchedEffect(userId) {
         if (userId.isNotBlank()) viewModel.loadProfile(userId)
@@ -157,18 +172,49 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         // Profile Avatar
-                        Surface(
-                            modifier = Modifier.size(120.dp),
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.2f),
-                            border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = user.fullName.take(1).uppercase(),
-                                    style = MaterialTheme.typography.displayMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White
+                        Box(contentAlignment = Alignment.BottomEnd) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clickable {
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    },
+                                shape = CircleShape,
+                                color = Color.White.copy(alpha = 0.2f),
+                                border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    if (user.profilePhotoUrl.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = user.profilePhotoUrl,
+                                            contentDescription = "Profile Picture",
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Text(
+                                            text = user.fullName.take(1).uppercase(),
+                                            style = MaterialTheme.typography.displayMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                            // Edit Icon Overlay
+                            Surface(
+                                modifier = Modifier.size(32.dp),
+                                shape = CircleShape,
+                                color = SoftTheme.primary,
+                                tonalElevation = 4.dp
+                            ) {
+                                Icon(
+                                    Icons.Default.CameraAlt,
+                                    contentDescription = "Change Photo",
+                                    tint = Color.White,
+                                    modifier = Modifier.padding(6.dp)
                                 )
                             }
                         }

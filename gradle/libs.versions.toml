@@ -57,6 +57,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+firebase-storage = { module = "com.google.firebase:firebase-storage" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 

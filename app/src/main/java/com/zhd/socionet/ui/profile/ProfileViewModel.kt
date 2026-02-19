@@ -1,5 +1,6 @@
 package com.zhd.socionet.ui.profile
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.UserProfile
@@ -44,6 +45,26 @@ class ProfileViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, userProfile = updatedProfile, successMessage = "Profile Updated") }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = result.exceptionOrNull()?.message) }
+            }
+        }
+    }
+
+    fun uploadProfilePicture(uri: Uri) {
+        val userId = _uiState.value.userProfile?.id ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, successMessage = null, errorMessage = null) }
+            val result = repository.uploadProfilePicture(userId, uri)
+            
+            result.onSuccess { url ->
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        userProfile = state.userProfile?.copy(profilePhotoUrl = url),
+                        successMessage = "Profile picture updated successfully"
+                    )
+                }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
     }

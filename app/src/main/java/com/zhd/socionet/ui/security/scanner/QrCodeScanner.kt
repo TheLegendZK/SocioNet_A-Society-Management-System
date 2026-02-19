@@ -58,7 +58,7 @@ fun QrCodeScanner(
                 val preview = Preview.Builder()
                     .build()
                     .also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
+                        it.surfaceProvider = previewView.surfaceProvider
                     }
 
                 val imageAnalysis = ImageAnalysis.Builder()
