@@ -34,11 +34,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun listenToSettings(userId: String) {
-        viewModelScope.launch {
-            settingsRepository.getThemeMode(userId).collectLatest { theme ->
-                _currentTheme.value = theme
-            }
+    private suspend fun listenToSettings(userId: String) {
+        settingsRepository.getThemeMode(userId).collectLatest { theme ->
+            _currentTheme.value = theme
         }
     }
 }

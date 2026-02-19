@@ -27,24 +27,36 @@ class RegisterViewModel @Inject constructor(
 
     private fun loadSocieties() {
         viewModelScope.launch {
-            val list = repository.fetchSocieties()
-            _uiState.update { it.copy(societies = list) }
+            try {
+                val list = repository.fetchSocieties()
+                _uiState.update { it.copy(societies = list) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to load societies: ${e.message}") }
+            }
         }
     }
 
     fun onSocietySelected(id: String) {
         _uiState.update { it.copy(selectedSocietyId = id, selectedWing = "", selectedFlatId = "") }
         viewModelScope.launch {
-            val wings = repository.fetchWings(id)
-            _uiState.update { it.copy(wings = wings) }
+            try {
+                val wings = repository.fetchWings(id)
+                _uiState.update { it.copy(wings = wings) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to load wings: ${e.message}") }
+            }
         }
     }
 
     fun onWingSelected(wing: String) {
         _uiState.update { it.copy(selectedWing = wing, selectedFlatId = "") }
         viewModelScope.launch {
-            val flats = repository.fetchFlats(_uiState.value.selectedSocietyId, wing)
-            _uiState.update { it.copy(flats = flats) }
+            try {
+                val flats = repository.fetchFlats(_uiState.value.selectedSocietyId, wing)
+                _uiState.update { it.copy(flats = flats) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to load flats: ${e.message}") }
+            }
         }
     }
 
@@ -66,12 +78,17 @@ class RegisterViewModel @Inject constructor(
             }
 
             if (_uiState.value.selectedRole == UserRole.OWNER) {
-                val currentOwner = repository.checkFlatOccupancy(_uiState.value.selectedFlatId)
-                if (currentOwner != null) {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        errorMessage = "Security Alert: This flat already has a registered Owner. Please join as Family Member."
-                    ) }
+                try {
+                    val currentOwner = repository.checkFlatOccupancy(_uiState.value.selectedFlatId)
+                    if (currentOwner != null) {
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            errorMessage = "Security Alert: This flat already has a registered Owner. Please join as Family Member."
+                        ) }
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Verification failed: ${e.message}") }
                     return@launch
                 }
             }
