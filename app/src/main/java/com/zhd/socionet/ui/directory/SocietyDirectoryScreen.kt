@@ -53,6 +53,7 @@ import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +61,7 @@ fun SocietyDirectoryScreen(
     viewModel: SocietyDirectoryViewModel = hiltViewModel(),
     isAdmin: Boolean,
     societyId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -146,11 +147,13 @@ fun SocietyDirectoryScreen(
                                 user = user,
                                 showContactInfo = isAdmin,
                                 onCall = {
-                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${user.phoneNumber}"))
+                                    val intent = Intent(Intent.ACTION_DIAL,
+                                        "tel:${user.phoneNumber}".toUri())
                                     context.startActivity(intent)
                                 },
                                 onEmail = {
-                                    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${user.email}"))
+                                    val intent = Intent(Intent.ACTION_SENDTO,
+                                        "mailto:${user.email}".toUri())
                                     context.startActivity(intent)
                                 }
                             )
@@ -167,7 +170,7 @@ fun DirectoryUserItem(
     user: UserProfile,
     showContactInfo: Boolean,
     onCall: () -> Unit,
-    onEmail: () -> Unit
+    onEmail: () -> Unit,
 ) {
     SoftCard {
         Row(verticalAlignment = Alignment.Top) {
