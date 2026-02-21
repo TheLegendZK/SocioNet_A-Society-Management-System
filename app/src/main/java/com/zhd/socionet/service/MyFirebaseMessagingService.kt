@@ -11,11 +11,13 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.zhd.socionet.MainActivity
 import com.zhd.socionet.data.repository.AuthRepository
+import com.zhd.socionet.ui.navigation.Routes
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,13 +51,26 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notificationId = System.currentTimeMillis().toInt()
 
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        // Determine target route if user is logged in
+        runBlocking {
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                val profile = authRepository.getUserProfile(userId)
+                if (profile != null && !profile.assignedFlatId.isNullOrBlank()) {
+                    // Navigate to Approvals tab (index 1)
+                    val route = Routes.buildResidentCreatePass(profile.assignedFlatId, userId, tab = 1)
+                    intent.putExtra("navigation_route", route)
+                }
+            }
         }
 
         // Open the app when clicked
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)

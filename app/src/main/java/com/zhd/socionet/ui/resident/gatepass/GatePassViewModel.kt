@@ -11,6 +11,7 @@ import com.zhd.socionet.data.model.VisitorType
 import com.zhd.socionet.data.repository.GatePassRepository
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,8 +31,13 @@ class GatePassViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GatePassUiState())
     val uiState: StateFlow<GatePassUiState> = _uiState.asStateFlow()
 
+    private var pendingJob: Job? = null
+    private var historyJob: Job? = null
+    private var staffJob: Job? = null
+
     fun loadPendingRequests(flatId: String) {
-        viewModelScope.launch {
+        pendingJob?.cancel()
+        pendingJob = viewModelScope.launch {
             repository.getPendingRequestsFlow(flatId).collectLatest { requests ->
                 _uiState.update { it.copy(pendingRequests = requests) }
             }
@@ -39,10 +45,12 @@ class GatePassViewModel @Inject constructor(
     }
 
     fun loadHistory(flatId: String) {
-        viewModelScope.launch {
+        historyJob?.cancel()
+        historyJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val history = repository.getPastPasses(flatId)
-            _uiState.update { it.copy(isLoading = false, visitorHistory = history) }
+            repository.getPastPassesFlow(flatId).collectLatest { history ->
+                _uiState.update { it.copy(isLoading = false, visitorHistory = history) }
+            }
         }
     }
 
@@ -90,7 +98,8 @@ class GatePassViewModel @Inject constructor(
     }
 
     fun loadLinkedStaffAndLogs(societyId: String, flatId: String) {
-        viewModelScope.launch {
+        staffJob?.cancel()
+        staffJob = viewModelScope.launch {
             val allStaff = staffRepository.getStaffList(societyId)
             val myStaff = allStaff.filter { it.employerFlatIds.contains(flatId) }
 
@@ -100,7 +109,7 @@ class GatePassViewModel @Inject constructor(
                     _uiState.update { it.copy(linkedStaff = myStaff, staffLogs = logs) }
                 }
             } else {
-                _uiState.update { it.copy(linkedStaff = emptyList()) }
+                _uiState.update { it.copy(linkedStaff = emptyList(), staffLogs = emptyList()) }
             }
         }
     }

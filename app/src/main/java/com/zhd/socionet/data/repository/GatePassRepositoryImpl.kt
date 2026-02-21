@@ -19,7 +19,7 @@ interface GatePassRepository {
     suspend fun createGatePass(entry: GateEntry): Result<String>
     fun getPendingRequestsFlow(flatId: String): Flow<List<GateEntry>>
     suspend fun getActivePasses(flatId: String): List<GateEntry>
-    suspend fun getPastPasses(flatId: String): List<GateEntry>
+    fun getPastPassesFlow(flatId: String): Flow<List<GateEntry>>
     suspend fun respondToRequest(entryId: String, status: EntryStatus): Result<Unit>
     fun getStaffLogsFlow(staffIds: List<String>): Flow<List<GateEntry>>
     suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit>
@@ -28,7 +28,7 @@ interface GatePassRepository {
 
 @Singleton
 class GatePassRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
 ) : GatePassRepository {
 
     override suspend fun createGatePass(entry: GateEntry): Result<String> {
@@ -45,31 +45,41 @@ class GatePassRepositoryImpl @Inject constructor(
     override fun getPendingRequestsFlow(flatId: String): Flow<List<GateEntry>> {
         return firestore.collection(AppConstants.COLL_GATE_ENTRIES)
             .whereEqualTo("hostFlatId", flatId)
-            .whereEqualTo("status", EntryStatus.PENDING_APPROVAL.name)
-            .orderBy("entryTime", Query.Direction.DESCENDING)
             .snapshots()
             .map { snapshot ->
                 snapshot.toObjects(GateEntry::class.java)
+                    .filter { it.status == EntryStatus.PENDING_APPROVAL }
+                    .sortedByDescending { it.entryTime }
             }
     }
 
     override suspend fun getActivePasses(flatId: String): List<GateEntry> {
         val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
             .whereEqualTo("hostFlatId", flatId)
-            .whereEqualTo("status", EntryStatus.APPROVED.name)
-            .orderBy("entryTime", Query.Direction.DESCENDING)
             .get().await()
+
         return snapshot.toObjects(GateEntry::class.java)
+            .filter { it.status == EntryStatus.APPROVED }
+            .sortedByDescending { it.entryTime }
     }
 
-    override suspend fun getPastPasses(flatId: String): List<GateEntry> {
-        val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
+    override fun getPastPassesFlow(flatId: String): Flow<List<GateEntry>> {
+        return firestore.collection(AppConstants.COLL_GATE_ENTRIES)
             .whereEqualTo("hostFlatId", flatId)
-            .whereIn("status", listOf(EntryStatus.CHECKED_IN.name, EntryStatus.CHECKED_OUT.name, EntryStatus.DENIED.name, EntryStatus.EXPIRED.name))
-            .orderBy("entryTime", Query.Direction.DESCENDING)
-            .limit(50)
-            .get().await()
-        return snapshot.toObjects(GateEntry::class.java)
+            .snapshots()
+            .map { snapshot ->
+                val pastStatuses = listOf(
+                    EntryStatus.APPROVED,
+                    EntryStatus.CHECKED_IN,
+                    EntryStatus.CHECKED_OUT,
+                    EntryStatus.DENIED,
+                    EntryStatus.EXPIRED
+                )
+                snapshot.toObjects(GateEntry::class.java)
+                    .filter { it.status in pastStatuses }
+                    .sortedByDescending { it.entryTime }
+                    .take(50)
+            }
     }
 
     override suspend fun respondToRequest(entryId: String, status: EntryStatus): Result<Unit> {
@@ -88,13 +98,19 @@ class GatePassRepositoryImpl @Inject constructor(
 
         return firestore.collection(AppConstants.COLL_GATE_ENTRIES)
             .whereIn("linkedStaffId", staffIds)
-            .orderBy("entryTime", Query.Direction.DESCENDING)
-            .limit(20)
             .snapshots()
-            .map { snapshot -> snapshot.toObjects(GateEntry::class.java) }
+            .map { snapshot ->
+                snapshot.toObjects(GateEntry::class.java)
+                    .sortedByDescending { it.entryTime }
+                    .take(20)
+            }
     }
 
-    override suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit> {
+    override suspend fun logStaffEntry(
+        staffId: String,
+        staffName: String,
+        action: String,
+    ): Result<Unit> {
         return try {
             val docRef = firestore.collection(AppConstants.COLL_GATE_ENTRIES).document()
             val status = if (action == "IN") EntryStatus.CHECKED_IN else EntryStatus.CHECKED_OUT

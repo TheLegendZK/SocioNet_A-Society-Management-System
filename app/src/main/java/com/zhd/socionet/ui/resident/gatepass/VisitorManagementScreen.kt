@@ -1,6 +1,5 @@
 package com.zhd.socionet.ui.resident.gatepass
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,10 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TimerOff
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -86,16 +87,37 @@ fun VisitorManagementScreen(
     viewModel: GatePassViewModel = hiltViewModel(),
     hostFlatId: String,
     hostUserId: String,
+    initialTab: Int = 0,
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf(
-        stringResource(R.string.tab_create_pass),
-        stringResource(R.string.tab_approvals),
-        stringResource(R.string.tab_history),
-        stringResource(R.string.tab_my_staff)
-    )
+
+    val tabCreatePass = stringResource(R.string.tab_create_pass)
+    val tabApprovals = stringResource(R.string.tab_approvals)
+    val tabHistory = stringResource(R.string.tab_history)
+    val tabMyStaff = stringResource(R.string.tab_my_staff)
+
+    val tabs = remember(
+        uiState.linkedStaff.isNotEmpty(),
+        tabCreatePass,
+        tabApprovals,
+        tabHistory,
+        tabMyStaff
+    ) {
+        val list = mutableListOf(tabCreatePass, tabApprovals, tabHistory)
+        if (uiState.linkedStaff.isNotEmpty()) {
+            list.add(tabMyStaff) // Only inject if user has staff linked
+        }
+        list
+    }
+
+    var selectedTab by remember { mutableIntStateOf(initialTab) }
+
+    LaunchedEffect(tabs.size) {
+        if (selectedTab >= tabs.size) {
+            selectedTab = tabs.size - 1
+        }
+    }
 
     val societyId = remember(hostFlatId) {
         hostFlatId.substringBefore("_") // Dynamically extracts Society ID from Flat ID
@@ -110,9 +132,21 @@ fun VisitorManagementScreen(
         }
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(SoftTheme.bg)) {
+    // Determine currently active tab by title (prevents fetching wrong info if indices shift)
+    val currentTab = tabs.getOrNull(selectedTab)
+
+    LaunchedEffect(currentTab) {
+        when (currentTab) {
+            tabApprovals -> viewModel.loadPendingRequests(hostFlatId)
+            tabHistory -> viewModel.loadHistory(hostFlatId)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SoftTheme.bg)
+    ) {
         // Background Header Gradient
         Box(
             modifier = Modifier
@@ -185,20 +219,19 @@ fun VisitorManagementScreen(
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()) {
-                when (selectedTab) {
-                    0 -> CreatePassContent(viewModel, hostFlatId, hostUserId)
-                    1 -> RequestsList(uiState.pendingRequests) { entry, accept ->
-                        viewModel.respondToRequest(
-                            entry,
-                            accept
-                        )
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            ) {
+                when (currentTab) {
+                    tabCreatePass -> CreatePassContent(viewModel, hostFlatId, hostUserId)
+                    tabApprovals -> RequestsList(uiState.pendingRequests) { entry, accept ->
+                        viewModel.respondToRequest(entry, accept)
                     }
 
-                    2 -> HistoryList(uiState.visitorHistory)
-                    3 -> StaffTrackingList(uiState.linkedStaff, uiState.staffLogs)
+                    tabHistory -> HistoryList(uiState.visitorHistory)
+                    tabMyStaff -> StaffTrackingList(uiState.linkedStaff, uiState.staffLogs)
                 }
             }
         }
@@ -469,19 +502,27 @@ fun HistoryList(history: List<GateEntry>) {
             items(history) { entry ->
                 SoftCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val isCheckIn = entry.status == EntryStatus.CHECKED_IN
+
+                        // Determine Icon and Color based on Status
+                        val (icon, color) = when(entry.status) {
+                            EntryStatus.APPROVED -> Icons.Default.Check to Color(0xFF2196F3) // Blue (Added)
+                            EntryStatus.CHECKED_IN -> Icons.AutoMirrored.Filled.Login to Color(0xFF4CAF50) // Green
+                            EntryStatus.CHECKED_OUT -> Icons.AutoMirrored.Filled.Logout to SoftTheme.textSecondary
+                            EntryStatus.DENIED -> Icons.Default.Block to Color(0xFFF44336) // Red
+                            EntryStatus.EXPIRED -> Icons.Default.TimerOff to Color(0xFFFF9800) // Orange
+                            else -> Icons.Default.History to SoftTheme.textSecondary
+                        }
+
                         Surface(
                             shape = CircleShape,
-                            color = (if (isCheckIn) Color(0xFF4CAF50) else SoftTheme.textSecondary).copy(
-                                alpha = 0.1f
-                            ),
+                            color = color.copy(alpha = 0.1f),
                             modifier = Modifier.size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = if (isCheckIn) Icons.AutoMirrored.Filled.Login else Icons.AutoMirrored.Filled.Logout,
+                                    imageVector = icon,
                                     contentDescription = null,
-                                    tint = if (isCheckIn) Color(0xFF4CAF50) else SoftTheme.textSecondary
+                                    tint = color
                                 )
                             }
                         }

@@ -1,5 +1,6 @@
 package com.zhd.socionet
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.ThemeMode
@@ -22,6 +23,9 @@ class MainViewModel @Inject constructor(
     private val _currentTheme = MutableStateFlow(ThemeMode.SYSTEM)
     val currentTheme: StateFlow<ThemeMode> = _currentTheme.asStateFlow()
 
+    private val _deepLinkRoute = MutableStateFlow<String?>(null)
+    val deepLinkRoute: StateFlow<String?> = _deepLinkRoute.asStateFlow()
+
     init {
         viewModelScope.launch {
             authRepository.observeAuthState().collectLatest { userId ->
@@ -39,5 +43,16 @@ class MainViewModel @Inject constructor(
         settingsRepository.getThemeMode(userId).collectLatest { theme ->
             _currentTheme.value = theme
         }
+    }
+
+    fun handleDeepLink(intent: Intent?) {
+        val route = intent?.getStringExtra("navigation_route")
+        if (!route.isNullOrBlank()) {
+            _deepLinkRoute.value = route
+        }
+    }
+
+    fun onDeepLinkHandled() {
+        _deepLinkRoute.value = null
     }
 }

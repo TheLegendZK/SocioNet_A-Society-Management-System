@@ -152,17 +152,21 @@ fun SocioNetNavGraph(
         }
 
         composable(
-            route = "${Routes.RESIDENT_CREATE_PASS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
+            route = "${Routes.RESIDENT_CREATE_PASS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}?tab={tab}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument(NavArgs.USER_ID) { type = NavType.StringType })
+                navArgument(NavArgs.USER_ID) { type = NavType.StringType },
+                navArgument("tab") { type = NavType.IntType; defaultValue = 0 }
+            )
         ) { backStack ->
             val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
             val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
+            val tab = backStack.arguments?.getInt("tab") ?: 0
             residentShell(flatId, userId) {
                 VisitorManagementScreen(
                     hostFlatId = flatId,
                     hostUserId = userId,
+                    initialTab = tab,
                     onBackClick = { navController.popBackStack() })
             }()
         }

@@ -27,6 +27,7 @@ interface AuthRepository {
     suspend fun checkFlatOccupancy(flatId: String): String?
     suspend fun updateFcmToken(token: String)
     suspend fun refreshFcmToken()
+    suspend fun getUserProfile(userId: String): UserProfile?
 }
 
 @Singleton
@@ -140,6 +141,15 @@ class AuthRepositoryImpl @Inject constructor(
             updateFcmToken(token)
         } catch (e: Exception) {
             // Log or ignore
+        }
+    }
+
+    override suspend fun getUserProfile(userId: String): UserProfile? {
+        return try {
+            val doc = firestore.collection(AppConstants.COLL_USERS).document(userId).get().await()
+            doc.toObject(UserProfile::class.java)
+        } catch (e: Exception) {
+            null
         }
     }
 }

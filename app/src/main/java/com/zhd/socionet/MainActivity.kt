@@ -1,6 +1,7 @@
 package com.zhd.socionet
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,10 +32,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Handle deep link if app is launched from notification
+        mainViewModel.handleDeepLink(intent)
+
         setContent {
 
             val currentTheme by mainViewModel.currentTheme.collectAsState()
-
+            val deepLinkRoute by mainViewModel.deepLinkRoute.collectAsState()
+            
             val isDarkTheme = when (currentTheme) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
@@ -60,9 +67,24 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val navController = rememberNavController()
+                    
+                    // Handle deep link navigation
+                    LaunchedEffect(deepLinkRoute) {
+                        deepLinkRoute?.let { route ->
+                            navController.navigate(route)
+                            mainViewModel.onDeepLinkHandled()
+                        }
+                    }
+
                     SocioNetNavGraph(navController = navController)
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        mainViewModel.handleDeepLink(intent)
     }
 }
