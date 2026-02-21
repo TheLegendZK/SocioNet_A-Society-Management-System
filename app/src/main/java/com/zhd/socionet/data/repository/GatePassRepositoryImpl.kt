@@ -7,6 +7,7 @@ import com.google.firebase.firestore.snapshots
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
+import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.VisitorType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,6 +23,7 @@ interface GatePassRepository {
     suspend fun respondToRequest(entryId: String, status: EntryStatus): Result<Unit>
     fun getStaffLogsFlow(staffIds: List<String>): Flow<List<GateEntry>>
     suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit>
+    suspend fun getUserByFlat(flatId: String): UserProfile?
 }
 
 @Singleton
@@ -111,6 +113,19 @@ class GatePassRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserByFlat(flatId: String): UserProfile? {
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_USERS)
+                .whereEqualTo("assignedFlatId", flatId)
+                .limit(1)
+                .get()
+                .await()
+            snapshot.toObjects(UserProfile::class.java).firstOrNull()
+        } catch (e: Exception) {
+            null
         }
     }
 }

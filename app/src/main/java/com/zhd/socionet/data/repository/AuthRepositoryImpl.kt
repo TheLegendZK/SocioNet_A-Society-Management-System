@@ -2,6 +2,7 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
 import kotlinx.coroutines.channels.awaitClose
@@ -24,6 +25,8 @@ interface AuthRepository {
     ): List<Pair<String, String>>
 
     suspend fun checkFlatOccupancy(flatId: String): String?
+    suspend fun updateFcmToken(token: String)
+    suspend fun refreshFcmToken()
 }
 
 @Singleton
@@ -57,6 +60,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (profile == null) {
                 Result.failure(Exception("User profile not found in database"))
             } else {
+                // Refresh token on successful login
+                refreshFcmToken()
                 Result.success(profile)
             }
         } catch (e: Exception) {
@@ -75,7 +80,10 @@ class AuthRepositoryImpl @Inject constructor(
 
             val finalProfile = profile.copy(id = userId)
             firestore.collection(AppConstants.COLL_USERS).document(userId).set(finalProfile).await()
-
+            
+            // Refresh token on successful registration
+            refreshFcmToken()
+            
             Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
@@ -113,5 +121,25 @@ class AuthRepositoryImpl @Inject constructor(
         if (flatId.isBlank()) return null
         val doc = firestore.collection(AppConstants.COLL_FLATS).document(flatId).get().await()
         return doc.getString("primaryOwnerId")
+    }
+
+    override suspend fun updateFcmToken(token: String) {
+        val userId = auth.currentUser?.uid ?: return
+        try {
+            firestore.collection(AppConstants.COLL_USERS).document(userId)
+                .update("fcmToken", token)
+                .await()
+        } catch (e: Exception) {
+            // Log or ignore
+        }
+    }
+
+    override suspend fun refreshFcmToken() {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            updateFcmToken(token)
+        } catch (e: Exception) {
+            // Log or ignore
+        }
     }
 }

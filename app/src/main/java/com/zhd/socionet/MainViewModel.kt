@@ -26,6 +26,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.observeAuthState().collectLatest { userId ->
                 if (userId != null) {
+                    launch { authRepository.refreshFcmToken() }
                     listenToSettings(userId)
                 }
                 // If userId is null (logged out), we could reset theme to System,

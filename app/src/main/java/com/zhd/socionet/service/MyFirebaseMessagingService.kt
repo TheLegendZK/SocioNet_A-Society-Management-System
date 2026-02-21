@@ -10,10 +10,21 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.zhd.socionet.MainActivity
+import com.zhd.socionet.data.repository.AuthRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var authRepository: AuthRepository
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
@@ -71,7 +82,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        // Send this token to Firestore (users collection) so the backend knows where to send alerts
-        // In a real app, inject Repository here and updateProfile(token)
+        super.onNewToken(token)
+        serviceScope.launch {
+            authRepository.updateFcmToken(token)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cancel scope if needed, but for service it's usually fine to let it finish
     }
 }
