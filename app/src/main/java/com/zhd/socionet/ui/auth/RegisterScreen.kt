@@ -154,6 +154,50 @@ fun RegisterScreen(
                         color = SoftTheme.primary
                     )
 
+                    ExposedDropdownMenuBox(expanded = roleExpanded, onExpandedChange = { roleExpanded = it }) {
+                        SocioTextField(
+                            value = when(uiState.selectedRole) {
+                                UserRole.OWNER -> stringResource(R.string.primary_owner)
+                                UserRole.TENANT -> stringResource(R.string.tenant)
+                                UserRole.FAMILY_MEMBER -> stringResource(R.string.family_member)
+                                UserRole.SECURITY_GUARD -> stringResource(R.string.security_guard)
+                                UserRole.SERVICE_STAFF -> "Service Staff"
+                                else -> uiState.selectedRole.name
+                            },
+                            onValueChange = {}, readOnly = true,
+                            label = stringResource(R.string.i_am_a),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleExpanded) },
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                            leadingIcon = { Icon(Icons.Default.Person, null, tint = SoftTheme.primary) }
+                        )
+                        ExposedDropdownMenu(
+                            expanded = roleExpanded,
+                            onDismissRequest = { roleExpanded = false },
+                            modifier = Modifier.background(SoftTheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.primary_owner), color = SoftTheme.textPrimary) },
+                                onClick = { viewModel.onRoleSelected(UserRole.OWNER); roleExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.tenant), color = SoftTheme.textPrimary) },
+                                onClick = { viewModel.onRoleSelected(UserRole.TENANT); roleExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.family_member), color = SoftTheme.textPrimary) },
+                                onClick = { viewModel.onRoleSelected(UserRole.FAMILY_MEMBER); roleExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.security_guard), color = SoftTheme.textPrimary) },
+                                onClick = { viewModel.onRoleSelected(UserRole.SECURITY_GUARD); roleExpanded = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Service Staff", color = SoftTheme.textPrimary) },
+                                onClick = { viewModel.onRoleSelected(UserRole.SERVICE_STAFF); roleExpanded = false }
+                            )
+                        }
+                    }
+
                     ExposedDropdownMenuBox(expanded = socExpanded, onExpandedChange = { socExpanded = it }) {
                         SocioTextField(
                             value = uiState.societies.find { it.first == uiState.selectedSocietyId }?.second ?: "",
@@ -177,7 +221,7 @@ fun RegisterScreen(
                         }
                     }
 
-                    if (uiState.selectedSocietyId.isNotEmpty()) {
+                    if (uiState.selectedRole != UserRole.SECURITY_GUARD && uiState.selectedRole != UserRole.SERVICE_STAFF && uiState.selectedSocietyId.isNotEmpty()) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             ExposedDropdownMenuBox(expanded = wingExpanded, onExpandedChange = { wingExpanded = it }, modifier = Modifier.weight(1f)) {
                                 SocioTextField(
@@ -222,39 +266,6 @@ fun RegisterScreen(
                             }
                         }
                     }
-
-                    ExposedDropdownMenuBox(expanded = roleExpanded, onExpandedChange = { roleExpanded = it }) {
-                        SocioTextField(
-                            value = when(uiState.selectedRole) {
-                                UserRole.OWNER -> stringResource(R.string.primary_owner)
-                                UserRole.TENANT -> stringResource(R.string.tenant)
-                                UserRole.FAMILY_MEMBER -> stringResource(R.string.family_member)
-                                else -> uiState.selectedRole.name
-                            },
-                            onValueChange = {}, readOnly = true,
-                            label = stringResource(R.string.i_am_a),
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleExpanded) },
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = roleExpanded,
-                            onDismissRequest = { roleExpanded = false },
-                            modifier = Modifier.background(SoftTheme.surface)
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.primary_owner), color = SoftTheme.textPrimary) },
-                                onClick = { viewModel.onRoleSelected(UserRole.OWNER); roleExpanded = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.tenant), color = SoftTheme.textPrimary) },
-                                onClick = { viewModel.onRoleSelected(UserRole.TENANT); roleExpanded = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.family_member), color = SoftTheme.textPrimary) },
-                                onClick = { viewModel.onRoleSelected(UserRole.FAMILY_MEMBER); roleExpanded = false }
-                            )
-                        }
-                    }
                 }
             }
 
@@ -276,11 +287,17 @@ fun RegisterScreen(
                 )
             }
 
+            val isSubmitEnabled = if (uiState.selectedRole == UserRole.SECURITY_GUARD || uiState.selectedRole == UserRole.SERVICE_STAFF) {
+                uiState.selectedSocietyId.isNotEmpty()
+            } else {
+                uiState.selectedFlatId.isNotEmpty()
+            }
+
             SocioButton(
                 text = stringResource(R.string.submit_registration),
                 onClick = { viewModel.registerUser(email, password, name, phone) },
                 isLoading = uiState.isLoading,
-                enabled = uiState.selectedFlatId.isNotEmpty()
+                enabled = isSubmitEnabled
             )
 
             Row(

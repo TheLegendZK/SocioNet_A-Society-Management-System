@@ -72,7 +72,10 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            if (_uiState.value.selectedFlatId.isEmpty()) {
+            val isGuard = _uiState.value.selectedRole == UserRole.SECURITY_GUARD
+            val isStaff = _uiState.value.selectedRole == UserRole.SERVICE_STAFF
+
+            if (!isGuard && !isStaff && _uiState.value.selectedFlatId.isEmpty()) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "Please select a flat first.") }
                 return@launch
             }
@@ -93,12 +96,18 @@ class RegisterViewModel @Inject constructor(
                 }
             }
 
+            val finalAssignedFlatId = when {
+                isGuard -> "${_uiState.value.selectedSocietyId}_GUARD"
+                isStaff -> "${_uiState.value.selectedSocietyId}_STAFF"
+                else -> _uiState.value.selectedFlatId
+            }
+
             val newProfile = UserProfile(
                 fullName = name,
                 email = email,
                 phoneNumber = phone,
                 roles = listOf(_uiState.value.selectedRole),
-                assignedFlatId = _uiState.value.selectedFlatId,
+                assignedFlatId = finalAssignedFlatId,
                 isVerified = false
             )
 

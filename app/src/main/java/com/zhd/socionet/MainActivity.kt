@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.zhd.socionet.core.theme.SocioNetTheme
 import com.zhd.socionet.data.model.ThemeMode
 import com.zhd.socionet.ui.common.LocalDarkTheme
+import com.zhd.socionet.ui.navigation.Routes
 import com.zhd.socionet.ui.navigation.SocioNetNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -71,7 +72,11 @@ class MainActivity : ComponentActivity() {
                     // Handle deep link navigation
                     LaunchedEffect(deepLinkRoute) {
                         deepLinkRoute?.let { route ->
-                            navController.navigate(route)
+                            // When navigating from a notification, we want to clear the Splash Screen
+                            // from the back stack to avoid it overriding our navigation later.
+                            navController.navigate(route) {
+                                popUpTo(Routes.SPLASH) { inclusive = true }
+                            }
                             mainViewModel.onDeepLinkHandled()
                         }
                     }

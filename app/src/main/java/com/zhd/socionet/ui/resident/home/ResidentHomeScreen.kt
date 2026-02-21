@@ -1,7 +1,6 @@
 package com.zhd.socionet.ui.resident.home
 
 import android.content.Intent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contacts
@@ -71,7 +69,6 @@ import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.navigation.Routes
 import com.zhd.socionet.ui.profile.ProfileViewModel
 import com.zhd.socionet.ui.resident.notices.NoticeBoardViewModel
-import com.zhd.socionet.ui.resident.staff.ResidentStaffViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -83,13 +80,11 @@ fun ResidentHomeScreen(
     userId: String,
     profileViewModel: ProfileViewModel = hiltViewModel(),
     billingViewModel: BillingViewModel = hiltViewModel(),
-    staffViewModel: ResidentStaffViewModel = hiltViewModel(),
     noticeViewModel: NoticeBoardViewModel = hiltViewModel(),
     sosViewModel: SosViewModel = hiltViewModel(),
 ) {
     val profileState by profileViewModel.uiState.collectAsState()
     val billingState by billingViewModel.uiState.collectAsState()
-    val staffState by staffViewModel.uiState.collectAsState()
     val noticeState by noticeViewModel.uiState.collectAsState()
 
     val societyId = remember(flatId) {
@@ -107,7 +102,6 @@ fun ResidentHomeScreen(
     LaunchedEffect(flatId) {
         if (flatId.isNotBlank()) {
             billingViewModel.loadBills(flatId)
-            staffViewModel.loadStaff(societyId)
         }
     }
 
@@ -305,83 +299,48 @@ fun ResidentHomeScreen(
 
                 item {
                     PaddingWrapper {
-                        SoftCard {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Badge, null, tint = SoftTheme.primary)
-                                Spacer(Modifier.width(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.latest_notices),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = SoftTheme.textPrimary
+                            )
+                            TextButton(onClick = { navController.navigate("${Routes.RESIDENT_NOTICES}/$flatId/$userId") }) {
                                 Text(
-                                    text = stringResource(R.string.my_household_staff),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SoftTheme.textPrimary
+                                    text = stringResource(R.string.view_all),
+                                    color = SoftTheme.primary,
+                                    fontWeight = FontWeight.Bold
                                 )
-                            }
-                            Spacer(Modifier.height(16.dp))
-                            val myStaff = staffState.allStaff.filter { it.employerFlatIds.contains(flatId) }
-                            if (myStaff.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.no_staff_linked),
-                                    color = SoftTheme.textSecondary,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    myStaff.take(3).forEach { staff ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(SoftTheme.bg, MaterialTheme.shapes.small)
-                                                .padding(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(modifier = Modifier.size(8.dp).background(if (staff.isActive) Color.Green else Color.Red, CircleShape))
-                                            Spacer(Modifier.width(12.dp))
-                                            Text(staff.name, fontWeight = FontWeight.SemiBold, color = SoftTheme.textPrimary)
-                                            Spacer(Modifier.weight(1f))
-                                            Text(staff.role, style = MaterialTheme.typography.bodySmall, color = SoftTheme.textSecondary)
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(Modifier.height(16.dp))
-                            TextButton(
-                                onClick = { if (flatId.isNotBlank()) navController.navigate("${Routes.RESIDENT_STAFF}/$flatId/$userId") },
-                                border = BorderStroke(1.dp, SoftTheme.primary),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(stringResource(R.string.manage_staff), fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
 
                 if (noticeState.notices.isNotEmpty()) {
-                    item {
-                        PaddingWrapper {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.latest_notices),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SoftTheme.textPrimary
-                                )
-                                TextButton(onClick = { navController.navigate("${Routes.RESIDENT_NOTICES}/$flatId/$userId") }) {
-                                    Text(
-                                        text = stringResource(R.string.view_all),
-                                        color = SoftTheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
                     items(noticeState.notices.take(2)) { notice ->
                         PaddingWrapper {
                             NoticeSummaryCard(notice)
+                        }
+                    }
+                } else {
+                    item {
+                        PaddingWrapper {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No notices yet.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = SoftTheme.textSecondary,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            }
                         }
                     }
                 }

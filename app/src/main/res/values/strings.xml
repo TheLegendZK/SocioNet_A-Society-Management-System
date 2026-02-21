@@ -41,6 +41,7 @@
     <string name="primary_owner">Primary Owner</string>
     <string name="tenant">Tenant</string>
     <string name="family_member">Family Member</string>
+    <string name="security_guard">Security Guard</string>
 
     <string name="confirm_sos">CONFIRM SOS</string>
     <string name="sos_confirmation_msg">This will alert Security and your family immediately.</string>

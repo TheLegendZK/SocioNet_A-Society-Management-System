@@ -16,7 +16,6 @@ object Routes {
     const val ADMIN_APPROVALS = "admin_approvals"
     const val ADMIN_POST_NOTICE = "admin_post_notice"
     const val ADMIN_BILLING = "admin_billing"
-    const val ADMIN_STAFF_REGISTRY = "admin_staff_registry"
     const val ADMIN_COMPLAINTS = "admin_complaints"
 
     // --- Resident Module ---
@@ -25,7 +24,6 @@ object Routes {
     const val RESIDENT_NOTICES = "resident_notices"
     const val RESIDENT_PAYMENTS = "resident_payments"
     const val RESIDENT_COMPLAINTS = "resident_complaints"
-    const val RESIDENT_STAFF = "resident_staff"
 
     // --- Directory Module ---
     const val SOCIETY_DIRECTORY = "society_directory"
@@ -52,15 +50,11 @@ object Routes {
 
     fun buildResidentComplaints(flatId: String, userId: String) = "$RESIDENT_COMPLAINTS/$flatId/$userId"
 
-    fun buildResidentStaff(flatId: String, userId: String) = "$RESIDENT_STAFF/$flatId/$userId"
-
     fun buildResidentPayments(flatId: String, userId: String) = "$RESIDENT_PAYMENTS/$flatId/$userId"
 
     fun buildAdminApprovals(societyId: String) = "$ADMIN_APPROVALS/$societyId"
 
     fun buildAdminBilling(societyId: String) = "$ADMIN_BILLING/$societyId"
-
-    fun buildAdminStaffRegistry(societyId: String) = "$ADMIN_STAFF_REGISTRY/$societyId"
 
     fun buildAdminPostNotice(societyId: String) = "$ADMIN_POST_NOTICE?${NavArgs.SOCIETY_ID}=$societyId"
 

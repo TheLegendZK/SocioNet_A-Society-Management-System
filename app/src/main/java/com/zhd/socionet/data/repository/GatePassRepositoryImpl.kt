@@ -2,7 +2,6 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.snapshots
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.EntryStatus

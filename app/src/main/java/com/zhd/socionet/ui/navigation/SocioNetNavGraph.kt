@@ -21,7 +21,6 @@ import com.zhd.socionet.ui.admin.complaints.AdminComplaintScreen
 import com.zhd.socionet.ui.admin.dashboard.AdminDashboardScreen
 import com.zhd.socionet.ui.admin.masterdata.AdminSetupScreen
 import com.zhd.socionet.ui.admin.notices.CreateNoticeScreen
-import com.zhd.socionet.ui.admin.staff.StaffRegistryScreen
 import com.zhd.socionet.ui.auth.LoginScreen
 import com.zhd.socionet.ui.auth.PendingApprovalScreen
 import com.zhd.socionet.ui.auth.RegisterScreen
@@ -36,7 +35,6 @@ import com.zhd.socionet.ui.resident.gatepass.VisitorManagementScreen
 import com.zhd.socionet.ui.resident.home.ResidentHomeScreen
 import com.zhd.socionet.ui.resident.notices.NoticeBoardScreen
 import com.zhd.socionet.ui.resident.payments.ResidentPaymentsScreen
-import com.zhd.socionet.ui.resident.staff.ResidentStaffScreen
 import com.zhd.socionet.ui.security.entries.ManualEntryScreen
 import com.zhd.socionet.ui.security.scanner.SecurityScannerScreen
 import com.zhd.socionet.ui.security.staff.SecurityStaffScreen
@@ -205,20 +203,6 @@ fun SocioNetNavGraph(
         }
 
         composable(
-            route = "${Routes.RESIDENT_STAFF}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
-            arguments = listOf(
-                navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                navArgument(NavArgs.USER_ID) { type = NavType.StringType }
-            )
-        ) { backStack ->
-            val flatId = backStack.arguments?.getString(NavArgs.FLAT_ID) ?: ""
-            val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
-            residentShell(flatId, userId) {
-                ResidentStaffScreen(flatId = flatId, onBack = { navController.popBackStack() })
-            }()
-        }
-
-        composable(
             route = "${Routes.RESIDENT_PAYMENTS}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
             arguments = listOf(
                 navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
@@ -289,17 +273,6 @@ fun SocioNetNavGraph(
                     onBack = { navController.popBackStack() })
             }()
         }
-        composable(
-            route = "${Routes.ADMIN_STAFF_REGISTRY}/{${NavArgs.SOCIETY_ID}}",
-            arguments = listOf(navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType })
-        ) { backStack ->
-            val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
-            adminShell {
-                StaffRegistryScreen(
-                    societyId = societyId,
-                    onBack = { navController.popBackStack() })
-            }()
-        }
 
         // --- DIRECTORY SCREEN (Shared) ---
         composable(
@@ -320,6 +293,7 @@ fun SocioNetNavGraph(
                 SocietyDirectoryScreen(
                     isAdmin = isAdmin,
                     societyId = societyId,
+                    flatId = flatId,
                     onBack = { navController.popBackStack() })
             }
             if (isAdmin) {

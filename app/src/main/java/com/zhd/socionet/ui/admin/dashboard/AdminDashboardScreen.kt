@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Home
@@ -283,17 +282,6 @@ fun AdminDashboardScreen(
                     ) {
                         if (societyId.isNotEmpty()) {
                             navController.navigate("${Routes.ADMIN_BILLING}/$societyId")
-                        }
-                    }
-                }
-                item {
-                    AdminActionCard(
-                        title = stringResource(R.string.staff_registry),
-                        icon = Icons.Default.Badge,
-                        color = SoftTheme.warning
-                    ) {
-                        if (societyId.isNotEmpty()) {
-                            navController.navigate("${Routes.ADMIN_STAFF_REGISTRY}/$societyId")
                         }
                     }
                 }

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
-import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.VisitorType
 import com.zhd.socionet.data.repository.GatePassRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

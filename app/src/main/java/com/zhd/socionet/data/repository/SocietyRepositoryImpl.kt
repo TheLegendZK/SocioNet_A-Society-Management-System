@@ -3,12 +3,16 @@ package com.zhd.socionet.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.model.UserRole
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 interface SocietyRepository {
     suspend fun getSocietyResidents(societyId: String): Result<List<UserProfile>>
+    suspend fun removeUserFromSociety(userId: String): Result<Unit>
+    suspend fun addStaffMember(societyId: String, name: String, phone: String, role: UserRole): Result<Unit>
 }
 
 @Singleton
@@ -26,6 +30,41 @@ class SocietyRepositoryImpl @Inject constructor(
 
             val users = snapshot.toObjects(UserProfile::class.java)
             Result.success(users)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeUserFromSociety(userId: String): Result<Unit> {
+        return try {
+            firestore.collection(AppConstants.COLL_USERS).document(userId)
+                .update(
+                    mapOf(
+                        "assignedFlatId" to null,
+                        "isVerified" to false
+                    )
+                ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun addStaffMember(societyId: String, name: String, phone: String, role: UserRole): Result<Unit> {
+        return try {
+            val staffId = UUID.randomUUID().toString()
+            val flatIdSuffix = if (role == UserRole.SECURITY_GUARD) "_GUARD" else "_STAFF"
+            val newProfile = UserProfile(
+                id = staffId,
+                fullName = name,
+                phoneNumber = phone,
+                roles = listOf(role),
+                assignedFlatId = societyId + flatIdSuffix,
+                isVerified = true
+            )
+
+            firestore.collection(AppConstants.COLL_USERS).document(staffId).set(newProfile).await()
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
