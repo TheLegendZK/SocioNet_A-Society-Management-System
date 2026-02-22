@@ -27,7 +27,8 @@ object RoomModule {
             SocioNetDatabase::class.java,
             "socionet_local_db"
         )
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            // Removed destructive migration for production safety. 
+            // In the future, add proper Migration objects here using .addMigrations()
             .build()
     }
 

@@ -28,6 +28,7 @@ interface AuthRepository {
     suspend fun updateFcmToken(token: String)
     suspend fun refreshFcmToken()
     suspend fun getUserProfile(userId: String): UserProfile?
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 }
 
 @Singleton
@@ -84,7 +85,7 @@ class AuthRepositoryImpl @Inject constructor(
             
             // Refresh token on successful registration
             refreshFcmToken()
-            
+
             Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
@@ -150,6 +151,15 @@ class AuthRepositoryImpl @Inject constructor(
             doc.toObject(UserProfile::class.java)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

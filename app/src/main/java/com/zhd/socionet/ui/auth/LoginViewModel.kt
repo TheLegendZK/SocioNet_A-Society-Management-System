@@ -22,7 +22,7 @@ class LoginViewModel @Inject constructor(
 
     fun login(email: String, pass: String, onLoginSuccess: (UserProfile) -> Unit) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, resetPasswordMessage = null) }
 
             val result = repository.loginUser(email, pass)
 
@@ -34,9 +34,30 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
+    fun sendPasswordReset(email: String) {
+        if (email.isBlank()) {
+            _uiState.update { it.copy(resetPasswordMessage = "Please enter your email address first.") }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, resetPasswordMessage = null) }
+            val result = repository.sendPasswordResetEmail(email)
+            result.onSuccess {
+                _uiState.update { it.copy(isLoading = false, resetPasswordMessage = "Password reset email sent. Check your inbox.") }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, resetPasswordMessage = e.message ?: "Failed to send reset email.") }
+            }
+        }
+    }
+    
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, resetPasswordMessage = null) }
+    }
 }
 
 data class LoginUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val resetPasswordMessage: String? = null
 )

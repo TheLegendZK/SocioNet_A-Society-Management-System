@@ -1,6 +1,7 @@
 package com.zhd.socionet.ui.directory
 
 import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,14 +54,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.rememberAsyncImagePainter
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.UserProfile
@@ -96,7 +100,7 @@ fun SocietyDirectoryScreen(
         AlertDialog(
             onDismissRequest = { userToRemove = null },
             title = { Text("Remove ${userToRemove?.fullName}?") },
-            text = { Text("Are you sure you want to remove this member from the society?") },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_remove_this_member_from_the_society)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -123,7 +127,7 @@ fun SocietyDirectoryScreen(
         AlertDialog(
             onDismissRequest = { staffToRemove = null },
             title = { Text("Remove ${staffToRemove?.name}?") },
-            text = { Text("Are you sure you want to remove this staff member from the society?") },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_remove_this_staff_member_from_the_society)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -156,7 +160,9 @@ fun SocietyDirectoryScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(SoftTheme.bg)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -226,7 +232,7 @@ fun SocietyDirectoryScreen(
                         containerColor = SoftTheme.primary,
                         contentColor = Color.White
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Staff")
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_staff))
                     }
                 }
             }
@@ -242,7 +248,7 @@ fun SocietyDirectoryScreen(
                     SocioTextField(
                         value = uiState.searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
-                        label = "Search by Name or Role",
+                        label = stringResource(R.string.search_by_name_or_role),
                         leadingIcon = { Icon(Icons.Default.Search, null, tint = SoftTheme.primary) }
                     )
                 }
@@ -258,7 +264,7 @@ fun SocietyDirectoryScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
                             Spacer(Modifier.height(16.dp))
-                            Text("No staff members found", color = SoftTheme.textSecondary)
+                            Text(stringResource(R.string.no_staff_members_found), color = SoftTheme.textSecondary)
                         }
                     }
                 } else if (uiState.selectedTab != 2 && uiState.filteredResidents.isEmpty()) {
@@ -266,7 +272,7 @@ fun SocietyDirectoryScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
                             Spacer(Modifier.height(16.dp))
-                            Text("No members found", color = SoftTheme.textSecondary)
+                            Text(stringResource(R.string.no_members_found), color = SoftTheme.textSecondary)
                         }
                     }
                 } else {
@@ -338,29 +344,29 @@ fun AddStaffDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Society Staff", fontWeight = FontWeight.Bold, color = SoftTheme.primary) },
+        title = { Text(stringResource(R.string.add_society_staff), fontWeight = FontWeight.Bold, color = SoftTheme.primary) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 SocioTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = "Full Name",
+                    label = stringResource(R.string.full_name),
                     leadingIcon = { Icon(Icons.Default.Person, null, tint = SoftTheme.primary) }
                 )
                 SocioTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = "Phone Number",
+                    label = stringResource(R.string.phone_number),
                     leadingIcon = { Icon(Icons.Default.Phone, null, tint = SoftTheme.primary) }
                 )
                 SocioTextField(
                     value = role,
                     onValueChange = { role = it },
-                    label = "Role (e.g. Maid, Plumber)",
+                    label = stringResource(R.string.role_e_g_maid_plumber),
                     leadingIcon = { Icon(Icons.Default.Person, null, tint = SoftTheme.primary) }
                 )
                 Text(
-                    text = "Note: Staff members added here do not have app access.",
+                    text = stringResource(R.string.note_staff_members_added_here_do_not_have_app_access),
                     style = MaterialTheme.typography.bodySmall,
                     color = SoftTheme.textSecondary
                 )
@@ -372,12 +378,12 @@ fun AddStaffDialog(
                 enabled = name.isNotBlank() && phone.isNotBlank() && role.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = SoftTheme.primary)
             ) {
-                Text("Add")
+                Text(stringResource(R.string.add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = SoftTheme.textSecondary)
+                Text(stringResource(R.string.cancel), color = SoftTheme.textSecondary)
             }
         },
         containerColor = SoftTheme.surface,
@@ -406,18 +412,29 @@ fun DirectoryUserItem(
 
     SoftCard {
         Row(verticalAlignment = Alignment.Top) {
-            Surface(
-                shape = CircleShape,
-                color = SoftTheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = user.fullName.take(1),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = SoftTheme.primary
-                    )
+            if (user.profilePhotoUrl.isNotBlank()) {
+                Image(
+                    painter = rememberAsyncImagePainter(user.profilePhotoUrl),
+                    contentDescription = stringResource(R.string.profile_photo),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Surface(
+                    shape = CircleShape,
+                    color = SoftTheme.primary.copy(alpha = 0.1f),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = user.fullName.take(1),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = SoftTheme.primary
+                        )
+                    }
                 }
             }
 
@@ -493,7 +510,7 @@ fun DirectoryUserItem(
                         Icon(Icons.Default.Person, null, tint = SoftTheme.textSecondary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Contact details hidden for privacy",
+                            text = stringResource(R.string.contact_details_hidden_for_privacy),
                             style = MaterialTheme.typography.bodySmall,
                             color = SoftTheme.textSecondary.copy(alpha = 0.5f),
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
@@ -504,7 +521,7 @@ fun DirectoryUserItem(
 
             if (isAdmin) {
                 IconButton(onClick = onRemove, modifier = Modifier.padding(start = 8.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove), tint = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -524,18 +541,29 @@ fun DirectoryStaffItem(
 ) {
     SoftCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                shape = CircleShape,
-                color = if (isLinkedToMyFlat) MaterialTheme.colorScheme.primaryContainer else SoftTheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = staff.name.take(1),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = SoftTheme.primary
-                    )
+            if (staff.photoUrl.isNotBlank()) {
+                Image(
+                    painter = rememberAsyncImagePainter(staff.photoUrl),
+                    contentDescription = stringResource(R.string.profile_photo),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Surface(
+                    shape = CircleShape,
+                    color = if (isLinkedToMyFlat) MaterialTheme.colorScheme.primaryContainer else SoftTheme.primary.copy(alpha = 0.1f),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = staff.name.take(1),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = SoftTheme.primary
+                        )
+                    }
                 }
             }
 
@@ -556,7 +584,7 @@ fun DirectoryStaffItem(
                         shape = CircleShape
                     ) {
                         Text(
-                            text = "Staff",
+                            text = stringResource(R.string.staff),
                             style = MaterialTheme.typography.labelSmall,
                             color = SoftTheme.textSecondary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -594,7 +622,7 @@ fun DirectoryStaffItem(
                         Icon(Icons.Default.Person, null, tint = SoftTheme.textSecondary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Contact details hidden for privacy",
+                            text = stringResource(R.string.contact_details_hidden_for_privacy),
                             style = MaterialTheme.typography.bodySmall,
                             color = SoftTheme.textSecondary.copy(alpha = 0.5f),
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
@@ -605,7 +633,7 @@ fun DirectoryStaffItem(
 
             if (isAdmin) {
                 IconButton(onClick = onRemoveFromSociety, modifier = Modifier.padding(start = 8.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove), tint = MaterialTheme.colorScheme.error)
                 }
             } else if (flatId.isNotBlank()) {
                 Button(

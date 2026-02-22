@@ -1,5 +1,6 @@
 package com.zhd.socionet.ui.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +36,7 @@ import com.zhd.socionet.ui.common.SoftTheme
 fun PendingApprovalScreen(
     onBackToLogin: () -> Unit
 ) {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -101,7 +104,9 @@ fun PendingApprovalScreen(
             
             Spacer(modifier = Modifier.weight(1f))
             
-            TextButton(onClick = { /* TODO */ }) {
+            TextButton(onClick = { 
+                Toast.makeText(context, "Please contact your society office for assistance.", Toast.LENGTH_SHORT).show()
+            }) {
                 Text(
                     text = "Need help? Contact Society Office",
                     style = MaterialTheme.typography.bodySmall,

@@ -60,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -67,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.zhd.socionet.R
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -106,7 +108,9 @@ fun SecurityScannerScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(SoftTheme.bg)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,10 +130,11 @@ fun SecurityScannerScreen(
             containerColor = Color.Transparent,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Gate Keeper", fontWeight = FontWeight.ExtraBold, color = Color.White) },
+                    title = { Text(stringResource(R.string.gate_keeper), fontWeight = FontWeight.ExtraBold, color = Color.White) },
                     actions = {
                         IconButton(onClick = { profileViewModel.logout(onLogout) }) {
-                            Icon(Icons.AutoMirrored.Filled.Logout, "Logout", tint = Color.Red)
+                            Icon(Icons.AutoMirrored.Filled.Logout,
+                                stringResource(R.string.logout), tint = Color.Red)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -146,20 +151,22 @@ fun SecurityScannerScreen(
                         contentColor = SoftTheme.primary,
                         shape = CircleShape
                     ) {
-                        Icon(Icons.Default.Badge, "Staff")
+                        Icon(Icons.Default.Badge, stringResource(R.string.staff))
                     }
                     ExtendedFloatingActionButton(
                         onClick = onNavigateToManualEntry,
                         containerColor = SoftTheme.primary,
                         contentColor = Color.White,
-                        icon = { Icon(Icons.Default.Edit, "Log") },
-                        text = { Text("Manual Entry", fontWeight = FontWeight.Bold) },
+                        icon = { Icon(Icons.Default.Edit, stringResource(R.string.log)) },
+                        text = { Text(stringResource(R.string.manual_entry), fontWeight = FontWeight.Bold) },
                         shape = RoundedCornerShape(16.dp)
                     )
                 }
             }
         ) { padding ->
-            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()) {
                 SecondaryTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
@@ -176,7 +183,7 @@ fun SecurityScannerScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text("Scan QR", fontWeight = FontWeight.Bold) },
+                        text = { Text(stringResource(R.string.scan_qr), fontWeight = FontWeight.Bold) },
                         icon = { Icon(Icons.Default.QrCodeScanner, null) },
                         selectedContentColor = Color.White,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
@@ -184,14 +191,16 @@ fun SecurityScannerScreen(
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("Enter OTP", fontWeight = FontWeight.Bold) },
+                        text = { Text(stringResource(R.string.enter_otp), fontWeight = FontWeight.Bold) },
                         icon = { Icon(Icons.Default.Dialpad, null) },
                         selectedContentColor = Color.White,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                 }
 
-                Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp), contentAlignment = Alignment.Center) {
                     if (selectedTab == 0) {
                         QrScanView(
                             hasPermission = hasCameraPermission,
@@ -209,7 +218,9 @@ fun SecurityScannerScreen(
             }
 
             if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
                 }
             }
@@ -242,29 +253,52 @@ fun QrScanView(
                     Icon(Icons.Default.CameraAlt, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Camera permission is required to scan QR codes",
+                        stringResource(R.string.camera_permission_is_required_to_scan_qr_codes),
                         color = Color.White.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onRequestPermission) {
-                        Text("Grant Permission")
+                        Text(stringResource(R.string.grant_permission))
                     }
                 }
             }
             
             // Scanner Overlay
-            Box(modifier = Modifier.fillMaxSize().padding(20.dp)) {
-                Box(modifier = Modifier.size(40.dp).align(Alignment.TopStart).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(topStart = 12.dp)))
-                Box(modifier = Modifier.size(40.dp).align(Alignment.TopEnd).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(topEnd = 12.dp)))
-                Box(modifier = Modifier.size(40.dp).align(Alignment.BottomStart).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(bottomStart = 12.dp)))
-                Box(modifier = Modifier.size(40.dp).align(Alignment.BottomEnd).background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(bottomEnd = 12.dp)))
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)) {
+                Box(modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.TopStart)
+                    .background(
+                        Color.White.copy(alpha = 0.2f),
+                        RoundedCornerShape(topStart = 12.dp)
+                    ))
+                Box(modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.TopEnd)
+                    .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(topEnd = 12.dp)))
+                Box(modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.BottomStart)
+                    .background(
+                        Color.White.copy(alpha = 0.2f),
+                        RoundedCornerShape(bottomStart = 12.dp)
+                    ))
+                Box(modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.BottomEnd)
+                    .background(
+                        Color.White.copy(alpha = 0.2f),
+                        RoundedCornerShape(bottomEnd = 12.dp)
+                    ))
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            "Center the QR code in the frame",
+            stringResource(R.string.center_the_qr_code_in_the_frame),
             style = MaterialTheme.typography.bodyLarge,
             color = SoftTheme.textPrimary,
             fontWeight = FontWeight.Medium
@@ -277,13 +311,13 @@ fun ManualOtpView(onSubmit: (String) -> Unit) {
     var otp by remember { mutableStateOf("") }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Verify Visitor OTP",
+            stringResource(R.string.verify_visitor_otp),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = SoftTheme.textPrimary
         )
         Text(
-            "Ask visitor for the 6-digit code",
+            stringResource(R.string.ask_visitor_for_the_6_digit_code),
             style = MaterialTheme.typography.bodyMedium,
             color = SoftTheme.textSecondary
         )
@@ -326,7 +360,7 @@ fun ManualOtpView(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
         
         SocioButton(
-            text = "VERIFY ENTRY",
+            text = stringResource(R.string.verify_entry),
             onClick = { onSubmit(otp) },
             enabled = otp.length == 6
         )
@@ -338,7 +372,7 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
     val isSuccess = result is ScanResult.Success
     val backgroundColor = if (isSuccess) Color(0xFF4CAF50) else Color(0xFFF44336)
     val icon = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.GppBad
-    val title = if (isSuccess) "ACCESS GRANTED" else "ACCESS DEIED"
+    val title = if (isSuccess) stringResource(R.string.access_granted) else stringResource(R.string.access_denied)
 
     Box(
         modifier = Modifier
@@ -373,7 +407,7 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
             if (result is ScanResult.Success) {
                 SoftCard(backgroundColor = Color.White.copy(alpha = 0.15f)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Visitor Details", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.visitor_details), color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelMedium)
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = result.entry.visitorName,
@@ -383,7 +417,7 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Flat ${result.entry.hostFlatId.replace("_", " ")}",
+                            text = stringResource(R.string.flat, result.entry.hostFlatId.replace("_", " ")),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White.copy(alpha = 0.9f)
                         )
@@ -403,10 +437,12 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = backgroundColor),
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("DONE", fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                Text(stringResource(R.string.done), fontWeight = FontWeight.Black, letterSpacing = 2.sp)
             }
         }
     }

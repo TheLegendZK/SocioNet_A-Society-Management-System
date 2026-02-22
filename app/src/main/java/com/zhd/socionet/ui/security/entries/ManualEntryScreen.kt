@@ -30,9 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.zhd.socionet.R
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
@@ -53,11 +55,11 @@ fun ManualEntryScreen(
     if (uiState.successMessage != null) {
         AlertDialog(
             onDismissRequest = onEntryLogged,
-            title = { Text("Request Sent", fontWeight = FontWeight.Bold) },
-            text = { Text("Entry request has been sent to the resident for approval.") },
+            title = { Text(stringResource(R.string.request_sent), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.entry_request_has_been_sent_to_the_resident_for_approval)) },
             confirmButton = {
                 TextButton(onClick = onEntryLogged) {
-                    Text("OK", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ok), fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = SoftTheme.surface,
@@ -65,7 +67,9 @@ fun ManualEntryScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(SoftTheme.bg)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,10 +89,11 @@ fun ManualEntryScreen(
             containerColor = Color.Transparent,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Manual Visitor Entry", fontWeight = FontWeight.Bold, color = Color.White) },
+                    title = { Text(stringResource(R.string.manual_visitor_entry), fontWeight = FontWeight.Bold, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                                stringResource(R.string.back), tint = Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -107,7 +112,7 @@ fun ManualEntryScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Text(
-                    text = "Visitor Information",
+                    text = stringResource(R.string.visitor_information),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -118,17 +123,17 @@ fun ManualEntryScreen(
                         SocioTextField(
                             value = visitorName,
                             onValueChange = { visitorName = it },
-                            label = "Visitor / Company Name"
+                            label = stringResource(R.string.visitor_company_name)
                         )
                         SocioTextField(
                             value = flatId,
                             onValueChange = { flatId = it },
-                            label = "Visiting Flat (e.g. A_101)"
+                            label = stringResource(R.string.visiting_flat_e_g_a_101)
                         )
                         SocioTextField(
                             value = vehicleNumber,
                             onValueChange = { vehicleNumber = it },
-                            label = "Vehicle Number (Optional)"
+                            label = stringResource(R.string.vehicle_number_optional)
                         )
                     }
                 }
@@ -136,7 +141,7 @@ fun ManualEntryScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 SocioButton(
-                    text = "LOG ENTRY REQUEST",
+                    text = stringResource(R.string.log_entry_request),
                     onClick = { viewModel.logEntry(visitorName, flatId, vehicleNumber) },
                     isLoading = uiState.isLoading,
                     enabled = visitorName.isNotBlank() && flatId.isNotBlank()

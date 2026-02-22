@@ -62,12 +62,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.zhd.socionet.R
 import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioPasswordField
@@ -83,7 +85,7 @@ fun ProfileScreen(
     currentViewType: String = "resident",
     onSwitchRole: (String) -> Unit = {},
     onBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -116,7 +118,11 @@ fun ProfileScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SoftTheme.bg)
+    ) {
         // Gradient Header
         Box(
             modifier = Modifier
@@ -137,7 +143,13 @@ fun ProfileScreen(
             containerColor = Color.Transparent,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("My Profile", fontWeight = FontWeight.Bold, color = Color.White) },
+                    title = {
+                        Text(
+                            "My Profile",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
@@ -183,14 +195,19 @@ fun ProfileScreen(
                                     },
                                 shape = CircleShape,
                                 color = Color.White.copy(alpha = 0.2f),
-                                border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
+                                border = androidx.compose.foundation.BorderStroke(
+                                    2.dp,
+                                    Color.White.copy(alpha = 0.5f)
+                                )
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     if (user.profilePhotoUrl.isNotEmpty()) {
                                         AsyncImage(
                                             model = user.profilePhotoUrl,
-                                            contentDescription = "Profile Picture",
-                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentDescription = stringResource(R.string.profile_picture),
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape),
                                             contentScale = ContentScale.Crop
                                         )
                                     } else {
@@ -212,7 +229,7 @@ fun ProfileScreen(
                             ) {
                                 Icon(
                                     Icons.Default.CameraAlt,
-                                    contentDescription = "Change Photo",
+                                    contentDescription = stringResource(R.string.change_photo),
                                     tint = Color.White,
                                     modifier = Modifier.padding(6.dp)
                                 )
@@ -249,13 +266,16 @@ fun ProfileScreen(
                         Spacer(Modifier.height(32.dp))
 
                         val isSuperAdmin = user.roles.contains(UserRole.SUPER_ADMIN)
-                        val isOwner = user.roles.contains(UserRole.OWNER) || user.roles.contains(UserRole.TENANT)
+                        val isOwner =
+                            user.roles.contains(UserRole.OWNER) || user.roles.contains(UserRole.TENANT)
 
                         if (isSuperAdmin && isOwner) {
                             SoftCard(
                                 backgroundColor = SoftTheme.primary.copy(alpha = 0.05f),
                                 onClick = {
-                                    if (currentViewType == "admin") onSwitchRole("resident") else onSwitchRole("admin")
+                                    if (currentViewType == "admin") onSwitchRole("resident") else onSwitchRole(
+                                        "admin"
+                                    )
                                 }
                             ) {
                                 Row(
@@ -264,13 +284,13 @@ fun ProfileScreen(
                                     horizontalArrangement = Arrangement.Center
                                 ) {
                                     Icon(
-                                        imageVector = if(currentViewType == "admin") Icons.Default.Home else Icons.Default.AdminPanelSettings,
+                                        imageVector = if (currentViewType == "admin") Icons.Default.Home else Icons.Default.AdminPanelSettings,
                                         contentDescription = null,
                                         tint = SoftTheme.primary
                                     )
                                     Spacer(Modifier.width(12.dp))
                                     Text(
-                                        text = if(currentViewType == "admin") "Switch to Resident View" else "Switch to Admin Console",
+                                        text = if (currentViewType == "admin") stringResource(R.string.switch_to_resident_view) else stringResource(R.string.switch_to_admin_console),
                                         fontWeight = FontWeight.Bold,
                                         color = SoftTheme.primary
                                     )
@@ -284,17 +304,30 @@ fun ProfileScreen(
                         // Details Card
                         SoftCard {
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                ProfileInfoRow(Icons.Default.Person, "Full Name", user.fullName)
+                                ProfileInfoRow(Icons.Default.Person, stringResource(R.string.full_name), user.fullName)
                                 HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
-                                ProfileInfoRow(Icons.Default.Phone, "Phone Number", user.phoneNumber)
+                                ProfileInfoRow(
+                                    Icons.Default.Phone,
+                                    stringResource(R.string.phone_number),
+                                    user.phoneNumber
+                                )
                                 HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
 
-                                val flatNo = user.assignedFlatId?.split("_")?.last() ?: "Not Assigned"
+                                val flatNo =
+                                    user.assignedFlatId?.split("_")?.last() ?: "Not Assigned"
                                 val wing = user.assignedFlatId?.split("_")?.getOrNull(1) ?: "N/A"
 
-                                ProfileInfoRow(Icons.Default.LocationCity, "Wing / Block", "Wing $wing")
+                                ProfileInfoRow(
+                                    Icons.Default.LocationCity,
+                                    stringResource(R.string.wing_block),
+                                    stringResource(R.string.wing, wing)
+                                )
                                 HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
-                                ProfileInfoRow(Icons.Default.MeetingRoom, "Flat Number", "Flat $flatNo")
+                                ProfileInfoRow(
+                                    Icons.Default.MeetingRoom,
+                                    stringResource(R.string.flat_number),
+                                    stringResource(R.string.flat, flatNo)
+                                )
                             }
                         }
 
@@ -302,7 +335,7 @@ fun ProfileScreen(
 
                         // Actions
                         SocioButton(
-                            text = "Edit Profile Info",
+                            text = stringResource(R.string.edit_profile_info),
                             onClick = { showEditDialog = true }
                         )
 
@@ -310,13 +343,22 @@ fun ProfileScreen(
 
                         OutlinedButton(
                             onClick = { showPasswordDialog = true },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
                             shape = RoundedCornerShape(16.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, SoftTheme.primary)
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                SoftTheme.primary
+                            )
                         ) {
-                            Text("Change Password", fontWeight = FontWeight.Bold, color = SoftTheme.primary)
+                            Text(
+                                text = stringResource(R.string.change_password),
+                                fontWeight = FontWeight.Bold,
+                                color = SoftTheme.primary
+                            )
                         }
-                        
+
                         Spacer(Modifier.height(32.dp))
                     }
                 }
@@ -330,21 +372,28 @@ fun ProfileScreen(
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.edit_profile), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SocioTextField(
-                        value = name, 
-                        onValueChange = { name = it }, 
+                        value = name,
+                        onValueChange = { name = it },
                         label = "Name",
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                        keyboardActions = KeyboardActions(onNext = {
+                            focusManager.moveFocus(
+                                FocusDirection.Down
+                            )
+                        })
                     )
                     SocioTextField(
-                        value = phone, 
-                        onValueChange = { phone = it }, 
-                        label = "Phone",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = stringResource(R.string.phone),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Done
+                        ),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                     )
                 }
@@ -353,12 +402,14 @@ fun ProfileScreen(
                 SocioButton(
                     text = "Save Changes",
                     onClick = { viewModel.updateProfile(name, phone); showEditDialog = false },
-                    modifier = Modifier.width(140.dp).height(44.dp)
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(44.dp)
                 )
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Cancel", color = SoftTheme.textSecondary)
+                    Text(stringResource(R.string.cancel), color = SoftTheme.textSecondary)
                 }
             },
             containerColor = SoftTheme.surface,
@@ -372,21 +423,31 @@ fun ProfileScreen(
 
         AlertDialog(
             onDismissRequest = { showPasswordDialog = false },
-            title = { Text("Update Password", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.update_password), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SocioPasswordField(
-                        value = oldPass, 
-                        onValueChange = { oldPass = it }, 
-                        label = "Current Password",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                        value = oldPass,
+                        onValueChange = { oldPass = it },
+                        label = stringResource(R.string.current_password),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(onNext = {
+                            focusManager.moveFocus(
+                                FocusDirection.Down
+                            )
+                        })
                     )
                     SocioPasswordField(
-                        value = newPass, 
-                        onValueChange = { newPass = it }, 
-                        label = "New Password",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        value = newPass,
+                        onValueChange = { newPass = it },
+                        label = stringResource(R.string.new_password),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                     )
                 }
@@ -394,8 +455,14 @@ fun ProfileScreen(
             confirmButton = {
                 SocioButton(
                     text = "Update",
-                    onClick = { if(oldPass.isNotEmpty() && newPass.isNotEmpty()) { viewModel.changePassword(oldPass, newPass); showPasswordDialog = false } },
-                    modifier = Modifier.width(100.dp).height(44.dp)
+                    onClick = {
+                        if (oldPass.isNotEmpty() && newPass.isNotEmpty()) {
+                            viewModel.changePassword(oldPass, newPass); showPasswordDialog = false
+                        }
+                    },
+                    modifier = Modifier
+                        .width(100.dp)
+                        .height(44.dp)
                 )
             },
             dismissButton = {
@@ -410,7 +477,11 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileInfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+fun ProfileInfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
             shape = CircleShape,
@@ -423,8 +494,17 @@ fun ProfileInfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label:
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = SoftTheme.textSecondary)
-            Text(value, style = MaterialTheme.typography.bodyLarge, color = SoftTheme.textPrimary, fontWeight = FontWeight.Bold)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = SoftTheme.textSecondary
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyLarge,
+                color = SoftTheme.textPrimary,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
