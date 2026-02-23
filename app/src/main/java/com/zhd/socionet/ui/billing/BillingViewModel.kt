@@ -24,6 +24,9 @@ class BillingViewModel @Inject constructor(
     val uiState: StateFlow<BillingUiState> = _uiState.asStateFlow()
 
     fun loadBills(flatId: String) {
+        // Optimization: Don't trigger loading flash if data is already present for this flat
+        if (_uiState.value.bills.isNotEmpty() && _uiState.value.bills.all { it.flatId == flatId }) return
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val bills = repository.getBillsForFlat(flatId)
@@ -35,7 +38,10 @@ class BillingViewModel @Inject constructor(
     fun payBill(billId: String, userId: String, flatId: String) {
         viewModelScope.launch {
             repository.payBill(billId, userId)
-            loadBills(flatId) // Refresh
+            // Force reload after payment
+            val bills = repository.getBillsForFlat(flatId)
+            val outstanding = bills.filter { !it.isPaid }.sumOf { it.amountDue }
+            _uiState.update { it.copy(bills = bills, totalOutstanding = outstanding) }
         }
     }
 
@@ -43,7 +49,6 @@ class BillingViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, adminMessage = null) }
 
-            // FIX: Removed fake delay and implemented real repository call
             val currentMonth = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date())
             val result = repository.generateMonthlyBills(societyId, currentMonth)
 

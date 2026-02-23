@@ -22,6 +22,9 @@ class ProfileViewModel @Inject constructor(
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     fun loadProfile(userId: String) {
+        // Optimization: Don't show loading if we already have this user's profile
+        if (_uiState.value.userProfile?.id == userId) return
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val result = repository.getUserProfile(userId)

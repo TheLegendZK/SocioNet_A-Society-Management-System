@@ -25,6 +25,16 @@ class AdminComplaintViewModel @Inject constructor(
     }
 
     fun loadAllComplaints() {
+        // Optimization: Avoid setting isLoading = true if data is already present
+        if (_uiState.value.complaints.isNotEmpty()) {
+            // Optionally refresh in background without showing loader
+            viewModelScope.launch {
+                val allComplaints = repository.getAllComplaints()
+                _uiState.update { it.copy(complaints = allComplaints) }
+            }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val allComplaints = repository.getAllComplaints()

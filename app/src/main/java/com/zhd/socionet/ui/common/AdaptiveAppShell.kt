@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -44,11 +45,18 @@ fun AdaptiveAppShell(
     navItems: List<NavItem>,
     content: @Composable (PaddingValues) -> Unit
 ) {
+    // If no nav items, just render content directly to avoid redundant Scaffold/Layout
+    if (navItems.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+            content(PaddingValues(0.dp))
+        }
+        return
+    }
+
     val navType = getNavType()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Use Dynamic Background
     Row(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         // 1. RAIL (Tablet)
         if (navType == NavType.RAIL) {
@@ -62,7 +70,7 @@ fun AdaptiveAppShell(
                     val selected = isRouteSelected(currentDestination, item)
                     NavigationRailItem(
                         selected = selected,
-                        onClick = { onNavClick(navController, item.route) },
+                        onClick = { onNavClick(navController, item, currentDestination) },
                         icon = { Icon(item.icon, contentDescription = item.title) },
                         label = { Text(item.title) },
                         colors = NavigationRailItemDefaults.colors(
@@ -88,7 +96,7 @@ fun AdaptiveAppShell(
                     NavigationDrawerItem(
                         label = { Text(item.title) },
                         selected = selected,
-                        onClick = { onNavClick(navController, item.route) },
+                        onClick = { onNavClick(navController, item, currentDestination) },
                         icon = { Icon(item.icon, null) },
                         modifier = Modifier.padding(vertical = 4.dp),
                         colors = NavigationDrawerItemDefaults.colors(
@@ -116,7 +124,7 @@ fun AdaptiveAppShell(
                             val selected = isRouteSelected(currentDestination, item)
                             NavigationBarItem(
                                 selected = selected,
-                                onClick = { onNavClick(navController, item.route) },
+                                onClick = { onNavClick(navController, item, currentDestination) },
                                 icon = { Icon(item.icon, contentDescription = item.title) },
                                 label = { Text(item.title) },
                                 colors = NavigationBarItemDefaults.colors(
@@ -139,16 +147,24 @@ fun AdaptiveAppShell(
 
 private fun isRouteSelected(currentDestination: NavDestination?, item: NavItem): Boolean {
     val currentRoute = currentDestination?.route ?: return false
-    if (item.selectedRoutePrefix != null) {
-        if (currentRoute.startsWith(item.selectedRoutePrefix)) return true
-    }
-    val baseRoute = item.route.substringBefore("/")
-    return currentRoute.contains(baseRoute)
+    if (item.selectedRoutePrefix != null && currentRoute.startsWith(item.selectedRoutePrefix)) return true
+    return currentDestination.hierarchy.any { it.route?.substringBefore("/") == item.route.substringBefore("/") }
 }
 
-private fun onNavClick(navController: NavController, route: String) {
+private fun onNavClick(navController: NavController, item: NavItem, currentDestination: NavDestination?) {
+    val route = item.route
+    
+    // Check if already on this route pattern to avoid redundant navigation flashes
+    val isAlreadySelected = currentDestination?.hierarchy?.any { it.route?.startsWith(item.selectedRoutePrefix ?: route.substringBefore("/")) == true } ?: false
+    
+    if (isAlreadySelected && !route.contains("?")) {
+        return
+    }
+
     navController.navigate(route) {
-        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
         launchSingleTop = true
         restoreState = true
     }

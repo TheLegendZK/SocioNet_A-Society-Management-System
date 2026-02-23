@@ -1,6 +1,6 @@
 package com.zhd.socionet.ui.resident.home
 
-import com.zhd.socionet.data.repository.SosRepositoryImpl
+import com.zhd.socionet.data.repository.SosRepository
 import com.zhd.socionet.utils.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,7 +14,7 @@ class SosViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val repository: SosRepositoryImpl = mockk()
+    private val repository: SosRepository = mockk()
     private lateinit var viewModel: SosViewModel
 
     @Test

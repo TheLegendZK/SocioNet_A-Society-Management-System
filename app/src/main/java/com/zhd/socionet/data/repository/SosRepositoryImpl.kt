@@ -7,11 +7,15 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface SosRepository {
+    suspend fun triggerSos(userId: String, flatId: String, type: String): Result<Unit>
+}
+
 @Singleton
 class SosRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
-) {
-    suspend fun triggerSos(userId: String, flatId: String, type: String): Result<Unit> {
+) : SosRepository {
+    override suspend fun triggerSos(userId: String, flatId: String, type: String): Result<Unit> {
         return try {
             val alert = hashMapOf(
                 "type" to "SOS",

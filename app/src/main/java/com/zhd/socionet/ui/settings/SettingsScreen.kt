@@ -109,11 +109,9 @@ fun SettingsScreen(
                 )
             }
         ) { padding ->
-            if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color.White)
-                }
-            } else {
+            // BEST PRACTICE: Overlay the loading indicator rather than swapping the whole screen content
+            // to avoid "white screen" flashes.
+            Box(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(padding)
@@ -226,6 +224,12 @@ fun SettingsScreen(
                             }
                         }
                     }
+                }
+
+                if (uiState.isLoading && uiState.prefs.version == "1.0.0") { // Version check to see if it's initial load
+                     Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                         CircularProgressIndicator(color = Color.White)
+                     }
                 }
             }
         }
