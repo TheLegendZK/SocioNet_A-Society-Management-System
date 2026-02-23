@@ -23,36 +23,37 @@ async function processNotification(event, docId) {
     console.log(`[TRIGGERED] Visitor: ${visitorName}, Flat: ${hostFlatId}, User: ${hostUserId}`);
 
     try {
-        const tokens = new Set(); // Using a Set prevents duplicate notifications
+        const tokensMap = new Map(); // Using a Map to track which token belongs to which user
 
-        // Strategy 1: Find token via specific User ID (From our Android fix)
+        // Strategy 1: Find token via specific User ID
         if (hostUserId) {
             const userDoc = await admin.firestore().collection("users").doc(hostUserId).get();
             if (userDoc.exists && userDoc.data().fcmToken) {
-                tokens.add(userDoc.data().fcmToken);
+                tokensMap.set(userDoc.data().fcmToken, hostUserId);
                 console.log("Token found via hostUserId");
             }
         }
 
         // Strategy 2: Fallback! Search for ANY user living in that flat
         if (hostFlatId) {
-            // Check if the database uses 'flatId'
-            const flatUsers = await admin.firestore().collection("users").where("flatId", "==", hostFlatId).get();
-            flatUsers.forEach(doc => { if (doc.data().fcmToken) tokens.add(doc.data().fcmToken); });
-
-            // Check if the database uses 'assignedFlatId'
             const assignedUsers = await admin.firestore().collection("users").where("assignedFlatId", "==", hostFlatId).get();
-            assignedUsers.forEach(doc => { if (doc.data().fcmToken) tokens.add(doc.data().fcmToken); });
+            assignedUsers.forEach(doc => {
+                if (doc.data().fcmToken) {
+                    tokensMap.set(doc.data().fcmToken, doc.id);
+                }
+            });
         }
 
-        const tokensArray = Array.from(tokens);
+        const tokensArray = Array.from(tokensMap.keys());
 
         if (tokensArray.length === 0) {
-            console.log("CRITICAL ERROR: No FCM tokens found in the database. The Resident MUST log into the app at least once to generate a token.");
+            console.log("CRITICAL ERROR: No FCM tokens found in the database.");
             return;
         }
 
         // Create the Push Notification Payload
+        // We use data-only messages for more control on the client side if needed,
+        // but keeping notification for now as it's simpler for basic use.
         const message = {
             notification: {
                 title: "Visitor Approval Request",
@@ -61,11 +62,14 @@ async function processNotification(event, docId) {
             android: {
                 notification: {
                     channelId: "socionet_alerts",
-                    priority: "high"
+                    priority: "high",
+                    clickAction: "OPEN_ACTIVITY_1"
                 }
             },
             data: {
-                entryId: docId
+                entryId: docId,
+                hostFlatId: hostFlatId || "",
+                targetUserId: hostUserId || "" // We'll pass the intended recipient ID
             },
             tokens: tokensArray
         };
@@ -79,10 +83,6 @@ async function processNotification(event, docId) {
     }
 }
 
-// ----------------------------------------------------------------------------------
-// FAILSAFE: We deploy 3 triggers to ensure we catch the entry no matter what
-// your AppConstants.COLL_GATE_PASSES is named in Android.
-// ----------------------------------------------------------------------------------
 exports.notifyOnGateEntries = onDocumentCreated("gate_entries/{entryId}", (event) => processNotification(event, event.params.entryId));
 exports.notifyOnGatePasses = onDocumentCreated("gate_passes/{entryId}", (event) => processNotification(event, event.params.entryId));
 exports.notifyOnGatePass = onDocumentCreated("GatePass/{entryId}", (event) => processNotification(event, event.params.entryId));

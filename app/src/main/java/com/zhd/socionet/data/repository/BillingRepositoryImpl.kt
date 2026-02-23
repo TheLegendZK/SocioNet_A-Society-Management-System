@@ -1,6 +1,7 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.zhd.socionet.core.constants.AppConstants
@@ -24,7 +25,8 @@ interface BillingRepository {
 @Singleton
 class BillingRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val dao: BillDao
+    private val dao: BillDao,
+    private val crashlytics: FirebaseCrashlytics
 ) : BillingRepository {
 
     override suspend fun generateMonthlyBills(societyId: String, monthName: String): Result<Int> {
@@ -77,6 +79,7 @@ class BillingRepositoryImpl @Inject constructor(
             batch.commit().await()
             Result.success(count)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -90,7 +93,9 @@ class BillingRepositoryImpl @Inject constructor(
                 .get().await()
             val list = snapshot.toObjects(Bill::class.java)
             dao.insertBills(list.map { it.toEntity() })
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (e: Exception) { 
+            crashlytics.recordException(e)
+        }
 
         return dao.getBillsForFlat(flatId).map { it.toDomain() }
     }
@@ -103,6 +108,7 @@ class BillingRepositoryImpl @Inject constructor(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }

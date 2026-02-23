@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
 import com.zhd.socionet.data.model.EntryStatus
+import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.VisitorType
 import com.zhd.socionet.data.repository.GatePassRepository
@@ -24,19 +25,59 @@ class ManualEntryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ManualEntryUiState())
     val uiState: StateFlow<ManualEntryUiState> = _uiState.asStateFlow()
 
-    fun logEntry(name: String, flatId: String, vehicle: String) {
+    private var allFlats: List<Flat> = emptyList()
+
+    init {
+        fetchFlats()
+    }
+
+    private fun fetchFlats() {
+        viewModelScope.launch {
+            val result = gateRepository.getAllFlats()
+            if (result.isSuccess) {
+                allFlats = result.getOrDefault(emptyList())
+                val wings = allFlats.map { it.wing }.distinct().sorted()
+                _uiState.update { it.copy(wings = wings) }
+            }
+        }
+    }
+
+    fun onWingSelected(wing: String) {
+        val flatsInWing = allFlats.filter { it.wing == wing }.map { it.flatNumber }.sorted()
+        _uiState.update { 
+            it.copy(
+                selectedWing = wing, 
+                flatsInWing = flatsInWing,
+                selectedFlat = "" // Reset selected flat when wing changes
+            ) 
+        }
+    }
+
+    fun onFlatSelected(flat: String) {
+        _uiState.update { it.copy(selectedFlat = flat) }
+    }
+
+    fun logEntry(name: String, vehicle: String) {
+        val wing = _uiState.value.selectedWing
+        val flatNumber = _uiState.value.selectedFlat
+        val flatId = "${wing}-${flatNumber}" // Assuming this format matches what's expected
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             // Find the user associated with the flat
-            val user = gateRepository.getUserByFlat(flatId)
+            // Note: assignedFlatId in UserProfile might need to match this format or use the full flat ID from Flat model
+            val targetFlat = allFlats.find { it.wing == wing && it.flatNumber == flatNumber }
+            val hostFlatId = targetFlat?.id ?: flatId
+            
+            val user = gateRepository.getUserByFlat(hostFlatId)
             val hostUserId = user?.id ?: ""
 
             val entry = GateEntry(
                 visitorName = name,
                 visitorType = VisitorType.DELIVERY,
                 vehicleNumber = vehicle,
-                hostFlatId = flatId,
+                hostFlatId = hostFlatId,
                 hostUserId = hostUserId,
                 entryTime = Timestamp(Date()),
                 status = EntryStatus.PENDING_APPROVAL
@@ -61,5 +102,9 @@ class ManualEntryViewModel @Inject constructor(
 
 data class ManualEntryUiState(
     val isLoading: Boolean = false,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val wings: List<String> = emptyList(),
+    val flatsInWing: List<String> = emptyList(),
+    val selectedWing: String = "",
+    val selectedFlat: String = ""
 )

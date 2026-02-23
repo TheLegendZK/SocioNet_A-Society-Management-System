@@ -1,6 +1,7 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.zhd.socionet.core.constants.AppConstants
@@ -35,6 +36,7 @@ interface AuthRepository {
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
+    private val crashlytics: FirebaseCrashlytics
 ) : AuthRepository {
 
     override fun getCurrentUserId(): String? {
@@ -67,6 +69,7 @@ class AuthRepositoryImpl @Inject constructor(
                 Result.success(profile)
             }
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -88,41 +91,62 @@ class AuthRepositoryImpl @Inject constructor(
 
             Result.success(userId)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
 
     override suspend fun fetchSocieties(): List<Pair<String, String>> {
-        val snapshot = firestore.collection(AppConstants.COLL_SOCIETIES).get().await()
-        return snapshot.documents.map { it.id to (it.getString("name") ?: "Unknown") }
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_SOCIETIES).get().await()
+            snapshot.documents.map { it.id to (it.getString("name") ?: "Unknown") }
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            emptyList()
+        }
     }
 
     override suspend fun fetchWings(societyId: String): List<String> {
         if (societyId.isBlank()) return emptyList()
-        val doc =
-            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
-        val wingsList = doc.get("wings") as? List<*>
-        return wingsList?.filterIsInstance<String>() ?: emptyList()
+        return try {
+            val doc =
+                firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
+            val wingsList = doc.get("wings") as? List<*>
+            wingsList?.filterIsInstance<String>() ?: emptyList()
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            emptyList()
+        }
     }
 
     override suspend fun fetchFlats(societyId: String, wing: String): List<Pair<String, String>> {
-        val snapshot = firestore.collection(AppConstants.COLL_FLATS)
-            .whereEqualTo("societyId", societyId)
-            .whereEqualTo("wing", wing)
-            .get().await()
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_FLATS)
+                .whereEqualTo("societyId", societyId)
+                .whereEqualTo("wing", wing)
+                .get().await()
 
-        return snapshot.documents.map { it.id to (it.getString("flatNumber") ?: "0") }
-            .sortedWith(compareBy<Pair<String, String>> { pair ->
-                pair.second.filter { it.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE
-            }.thenBy { pair ->
-                pair.second.filter { it.isLetter() }
-            })
+            snapshot.documents.map { it.id to (it.getString("flatNumber") ?: "0") }
+                .sortedWith(compareBy<Pair<String, String>> { pair ->
+                    pair.second.filter { it.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE
+                }.thenBy { pair ->
+                    pair.second.filter { it.isLetter() }
+                })
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            emptyList()
+        }
     }
 
     override suspend fun checkFlatOccupancy(flatId: String): String? {
         if (flatId.isBlank()) return null
-        val doc = firestore.collection(AppConstants.COLL_FLATS).document(flatId).get().await()
-        return doc.getString("primaryOwnerId")
+        return try {
+            val doc = firestore.collection(AppConstants.COLL_FLATS).document(flatId).get().await()
+            doc.getString("primaryOwnerId")
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            null
+        }
     }
 
     override suspend fun updateFcmToken(token: String) {
@@ -132,7 +156,7 @@ class AuthRepositoryImpl @Inject constructor(
                 .update("fcmToken", token)
                 .await()
         } catch (e: Exception) {
-            // Log or ignore
+            crashlytics.recordException(e)
         }
     }
 
@@ -141,7 +165,7 @@ class AuthRepositoryImpl @Inject constructor(
             val token = FirebaseMessaging.getInstance().token.await()
             updateFcmToken(token)
         } catch (e: Exception) {
-            // Log or ignore
+            crashlytics.recordException(e)
         }
     }
 
@@ -150,6 +174,7 @@ class AuthRepositoryImpl @Inject constructor(
             val doc = firestore.collection(AppConstants.COLL_USERS).document(userId).get().await()
             doc.toObject(UserProfile::class.java)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             null
         }
     }
@@ -159,6 +184,7 @@ class AuthRepositoryImpl @Inject constructor(
             auth.sendPasswordResetEmail(email).await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }

@@ -31,6 +31,7 @@ fun SocioTextField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     readOnly: Boolean = false,
+    enabled: Boolean = true,
     trailingIcon: @Composable (() -> Unit)? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -45,6 +46,7 @@ fun SocioTextField(
         modifier = modifier.fillMaxWidth(),
         isError = isError,
         readOnly = readOnly,
+        enabled = enabled,
         trailingIcon = trailingIcon,
         leadingIcon = leadingIcon,
         shape = RoundedCornerShape(16.dp),
@@ -59,7 +61,10 @@ fun SocioTextField(
             focusedLabelColor = SoftTheme.primary,
             unfocusedLabelColor = SoftTheme.textSecondary,
             cursorColor = SoftTheme.primary,
-            errorBorderColor = MaterialTheme.colorScheme.error
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            disabledBorderColor = SoftTheme.textSecondary.copy(alpha = 0.1f),
+            disabledLabelColor = SoftTheme.textSecondary.copy(alpha = 0.5f),
+            disabledTextColor = SoftTheme.textSecondary.copy(alpha = 0.5f)
         )
     )
 }

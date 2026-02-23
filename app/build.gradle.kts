@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.zhd.socionet"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.zhd.socionet"
@@ -21,6 +21,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // In a real production app, these should be stored in environment variables 
+            // or a local.properties file that is not checked into version control.
+            storeFile = file("release.keystore")
+            storePassword = System.getenv("RELEASE_STORE_PASSWORD") ?: "placeholder"
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "placeholder"
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: "placeholder"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -29,7 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // TODO: Add signingConfig here for production release
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

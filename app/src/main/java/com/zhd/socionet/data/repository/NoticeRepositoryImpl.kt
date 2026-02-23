@@ -1,6 +1,7 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.zhd.socionet.core.constants.AppConstants
@@ -21,6 +22,7 @@ interface NoticeRepository {
 class NoticeRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val dao: NoticeDao,
+    private val crashlytics: FirebaseCrashlytics
 ) : NoticeRepository {
     override suspend fun createNotice(notice: Notice): Result<Unit> {
         return try {
@@ -30,6 +32,7 @@ class NoticeRepositoryImpl @Inject constructor(
             dao.insertNotices(listOf(finalNotice.toEntity()))
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -45,7 +48,7 @@ class NoticeRepositoryImpl @Inject constructor(
             dao.clearNotices()
             dao.insertNotices(networkNotices.map { it.toEntity() })
         } catch (e: Exception) {
-            e.printStackTrace()
+            crashlytics.recordException(e)
         }
 
         val localNotices = dao.getAllNotices().map { it.toDomain() }

@@ -1,10 +1,12 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.EntryStatus
+import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.VisitorType
@@ -23,11 +25,13 @@ interface GatePassRepository {
     fun getStaffLogsFlow(staffIds: List<String>): Flow<List<GateEntry>>
     suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit>
     suspend fun getUserByFlat(flatId: String): UserProfile?
+    suspend fun getAllFlats(): Result<List<Flat>>
 }
 
 @Singleton
 class GatePassRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val crashlytics: FirebaseCrashlytics
 ) : GatePassRepository {
 
     override suspend fun createGatePass(entry: GateEntry): Result<String> {
@@ -37,6 +41,7 @@ class GatePassRepositoryImpl @Inject constructor(
             docRef.set(finalEntry).await()
             Result.success(docRef.id)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -53,13 +58,18 @@ class GatePassRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getActivePasses(flatId: String): List<GateEntry> {
-        val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
-            .whereEqualTo("hostFlatId", flatId)
-            .get().await()
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
+                .whereEqualTo("hostFlatId", flatId)
+                .get().await()
 
-        return snapshot.toObjects(GateEntry::class.java)
-            .filter { it.status == EntryStatus.APPROVED }
-            .sortedByDescending { it.entryTime }
+            snapshot.toObjects(GateEntry::class.java)
+                .filter { it.status == EntryStatus.APPROVED }
+                .sortedByDescending { it.entryTime }
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            emptyList()
+        }
     }
 
     override fun getPastPassesFlow(flatId: String): Flow<List<GateEntry>> {
@@ -88,6 +98,7 @@ class GatePassRepositoryImpl @Inject constructor(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -127,6 +138,7 @@ class GatePassRepositoryImpl @Inject constructor(
             docRef.set(entry).await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -140,7 +152,19 @@ class GatePassRepositoryImpl @Inject constructor(
                 .await()
             snapshot.toObjects(UserProfile::class.java).firstOrNull()
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             null
+        }
+    }
+
+    override suspend fun getAllFlats(): Result<List<Flat>> {
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_FLATS).get().await()
+            val flats = snapshot.toObjects(Flat::class.java)
+            Result.success(flats)
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            Result.failure(e)
         }
     }
 }

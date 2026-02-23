@@ -3,7 +3,6 @@ package com.zhd.socionet.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -17,7 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -31,22 +30,40 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Check if message contains a notification payload.
-        remoteMessage.notification?.let {
-            showNotification(it.title ?: "SocioNet", it.body ?: "New Alert")
-        }
+        val targetUserId = remoteMessage.data["targetUserId"]
+        val hostFlatId = remoteMessage.data["hostFlatId"]
 
-        // Also handle data payload (e.g. for silent updates)
-        if (remoteMessage.data.isNotEmpty()) {
-            val title = remoteMessage.data["title"]
-            val body = remoteMessage.data["body"]
-            if (title != null && body != null) {
-                showNotification(title, body)
+        serviceScope.launch {
+            val currentUserId = authRepository.getCurrentUserId() ?: return@launch
+
+            val profile = authRepository.getUserProfile(currentUserId)
+            
+            // SECURITY CHECK: Only show notification if it's targeted to this user or their flat
+            if (!targetUserId.isNullOrBlank() || !hostFlatId.isNullOrBlank()) {
+                val isForThisUser = targetUserId == currentUserId
+                val isForThisFlat = hostFlatId != null && profile?.assignedFlatId == hostFlatId
+                
+                if (!isForThisUser && !isForThisFlat) {
+                    // Ignore notification meant for a different user/device
+                    return@launch
+                }
+            }
+
+            // Check if message contains a notification payload.
+            remoteMessage.notification?.let {
+                showNotification(it.title ?: "SocioNet", it.body ?: "New Alert")
+            } ?: run {
+                // Also handle data-only payload
+                val title = remoteMessage.data["title"] ?: "SocioNet"
+                val body = remoteMessage.data["body"] ?: "New Alert"
+                if (remoteMessage.data.containsKey("entryId")) {
+                    showNotification(title, body)
+                }
             }
         }
     }
 
-    private fun showNotification(title: String, message: String) {
+    private suspend fun showNotification(title: String, message: String) {
         val channelId = "socionet_alerts"
         val notificationId = System.currentTimeMillis().toInt()
 
@@ -55,15 +72,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         // Determine target route if user is logged in
-        runBlocking {
-            val userId = authRepository.getCurrentUserId()
-            if (userId != null) {
-                val profile = authRepository.getUserProfile(userId)
-                if (profile != null && !profile.assignedFlatId.isNullOrBlank()) {
-                    // Navigate to Approvals tab (index 1)
-                    val route = Routes.buildResidentCreatePass(profile.assignedFlatId, userId, tab = 1)
-                    intent.putExtra("navigation_route", route)
-                }
+        val userId = authRepository.getCurrentUserId()
+        if (userId != null) {
+            val profile = authRepository.getUserProfile(userId)
+            if (profile != null && !profile.assignedFlatId.isNullOrBlank()) {
+                // Navigate to Approvals tab (index 1)
+                val route = Routes.buildResidentCreatePass(profile.assignedFlatId, userId, tab = 1)
+                intent.putExtra("navigation_route", route)
             }
         }
 
@@ -81,7 +96,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         // Create Channel for Android O+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -93,7 +108,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(notificationId, notificationBuilder.build())
+        withContext(Dispatchers.Main) {
+            notificationManager.notify(notificationId, notificationBuilder.build())
+        }
     }
 
     override fun onNewToken(token: String) {
@@ -101,10 +118,5 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         serviceScope.launch {
             authRepository.updateFcmToken(token)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Cancel scope if needed, but for service it's usually fine to let it finish
     }
 }

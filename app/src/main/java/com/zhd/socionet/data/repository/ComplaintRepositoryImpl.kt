@@ -1,6 +1,7 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.zhd.socionet.core.constants.AppConstants
@@ -24,7 +25,8 @@ interface ComplaintRepository {
 @Singleton
 class ComplaintRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val dao: ComplaintDao
+    private val dao: ComplaintDao,
+    private val crashlytics: FirebaseCrashlytics
 ) : ComplaintRepository {
 
     override suspend fun fileComplaint(complaint: Complaint): Result<Unit> {
@@ -35,6 +37,7 @@ class ComplaintRepositoryImpl @Inject constructor(
             dao.insertComplaints(listOf(finalComplaint.toEntity()))
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -49,7 +52,7 @@ class ComplaintRepositoryImpl @Inject constructor(
             val networkList = snapshot.toObjects(Complaint::class.java)
             dao.insertComplaints(networkList.map { it.toEntity() })
         } catch (e: Exception) {
-            e.printStackTrace()
+            crashlytics.recordException(e)
         }
         return dao.getComplaintsForFlat(flatId).map { it.toDomain() }
     }
@@ -62,7 +65,7 @@ class ComplaintRepositoryImpl @Inject constructor(
             val list = snapshot.toObjects(Complaint::class.java)
             dao.insertComplaints(list.map { it.toEntity() })
         } catch (e: Exception) {
-            e.printStackTrace()
+            crashlytics.recordException(e)
         }
 
         return dao.getAllComplaints().map { it.toDomain() }
@@ -76,6 +79,7 @@ class ComplaintRepositoryImpl @Inject constructor(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }

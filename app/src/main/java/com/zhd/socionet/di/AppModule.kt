@@ -2,6 +2,7 @@ package com.zhd.socionet.di
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.zhd.socionet.core.utils.OtpGenerator
@@ -59,14 +60,22 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideFirebaseCrashlytics(): FirebaseCrashlytics = FirebaseCrashlytics.getInstance()
+
+    @Provides
+    @Singleton
     fun provideOtpGenerator(): OtpGenerator = OtpGeneratorImpl()
 
     // --- Repository Bindings ---
 
     @Provides
     @Singleton
-    fun provideAuthRepository(auth: FirebaseAuth, db: FirebaseFirestore): AuthRepository {
-        return AuthRepositoryImpl(auth, db)
+    fun provideAuthRepository(
+        auth: FirebaseAuth, 
+        db: FirebaseFirestore, 
+        crashlytics: FirebaseCrashlytics
+    ): AuthRepository {
+        return AuthRepositoryImpl(auth, db, crashlytics)
     }
 
     @Provides
@@ -83,8 +92,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGatePassRepository(db: FirebaseFirestore): GatePassRepository {
-        return GatePassRepositoryImpl(db)
+    fun provideGatePassRepository(
+        db: FirebaseFirestore,
+        crashlytics: FirebaseCrashlytics
+    ): GatePassRepository {
+        return GatePassRepositoryImpl(db, crashlytics)
     }
 
     @Provides
@@ -95,14 +107,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoticeRepository(db: FirebaseFirestore, dao: NoticeDao): NoticeRepository {
-        return NoticeRepositoryImpl(db, dao)
+    fun provideNoticeRepository(
+        db: FirebaseFirestore,
+        dao: NoticeDao,
+        crashlytics: FirebaseCrashlytics
+    ): NoticeRepository {
+        return NoticeRepositoryImpl(db, dao, crashlytics)
     }
 
     @Provides
     @Singleton
-    fun provideBillingRepository(db: FirebaseFirestore, dao: BillDao): BillingRepository {
-        return BillingRepositoryImpl(db, dao)
+    fun provideBillingRepository(
+        db: FirebaseFirestore,
+        dao: BillDao,
+        crashlytics: FirebaseCrashlytics
+    ): BillingRepository {
+        return BillingRepositoryImpl(db, dao, crashlytics)
     }
 
     @Provides
@@ -113,8 +133,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideComplaintRepository(db: FirebaseFirestore, dao: ComplaintDao): ComplaintRepository {
-        return ComplaintRepositoryImpl(db, dao)
+    fun provideComplaintRepository(
+        db: FirebaseFirestore,
+        dao: ComplaintDao,
+        crashlytics: FirebaseCrashlytics
+    ): ComplaintRepository {
+        return ComplaintRepositoryImpl(db, dao, crashlytics)
     }
 
     @Provides
@@ -123,9 +147,10 @@ object AppModule {
         auth: FirebaseAuth, 
         db: FirebaseFirestore,
         storage: FirebaseStorage,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        crashlytics: FirebaseCrashlytics
     ): ProfileRepository {
-        return ProfileRepositoryImpl(auth, db, storage, context)
+        return ProfileRepositoryImpl(auth, db, storage, context, crashlytics)
     }
 
     @Provides

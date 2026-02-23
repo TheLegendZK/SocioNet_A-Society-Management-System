@@ -7,6 +7,7 @@ import androidx.core.net.toUri
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
@@ -30,7 +31,8 @@ class ProfileRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage,
-    @get:ApplicationContext private val context: Context
+    @get:ApplicationContext private val context: Context,
+    private val crashlytics: FirebaseCrashlytics
 ) : ProfileRepository {
 
     override suspend fun getUserProfile(userId: String): Result<UserProfile> {
@@ -43,6 +45,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 Result.failure(Exception("Profile not found"))
             }
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -60,6 +63,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -73,6 +77,7 @@ class ProfileRepositoryImpl @Inject constructor(
             user.updatePassword(newPass).await()
             Result.success(Unit)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }
@@ -118,6 +123,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
             Result.success(downloadUrl)
         } catch (e: Exception) {
+            crashlytics.recordException(e)
             Result.failure(e)
         }
     }

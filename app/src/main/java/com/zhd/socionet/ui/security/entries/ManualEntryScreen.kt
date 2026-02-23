@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +14,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,16 +54,24 @@ fun ManualEntryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var visitorName by remember { mutableStateOf("") }
-    var flatId by remember { mutableStateOf("") }
     var vehicleNumber by remember { mutableStateOf("") }
+
+    var wingExpanded by remember { mutableStateOf(false) }
+    var flatExpanded by remember { mutableStateOf(false) }
 
     if (uiState.successMessage != null) {
         AlertDialog(
-            onDismissRequest = onEntryLogged,
+            onDismissRequest = {
+                viewModel.clearSuccessMessage()
+                onEntryLogged()
+            },
             title = { Text(stringResource(R.string.request_sent), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.entry_request_has_been_sent_to_the_resident_for_approval)) },
+            text = { Text(uiState.successMessage ?: "") },
             confirmButton = {
-                TextButton(onClick = onEntryLogged) {
+                TextButton(onClick = {
+                    viewModel.clearSuccessMessage()
+                    onEntryLogged()
+                }) {
                     Text(stringResource(R.string.ok), fontWeight = FontWeight.Bold)
                 }
             },
@@ -125,11 +138,73 @@ fun ManualEntryScreen(
                             onValueChange = { visitorName = it },
                             label = stringResource(R.string.visitor_company_name)
                         )
-                        SocioTextField(
-                            value = flatId,
-                            onValueChange = { flatId = it },
-                            label = stringResource(R.string.visiting_flat_e_g_a_101)
-                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Wing Selection
+                            ExposedDropdownMenuBox(
+                                expanded = wingExpanded,
+                                onExpandedChange = { wingExpanded = !wingExpanded },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                SocioTextField(
+                                    value = uiState.selectedWing,
+                                    onValueChange = {},
+                                    label = "Wing",
+                                    readOnly = true,
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = wingExpanded) },
+                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = wingExpanded,
+                                    onDismissRequest = { wingExpanded = false }
+                                ) {
+                                    uiState.wings.forEach { wing ->
+                                        DropdownMenuItem(
+                                            text = { Text(wing) },
+                                            onClick = {
+                                                viewModel.onWingSelected(wing)
+                                                wingExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Flat Selection
+                            ExposedDropdownMenuBox(
+                                expanded = flatExpanded,
+                                onExpandedChange = { if (uiState.selectedWing.isNotBlank()) flatExpanded = !flatExpanded },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                SocioTextField(
+                                    value = uiState.selectedFlat,
+                                    onValueChange = {},
+                                    label = "Flat",
+                                    readOnly = true,
+                                    enabled = uiState.selectedWing.isNotBlank(),
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = flatExpanded) },
+                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = flatExpanded,
+                                    onDismissRequest = { flatExpanded = false }
+                                ) {
+                                    uiState.flatsInWing.forEach { flat ->
+                                        DropdownMenuItem(
+                                            text = { Text(flat) },
+                                            onClick = {
+                                                viewModel.onFlatSelected(flat)
+                                                flatExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         SocioTextField(
                             value = vehicleNumber,
                             onValueChange = { vehicleNumber = it },
@@ -142,9 +217,9 @@ fun ManualEntryScreen(
                 
                 SocioButton(
                     text = stringResource(R.string.log_entry_request),
-                    onClick = { viewModel.logEntry(visitorName, flatId, vehicleNumber) },
+                    onClick = { viewModel.logEntry(visitorName, vehicleNumber) },
                     isLoading = uiState.isLoading,
-                    enabled = visitorName.isNotBlank() && flatId.isNotBlank()
+                    enabled = visitorName.isNotBlank() && uiState.selectedFlat.isNotBlank()
                 )
             }
         }
