@@ -195,9 +195,9 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            SocialAuthButtons()
+            /*SocialAuthButtons()
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))*/
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
