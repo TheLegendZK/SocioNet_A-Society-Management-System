@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,16 +48,15 @@ import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -78,6 +79,7 @@ import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftAccent
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -91,6 +93,7 @@ fun VisitorManagementScreen(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     val tabCreatePass = stringResource(R.string.tab_create_pass)
     val tabApprovals = stringResource(R.string.tab_approvals)
@@ -111,13 +114,7 @@ fun VisitorManagementScreen(
         list
     }
 
-    var selectedTab by remember { mutableIntStateOf(initialTab) }
-
-    LaunchedEffect(tabs.size) {
-        if (selectedTab >= tabs.size) {
-            selectedTab = tabs.size - 1
-        }
-    }
+    val pagerState = rememberPagerState(initialPage = initialTab) { tabs.size }
 
     val societyId = remember(hostFlatId) {
         hostFlatId.substringBefore("_") // Dynamically extracts Society ID from Flat ID
@@ -125,15 +122,9 @@ fun VisitorManagementScreen(
     LaunchedEffect(Unit) {
         viewModel.loadLinkedStaffAndLogs(societyId, hostFlatId)
     }
-    LaunchedEffect(selectedTab) {
-        when (selectedTab) {
-            1 -> viewModel.loadPendingRequests(hostFlatId)
-            2 -> viewModel.loadHistory(hostFlatId)
-        }
-    }
 
-    // Determine currently active tab by title (prevents fetching wrong info if indices shift)
-    val currentTab = tabs.getOrNull(selectedTab)
+    // Determine currently active tab by title
+    val currentTab = tabs.getOrNull(pagerState.currentPage)
 
     LaunchedEffect(currentTab) {
         when (currentTab) {
@@ -187,14 +178,14 @@ fun VisitorManagementScreen(
                         )
                     )
                     SecondaryScrollableTabRow(
-                        selectedTabIndex = selectedTab,
+                        selectedTabIndex = pagerState.currentPage,
                         containerColor = Color.Transparent,
                         contentColor = Color.White,
                         edgePadding = 24.dp,
                         divider = {},
                         indicator = {
                             TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(selectedTab),
+                                modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
                                 color = Color.White,
                                 height = 3.dp
                             )
@@ -202,13 +193,17 @@ fun VisitorManagementScreen(
                     ) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
-                                selected = selectedTab == index,
-                                onClick = { selectedTab = index },
+                                selected = pagerState.currentPage == index,
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                },
                                 text = {
                                     Text(
                                         text = title,
                                         style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium
+                                        fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Medium
                                     )
                                 },
                                 selectedContentColor = Color.White,
@@ -219,12 +214,15 @@ fun VisitorManagementScreen(
                 }
             }
         ) { padding ->
-            Box(
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .padding(padding)
-                    .fillMaxSize()
-            ) {
-                when (currentTab) {
+                    .fillMaxSize(),
+                beyondViewportPageCount = 1,
+                verticalAlignment = Alignment.Top
+            ) { pageIndex ->
+                when (tabs.getOrNull(pageIndex)) {
                     tabCreatePass -> CreatePassContent(viewModel, hostFlatId, hostUserId)
                     tabApprovals -> RequestsList(uiState.pendingRequests) { entry, accept ->
                         viewModel.respondToRequest(entry, accept)
@@ -254,6 +252,7 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Spacer(Modifier.height(48.dp))
             SoftCard {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -686,8 +685,8 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
 @Composable
 fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, message: String) {
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize().padding(top = 100.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(

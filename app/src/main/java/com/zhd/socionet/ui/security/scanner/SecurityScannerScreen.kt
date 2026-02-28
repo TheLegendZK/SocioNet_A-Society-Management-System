@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,15 +46,16 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +76,7 @@ import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.profile.ProfileViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +88,8 @@ fun SecurityScannerScreen(
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
+    val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState { 2 }
     val context = LocalContext.current
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -168,29 +173,33 @@ fun SecurityScannerScreen(
                 .padding(padding)
                 .fillMaxSize()) {
                 SecondaryTabRow(
-                    selectedTabIndex = selectedTab,
+                    selectedTabIndex = pagerState.currentPage,
                     containerColor = Color.Transparent,
                     contentColor = Color.White,
                     divider = {},
                     indicator = {
                         TabRowDefaults.SecondaryIndicator(
-                            Modifier.tabIndicatorOffset(selectedTab),
+                            Modifier.tabIndicatorOffset(pagerState.currentPage),
                             color = Color.White,
                             height = 3.dp
                         )
                     }
                 ) {
                     Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
+                        selected = pagerState.currentPage == 0,
+                        onClick = { 
+                            scope.launch { pagerState.animateScrollToPage(0) }
+                        },
                         text = { Text(stringResource(R.string.scan_qr), fontWeight = FontWeight.Bold) },
                         icon = { Icon(Icons.Default.QrCodeScanner, null) },
                         selectedContentColor = Color.White,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
+                        selected = pagerState.currentPage == 1,
+                        onClick = { 
+                            scope.launch { pagerState.animateScrollToPage(1) }
+                        },
                         text = { Text(stringResource(R.string.enter_otp), fontWeight = FontWeight.Bold) },
                         icon = { Icon(Icons.Default.Dialpad, null) },
                         selectedContentColor = Color.White,
@@ -198,17 +207,23 @@ fun SecurityScannerScreen(
                     )
                 }
 
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp), contentAlignment = Alignment.Center) {
-                    if (selectedTab == 0) {
-                        QrScanView(
-                            hasPermission = hasCameraPermission,
-                            onRequestPermission = { launcher.launch(Manifest.permission.CAMERA) },
-                            onQrScanned = { viewModel.onQrScanned(it) }
-                        )
-                    } else {
-                        ManualOtpView(onSubmit = { viewModel.onOtpEntered(it) })
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.Top
+                ) { pageIndex ->
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp), contentAlignment = Alignment.TopCenter) {
+                        if (pageIndex == 0) {
+                            QrScanView(
+                                hasPermission = hasCameraPermission,
+                                onRequestPermission = { launcher.launch(Manifest.permission.CAMERA) },
+                                onQrScanned = { viewModel.onQrScanned(it) }
+                            )
+                        } else {
+                            ManualOtpView(onSubmit = { viewModel.onOtpEntered(it) })
+                        }
                     }
                 }
             }
@@ -234,7 +249,7 @@ fun QrScanView(
     onRequestPermission: () -> Unit,
     onQrScanned: (String) -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 48.dp)) {
         Box(
             modifier = Modifier
                 .size(300.dp)
@@ -309,7 +324,7 @@ fun QrScanView(
 @Composable
 fun ManualOtpView(onSubmit: (String) -> Unit) {
     var otp by remember { mutableStateOf("") }
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 48.dp)) {
         Text(
             stringResource(R.string.verify_visitor_otp),
             style = MaterialTheme.typography.headlineSmall,

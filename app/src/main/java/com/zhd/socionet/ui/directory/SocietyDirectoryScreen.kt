@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,6 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -51,7 +54,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,9 +73,11 @@ import coil3.compose.rememberAsyncImagePainter
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,16 +90,32 @@ fun SocietyDirectoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var userToRemove by remember { mutableStateOf<UserProfile?>(null) }
     var staffToRemove by remember { mutableStateOf<ServiceStaff?>(null) }
     var showAddStaffDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf("Residents", "Guards", "Staff")
+    val pagerState = rememberPagerState { tabs.size }
 
     LaunchedEffect(societyId, flatId) {
         viewModel.setFlatId(flatId)
         if (societyId.isNotBlank()) {
             viewModel.loadDirectory(societyId)
+        }
+    }
+
+    // Sync pager with ViewModel tab selection (for initial or programmatic changes)
+    LaunchedEffect(uiState.selectedTab) {
+        if (uiState.selectedTab != pagerState.currentPage) {
+            pagerState.animateScrollToPage(uiState.selectedTab)
+        }
+    }
+
+    // Sync ViewModel with pager swiping
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            viewModel.onTabSelected(page)
         }
     }
 
@@ -196,12 +219,12 @@ fun SocietyDirectoryScreen(
                         )
                     )
                     PrimaryTabRow(
-                        selectedTabIndex = uiState.selectedTab,
+                        selectedTabIndex = pagerState.currentPage,
                         containerColor = Color.Transparent,
                         contentColor = Color.White,
                         indicator = { 
                             TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(uiState.selectedTab),
+                                modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
                                 color = Color.White,
                                 height = 3.dp
                             )
@@ -210,12 +233,16 @@ fun SocietyDirectoryScreen(
                     ) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
-                                selected = uiState.selectedTab == index,
-                                onClick = { viewModel.onTabSelected(index) },
+                                selected = pagerState.currentPage == index,
+                                onClick = { 
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                },
                                 text = {
                                     Text(
                                         text = title,
-                                        fontWeight = if (uiState.selectedTab == index) FontWeight.Bold else FontWeight.Medium
+                                        fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Medium
                                     )
                                 },
                                 selectedContentColor = Color.White,
@@ -226,7 +253,7 @@ fun SocietyDirectoryScreen(
                 }
             },
             floatingActionButton = {
-                if (isAdmin && uiState.selectedTab == 2) {
+                if (isAdmin && pagerState.currentPage == 2) {
                     FloatingActionButton(
                         onClick = { showAddStaffDialog = true },
                         containerColor = SoftTheme.primary,
@@ -259,71 +286,106 @@ fun SocietyDirectoryScreen(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = SoftTheme.primary)
                     }
-                } else if (uiState.selectedTab == 2 && uiState.filteredStaff.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
-                            Spacer(Modifier.height(16.dp))
-                            Text(stringResource(R.string.no_staff_members_found), color = SoftTheme.textSecondary)
-                        }
-                    }
-                } else if (uiState.selectedTab != 2 && uiState.filteredResidents.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
-                            Spacer(Modifier.height(16.dp))
-                            Text(stringResource(R.string.no_members_found), color = SoftTheme.textSecondary)
-                        }
-                    }
                 } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 80.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        if (uiState.selectedTab == 2) {
-                            items(uiState.filteredStaff) { staff ->
-                                val isLinked = staff.employerFlatIds.contains(flatId)
-                                DirectoryStaffItem(
-                                    staff = staff,
-                                    showContactInfo = isAdmin || isLinked,
-                                    isAdmin = isAdmin,
-                                    isLinkedToMyFlat = isLinked,
-                                    flatId = flatId,
-                                    onCall = {
-                                        val intent = Intent(Intent.ACTION_DIAL,
-                                            "tel:${staff.phoneNumber}".toUri())
-                                        context.startActivity(intent)
-                                    },
-                                    onRemoveFromSociety = {
-                                        staffToRemove = staff
-                                    },
-                                    onToggleLink = {
-                                        viewModel.toggleStaffLink(staff, flatId, societyId)
-                                    }
-                                )
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        beyondViewportPageCount = 1,
+                        verticalAlignment = Alignment.Top
+                    ) { pageIndex ->
+                        val filteredResidents = remember(uiState.residents, uiState.searchQuery, pageIndex) {
+                            if (pageIndex == 2) emptyList() else {
+                                val roleFiltered = when (pageIndex) {
+                                    1 -> uiState.residents.filter { it.roles.contains(UserRole.SECURITY_GUARD) }
+                                    else -> uiState.residents.filter { !it.roles.contains(UserRole.SECURITY_GUARD) && !it.roles.contains(UserRole.SERVICE_STAFF) }
+                                }
+                                if (uiState.searchQuery.isBlank()) roleFiltered
+                                else roleFiltered.filter {
+                                    it.fullName.contains(uiState.searchQuery, ignoreCase = true) ||
+                                            (it.assignedFlatId ?: "").contains(uiState.searchQuery, ignoreCase = true)
+                                }
+                            }
+                        }
+
+                        val filteredStaff = remember(uiState.serviceStaff, uiState.searchQuery, pageIndex) {
+                            if (pageIndex != 2) emptyList() else {
+                                val activeStaff = uiState.serviceStaff.filter { it.isActive }
+                                val searched = if (uiState.searchQuery.isBlank()) activeStaff
+                                else activeStaff.filter {
+                                    it.name.contains(uiState.searchQuery, ignoreCase = true) ||
+                                            it.role.contains(uiState.searchQuery, ignoreCase = true)
+                                }
+                                searched.sortedByDescending { it.employerFlatIds.contains(uiState.currentFlatId) }
+                            }
+                        }
+
+                        if (pageIndex == 2 && filteredStaff.isEmpty()) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(stringResource(R.string.no_staff_members_found), color = SoftTheme.textSecondary)
+                                }
+                            }
+                        } else if (pageIndex != 2 && filteredResidents.isEmpty()) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.People, null, tint = SoftTheme.textSecondary.copy(alpha = 0.3f), modifier = Modifier.size(64.dp))
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(stringResource(R.string.no_members_found), color = SoftTheme.textSecondary)
+                                }
                             }
                         } else {
-                            items(uiState.filteredResidents) { user ->
-                                DirectoryUserItem(
-                                    user = user,
-                                    showContactInfo = isAdmin,
-                                    isAdmin = isAdmin,
-                                    onCall = {
-                                        val intent = Intent(Intent.ACTION_DIAL,
-                                            "tel:${user.phoneNumber}".toUri())
-                                        context.startActivity(intent)
-                                    },
-                                    onEmail = {
-                                        if (user.email.isNotBlank()) {
-                                            val intent = Intent(Intent.ACTION_SENDTO,
-                                                "mailto:${user.email}".toUri())
-                                            context.startActivity(intent)
-                                        }
-                                    },
-                                    onRemove = {
-                                        userToRemove = user
+                            LazyColumn(
+                                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 80.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                if (pageIndex == 2) {
+                                    items(filteredStaff) { staff ->
+                                        val isLinked = staff.employerFlatIds.contains(flatId)
+                                        DirectoryStaffItem(
+                                            staff = staff,
+                                            showContactInfo = isAdmin || isLinked,
+                                            isAdmin = isAdmin,
+                                            isLinkedToMyFlat = isLinked,
+                                            flatId = flatId,
+                                            onCall = {
+                                                val intent = Intent(Intent.ACTION_DIAL,
+                                                    "tel:${staff.phoneNumber}".toUri())
+                                                context.startActivity(intent)
+                                            },
+                                            onRemoveFromSociety = {
+                                                staffToRemove = staff
+                                            },
+                                            onToggleLink = {
+                                                viewModel.toggleStaffLink(staff, flatId, societyId)
+                                            }
+                                        )
                                     }
-                                )
+                                } else {
+                                    items(filteredResidents) { user ->
+                                        DirectoryUserItem(
+                                            user = user,
+                                            showContactInfo = isAdmin,
+                                            isAdmin = isAdmin,
+                                            onCall = {
+                                                val intent = Intent(Intent.ACTION_DIAL,
+                                                    "tel:${user.phoneNumber}".toUri())
+                                                context.startActivity(intent)
+                                            },
+                                            onEmail = {
+                                                if (user.email.isNotBlank()) {
+                                                    val intent = Intent(Intent.ACTION_SENDTO,
+                                                        "mailto:${user.email}".toUri())
+                                                    context.startActivity(intent)
+                                                }
+                                            },
+                                            onRemove = {
+                                                userToRemove = user
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
