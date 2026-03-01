@@ -9,6 +9,7 @@ data class GateEntry(
     val visitorType: VisitorType = VisitorType.GUEST,
     val vehicleNumber: String? = null,
     val hostFlatId: String = "",
+    val hostFlatNumber: String? = null,
     val hostUserId: String = "",
     val entryCode: String = "", // 6-digit OTP
     val qrCodeUrl: String? = null,
@@ -19,5 +20,4 @@ data class GateEntry(
     val linkedStaffId: String? = null,
     @get:PropertyName("isStaffEntry") @set:PropertyName("isStaffEntry")
     var isStaffEntry: Boolean = false
-
 )

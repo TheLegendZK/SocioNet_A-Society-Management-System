@@ -7,7 +7,9 @@ import com.zhd.socionet.core.utils.OtpGenerator
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.ServiceStaff
+import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.VisitorType
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.GatePassRepository
 import com.zhd.socionet.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +27,7 @@ import javax.inject.Inject
 class GatePassViewModel @Inject constructor(
     private val repository: GatePassRepository,
     private val staffRepository: StaffRepository,
+    private val authRepository: AuthRepository,
     private val otpGenerator: OtpGenerator
 ) : ViewModel() {
 
@@ -34,6 +37,7 @@ class GatePassViewModel @Inject constructor(
     private var pendingJob: Job? = null
     private var historyJob: Job? = null
     private var staffJob: Job? = null
+    private var userProfile: UserProfile? = null
 
     fun loadPendingRequests(flatId: String) {
         pendingJob?.cancel()
@@ -70,11 +74,17 @@ class GatePassViewModel @Inject constructor(
                 return@launch
             }
 
+            // Ensure we have the user profile to get the clean flat number
+            if (userProfile == null) {
+                userProfile = authRepository.getUserProfile(hostUserId)
+            }
+
             val otp = otpGenerator.generateOtp()
             val entry = GateEntry(
                 visitorName = _uiState.value.visitorName,
                 visitorType = _uiState.value.visitorType,
                 hostFlatId = hostFlatId,
+                hostFlatNumber = userProfile?.flatNumber,
                 hostUserId = hostUserId,
                 entryCode = otp,
                 entryTime = Timestamp(Date()),

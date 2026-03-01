@@ -275,8 +275,8 @@ fun SocioNetNavGraph(
                         }
                     } else {
                         val user = viewModel.uiState.value.userProfile
-                        if (user != null && !user.assignedFlatId.isNullOrBlank()) {
-                            val route = Routes.buildResidentHome(user.assignedFlatId, user.id)
+                        if (user != null && !user.flatId.isNullOrBlank()) {
+                            val route = Routes.buildResidentHome(user.flatId, user.id)
                             navController.navigate(route) {
                                 popUpTo(Routes.RESIDENT_HOME) { inclusive = true }
                             }

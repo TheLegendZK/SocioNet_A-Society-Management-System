@@ -10,6 +10,10 @@ data class Notice(
     val attachmentUrl: String? = null,
     val priority: String = "NORMAL",
     val targetAudience: String = "ALL", // "ALL", "OWNERS", "WING_A"
+    
+    // Denormalized Author Info
     val postedByAdminId: String = "",
+    val authorName: String? = null,
+
     val timestamp: Timestamp = Timestamp.now(),
 )

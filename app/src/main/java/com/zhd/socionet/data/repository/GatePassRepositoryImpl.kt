@@ -5,6 +5,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
 import com.zhd.socionet.core.constants.AppConstants
+import com.zhd.socionet.data.local.GateEntryDao
+import com.zhd.socionet.data.local.GateEntryEntity
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.GateEntry
@@ -13,6 +15,7 @@ import com.zhd.socionet.data.model.VisitorType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,6 +34,7 @@ interface GatePassRepository {
 @Singleton
 class GatePassRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val dao: GateEntryDao,
     private val crashlytics: FirebaseCrashlytics
 ) : GatePassRepository {
 
@@ -39,6 +43,7 @@ class GatePassRepositoryImpl @Inject constructor(
             val docRef = firestore.collection(AppConstants.COLL_GATE_ENTRIES).document()
             val finalEntry = entry.copy(id = docRef.id, qrCodeUrl = docRef.id)
             docRef.set(finalEntry).await()
+            dao.insertEntries(listOf(finalEntry.toEntity()))
             Result.success(docRef.id)
         } catch (e: Exception) {
             crashlytics.recordException(e)
@@ -51,9 +56,11 @@ class GatePassRepositoryImpl @Inject constructor(
             .whereEqualTo("hostFlatId", flatId)
             .snapshots()
             .map { snapshot ->
-                snapshot.toObjects(GateEntry::class.java)
+                val list = snapshot.toObjects(GateEntry::class.java)
                     .filter { it.status == EntryStatus.PENDING_APPROVAL }
                     .sortedByDescending { it.entryTime }
+                dao.insertEntries(list.map { it.toEntity() })
+                list
             }
     }
 
@@ -63,9 +70,11 @@ class GatePassRepositoryImpl @Inject constructor(
                 .whereEqualTo("hostFlatId", flatId)
                 .get().await()
 
-            snapshot.toObjects(GateEntry::class.java)
+            val list = snapshot.toObjects(GateEntry::class.java)
                 .filter { it.status == EntryStatus.APPROVED }
                 .sortedByDescending { it.entryTime }
+            dao.insertEntries(list.map { it.toEntity() })
+            list
         } catch (e: Exception) {
             crashlytics.recordException(e)
             emptyList()
@@ -84,10 +93,12 @@ class GatePassRepositoryImpl @Inject constructor(
                     EntryStatus.DENIED,
                     EntryStatus.EXPIRED
                 )
-                snapshot.toObjects(GateEntry::class.java)
+                val list = snapshot.toObjects(GateEntry::class.java)
                     .filter { it.status in pastStatuses }
                     .sortedByDescending { it.entryTime }
                     .take(50)
+                dao.insertEntries(list.map { it.toEntity() })
+                list
             }
     }
 
@@ -110,9 +121,11 @@ class GatePassRepositoryImpl @Inject constructor(
             .whereIn("linkedStaffId", staffIds)
             .snapshots()
             .map { snapshot ->
-                snapshot.toObjects(GateEntry::class.java)
+                val list = snapshot.toObjects(GateEntry::class.java)
                     .sortedByDescending { it.entryTime }
                     .take(20)
+                dao.insertEntries(list.map { it.toEntity() })
+                list
             }
     }
 
@@ -136,6 +149,7 @@ class GatePassRepositoryImpl @Inject constructor(
             )
 
             docRef.set(entry).await()
+            dao.insertEntries(listOf(entry.toEntity()))
             Result.success(Unit)
         } catch (e: Exception) {
             crashlytics.recordException(e)
@@ -146,7 +160,7 @@ class GatePassRepositoryImpl @Inject constructor(
     override suspend fun getUserByFlat(flatId: String): UserProfile? {
         return try {
             val snapshot = firestore.collection(AppConstants.COLL_USERS)
-                .whereEqualTo("assignedFlatId", flatId)
+                .whereEqualTo("flatId", flatId)
                 .limit(1)
                 .get()
                 .await()
@@ -168,3 +182,29 @@ class GatePassRepositoryImpl @Inject constructor(
         }
     }
 }
+
+fun GateEntry.toEntity() = GateEntryEntity(
+    id = id,
+    visitorName = visitorName,
+    visitorType = visitorType.name,
+    hostFlatId = hostFlatId,
+    hostFlatNumber = hostFlatNumber,
+    status = status.name,
+    entryCode = entryCode,
+    entryTime = entryTime?.toDate()?.time ?: 0L,
+    isStaffEntry = isStaffEntry,
+    linkedStaffId = linkedStaffId
+)
+
+fun GateEntryEntity.toDomain() = GateEntry(
+    id = id,
+    visitorName = visitorName,
+    visitorType = VisitorType.valueOf(visitorType),
+    hostFlatId = hostFlatId,
+    hostFlatNumber = hostFlatNumber,
+    status = EntryStatus.valueOf(status),
+    entryCode = entryCode,
+    entryTime = if (entryTime > 0) Timestamp(Date(entryTime)) else null,
+    isStaffEntry = isStaffEntry,
+    linkedStaffId = linkedStaffId
+)

@@ -11,7 +11,11 @@ class FakeProfileRepository : ProfileRepository {
             fullName = "Admin User", 
             email = "admin@socionet.com",
             phoneNumber = "1234567890",
-            assignedFlatId = "SOC1_A_101"
+            societyId = "SOC1",
+            societyName = "Green Valley Society",
+            wingId = "A",
+            flatId = "SOC1_A_101",
+            flatNumber = "101"
         ))
     
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> = Result.success(Unit)

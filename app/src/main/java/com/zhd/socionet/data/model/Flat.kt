@@ -11,8 +11,10 @@ data class Flat(
     val sqFtArea: Int = 0,
     val parkingSlots: List<String> = emptyList(),
 
-    // The "Household" Snapshot
+    // Denormalized Household Info
     val primaryOwnerId: String? = null,
+    val primaryOwnerName: String? = null,
+
     val tenantIds: List<String> = emptyList(),
     val familyMemberIds: List<String> = emptyList(),
 

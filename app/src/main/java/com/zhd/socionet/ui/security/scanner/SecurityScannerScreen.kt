@@ -431,8 +431,10 @@ fun ResultOverlay(result: ScanResult, onDismiss: () -> Unit) {
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(4.dp))
+                        
+                        val displayFlat = result.entry.hostFlatNumber ?: result.entry.hostFlatId.substringAfterLast("_")
                         Text(
-                            text = stringResource(R.string.flat, result.entry.hostFlatId.replace("_", " ")),
+                            text = stringResource(R.string.flat, displayFlat),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White.copy(alpha = 0.9f)
                         )

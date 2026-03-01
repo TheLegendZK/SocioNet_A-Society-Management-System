@@ -30,7 +30,7 @@ class AdminApprovalViewModel @Inject constructor(
 
     fun approveUser(user: UserProfile) {
         viewModelScope.launch {
-            val result = repository.approveUser(user.id)
+            val result = repository.approveUser(user)
             if (result.isSuccess) {
                 _uiState.update { state ->
                     state.copy(

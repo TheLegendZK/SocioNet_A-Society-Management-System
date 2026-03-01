@@ -34,7 +34,7 @@ class SocietyDirectoryViewModel @Inject constructor(
             val residentsResult = repository.getSocietyResidents(societyId)
             val staffResult = staffRepository.getStaffList(societyId)
 
-            val sortedUsers = residentsResult.getOrNull()?.sortedBy { it.assignedFlatId } ?: emptyList()
+            val sortedUsers = residentsResult.getOrNull()?.sortedBy { it.flatId ?: it.societyId } ?: emptyList()
             
             _uiState.update { it.copy(
                 isLoading = false,
@@ -134,7 +134,7 @@ data class SocietyDirectoryUiState(
             } else {
                 roleFiltered.filter {
                     it.fullName.contains(searchQuery, ignoreCase = true) ||
-                            (it.assignedFlatId ?: "").contains(searchQuery, ignoreCase = true)
+                            (it.flatId ?: "").contains(searchQuery, ignoreCase = true)
                 }
             }
         }

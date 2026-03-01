@@ -51,7 +51,7 @@ class NavigationLogicTest {
         val profile = UserProfile(
             id = "user_1",
             roles = listOf(UserRole.OWNER),
-            assignedFlatId = "Flat_101",
+            flatId = "Flat_101",
             isVerified = true
         )
 

@@ -45,12 +45,16 @@ class CreateNoticeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
+            // Denormalization: Store admin name in notice
+            val profile = authRepository.getUserProfile(adminId)
+
             val notice = Notice(
                 title = _uiState.value.title,
                 content = _uiState.value.content,
                 priority = _uiState.value.priority,
                 targetAudience = _uiState.value.targetAudience,
-                postedByAdminId = adminId
+                postedByAdminId = adminId,
+                authorName = profile?.fullName
             )
 
             val result = noticeRepository.createNotice(notice)

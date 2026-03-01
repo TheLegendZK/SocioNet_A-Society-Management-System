@@ -66,7 +66,9 @@ fun BillingScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        if (!isAdmin && flatId != null) viewModel.loadBills(flatId)
+        if (!isAdmin && flatId != null) {
+            viewModel.loadBills(flatId)
+        }
     }
 
     Box(modifier = Modifier
@@ -148,6 +150,17 @@ fun BillingScreen(
                             }
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Recent Bills",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = SoftTheme.textPrimary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Admin view of all bills could go here, leveraging denormalized flatNumber
                 } else {
                     Spacer(Modifier.height(16.dp))
                     Column(
@@ -226,6 +239,7 @@ fun BillingScreen(
                             items(uiState.bills) { bill ->
                                 BillItem(
                                     bill,
+                                    isAdmin = false,
                                     onPay = {
                                         if (flatId != null) {
                                             viewModel.payBill(bill.id, userId, flatId)
@@ -242,7 +256,7 @@ fun BillingScreen(
 }
 
 @Composable
-fun BillItem(bill: Bill, onPay: () -> Unit) {
+fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
     val isPaid = bill.isPaid
     val formatter = SimpleDateFormat("dd MMM", Locale.getDefault())
 
@@ -253,6 +267,14 @@ fun BillItem(bill: Bill, onPay: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
+                if (isAdmin) {
+                    Text(
+                        text = "Flat ${bill.flatNumber ?: "N/A"}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SoftTheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Text(
                     text = bill.month,
                     style = MaterialTheme.typography.titleMedium,
@@ -288,7 +310,7 @@ fun BillItem(bill: Bill, onPay: () -> Unit) {
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                         )
                     }
-                } else {
+                } else if (!isAdmin) {
                     Button(
                         onClick = onPay,
                         modifier = Modifier

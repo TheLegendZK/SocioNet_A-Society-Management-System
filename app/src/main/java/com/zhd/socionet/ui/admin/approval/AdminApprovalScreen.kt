@@ -149,7 +149,7 @@ fun AdminApprovalScreen(
                                             color = SoftTheme.textPrimary
                                         )
                                         Text(
-                                            text = "${user.roles.firstOrNull()?.name} • ${user.assignedFlatId ?: "No Flat"}",
+                                            text = "${user.roles.firstOrNull()?.name} • ${user.flatId ?: user.societyId ?: "No Location"}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = SoftTheme.textSecondary
                                         )

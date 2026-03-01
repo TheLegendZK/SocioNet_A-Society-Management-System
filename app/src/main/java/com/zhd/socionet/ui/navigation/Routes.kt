@@ -85,7 +85,7 @@ object NavigationRouter {
             profile.roles.contains(UserRole.SUPER_ADMIN) -> Routes.ADMIN_DASHBOARD
             profile.roles.contains(UserRole.SECURITY_GUARD) -> Routes.SECURITY_DASHBOARD
             !profile.isVerified -> Routes.PENDING_APPROVAL
-            else -> Routes.buildResidentHome(profile.assignedFlatId ?: "0", profile.id)
+            else -> Routes.buildResidentHome(profile.flatId ?: profile.societyId ?: "0", profile.id)
         }
     }
 }

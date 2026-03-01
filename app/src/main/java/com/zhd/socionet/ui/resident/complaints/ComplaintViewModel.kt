@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zhd.socionet.data.model.Complaint
 import com.zhd.socionet.data.model.ComplaintCategory
 import com.zhd.socionet.data.model.ComplaintScope
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.ComplaintRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ComplaintViewModel @Inject constructor(
-    private val repository: ComplaintRepository
+    private val repository: ComplaintRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ComplaintUiState())
@@ -40,13 +42,18 @@ class ComplaintViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
+            // Denormalization: Get user profile to store name and flat number
+            val profile = authRepository.getUserProfile(userId)
+
             val complaint = Complaint(
                 title = title,
                 description = description,
                 category = category,
                 scope = ComplaintScope.PERSONAL,
                 flatId = flatId,
+                flatNumber = profile?.flatNumber,
                 raisedByUserId = userId,
+                raisedByUserName = profile?.fullName,
                 status = "OPEN"
             )
 

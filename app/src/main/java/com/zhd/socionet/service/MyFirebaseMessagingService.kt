@@ -41,7 +41,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             // SECURITY CHECK: Only show notification if it's targeted to this user or their flat
             if (!targetUserId.isNullOrBlank() || !hostFlatId.isNullOrBlank()) {
                 val isForThisUser = targetUserId == currentUserId
-                val isForThisFlat = hostFlatId != null && profile?.assignedFlatId == hostFlatId
+                val isForThisFlat = hostFlatId != null && profile?.flatId == hostFlatId
                 
                 if (!isForThisUser && !isForThisFlat) {
                     // Ignore notification meant for a different user/device
@@ -75,9 +75,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val userId = authRepository.getCurrentUserId()
         if (userId != null) {
             val profile = authRepository.getUserProfile(userId)
-            if (profile != null && !profile.assignedFlatId.isNullOrBlank()) {
+            if (profile != null && !profile.flatId.isNullOrBlank()) {
                 // Navigate to Approvals tab (index 1)
-                val route = Routes.buildResidentCreatePass(profile.assignedFlatId, userId, tab = 1)
+                val route = Routes.buildResidentCreatePass(profile.flatId, userId, tab = 1)
                 intent.putExtra("navigation_route", route)
             }
         }

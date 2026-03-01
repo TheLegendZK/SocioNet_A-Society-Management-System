@@ -6,6 +6,8 @@ import com.google.firebase.firestore.PropertyName
 data class Bill(
     @PropertyName("id") val id: String = "",
     val flatId: String = "",
+    val flatNumber: String? = null, // Denormalized for Admin View
+
     val month: String = "", // e.g., "January 2026"
     val billDate: Timestamp = Timestamp.now(),
     val dueDate: Timestamp = Timestamp.now(),

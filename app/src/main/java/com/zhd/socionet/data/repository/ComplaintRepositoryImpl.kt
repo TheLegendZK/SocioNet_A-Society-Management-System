@@ -85,7 +85,30 @@ class ComplaintRepositoryImpl @Inject constructor(
     }
 }
 
-fun Complaint.toEntity() = ComplaintEntity(id, title, description, category.name, status, flatId ?: "", createdAt.toDate().time)
-fun ComplaintEntity.toDomain() = Complaint(id, title, description, null, ComplaintCategory.valueOf(category), ComplaintScope.PERSONAL, "", flatId, status, Timestamp(
-    Date(createdAt)
-))
+fun Complaint.toEntity() = ComplaintEntity(
+    id = id,
+    title = title,
+    description = description,
+    category = category.name,
+    status = status,
+    raisedByUserId = raisedByUserId,
+    raisedByUserName = raisedByUserName,
+    flatId = flatId ?: "",
+    flatNumber = flatNumber,
+    createdAt = createdAt.toDate().time
+)
+
+fun ComplaintEntity.toDomain() = Complaint(
+    id = id,
+    title = title,
+    description = description,
+    photoUrl = null,
+    category = ComplaintCategory.valueOf(category),
+    scope = ComplaintScope.PERSONAL,
+    raisedByUserId = raisedByUserId,
+    raisedByUserName = raisedByUserName,
+    flatId = flatId,
+    flatNumber = flatNumber,
+    status = status,
+    createdAt = Timestamp(Date(createdAt))
+)

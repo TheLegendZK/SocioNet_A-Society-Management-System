@@ -148,7 +148,7 @@
     <string name="new_user_requests">New user registration requests</string>
     <string name="welcome_admin">Welcome, %1$s</string>
     <string name="society_administrator">Society Administrator</string>
-    <string name="switch_to_resident_view">Switch to Resident View (%1$s)</string>
+    <string name="switch_to_resident_view">Switch to Resident View</string>
 
     <string name="success">Success</string>
     <string name="ok">OK</string>

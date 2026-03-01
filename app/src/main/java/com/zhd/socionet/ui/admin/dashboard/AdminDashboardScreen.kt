@@ -71,7 +71,7 @@ fun AdminDashboardScreen(
     val profileState by profileViewModel.uiState.collectAsState()
     val user = profileState.userProfile
 
-    val societyId = user?.assignedFlatId?.substringBefore("_") ?: ""
+    val societyId = user?.societyId ?: ""
 
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
     LaunchedEffect(currentUserId) {
@@ -162,11 +162,11 @@ fun AdminDashboardScreen(
                     }
                 }
 
-                if (user != null && !user.assignedFlatId.isNullOrBlank()) {
+                if (user != null && !user.flatId.isNullOrBlank()) {
                     item(span = { GridItemSpan(2) }) {
                         SoftCard(
                             onClick = {
-                                navController.navigate("${Routes.RESIDENT_HOME}/${user.assignedFlatId}/${user.id}")
+                                navController.navigate("${Routes.RESIDENT_HOME}/${user.flatId}/${user.id}")
                             },
                             backgroundColor = SoftTheme.surface
                         ) {

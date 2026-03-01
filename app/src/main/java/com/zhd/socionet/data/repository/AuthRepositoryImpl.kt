@@ -102,7 +102,7 @@ class AuthRepositoryImpl @Inject constructor(
             snapshot.documents.map { it.id to (it.getString("name") ?: "Unknown") }
         } catch (e: Exception) {
             crashlytics.recordException(e)
-            emptyList()
+            throw e
         }
     }
 
@@ -115,7 +115,7 @@ class AuthRepositoryImpl @Inject constructor(
             wingsList?.filterIsInstance<String>() ?: emptyList()
         } catch (e: Exception) {
             crashlytics.recordException(e)
-            emptyList()
+            throw e
         }
     }
 
@@ -134,7 +134,7 @@ class AuthRepositoryImpl @Inject constructor(
                 })
         } catch (e: Exception) {
             crashlytics.recordException(e)
-            emptyList()
+            throw e
         }
     }
 
@@ -145,7 +145,7 @@ class AuthRepositoryImpl @Inject constructor(
             doc.getString("primaryOwnerId")
         } catch (e: Exception) {
             crashlytics.recordException(e)
-            null
+            throw e
         }
     }
 

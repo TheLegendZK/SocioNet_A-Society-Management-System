@@ -54,6 +54,7 @@ data class NoticeEntity(
     val priority: String,
     val targetAudience: String,
     val postedByAdminId: String,
+    val authorName: String?, // Denormalized
     val timestamp: Long // Stored as Long in Room
 )
 
@@ -64,7 +65,10 @@ data class ComplaintEntity(
     val description: String,
     val category: String,
     val status: String,
+    val raisedByUserId: String,
+    val raisedByUserName: String?, // Denormalized
     val flatId: String,
+    val flatNumber: String?, // Denormalized
     val createdAt: Long
 )
 
@@ -74,6 +78,7 @@ data class GateEntryEntity(
     val visitorName: String,
     val visitorType: String,
     val hostFlatId: String,
+    val hostFlatNumber: String?, // Denormalized
     val status: String,
     val entryCode: String,
     val entryTime: Long,
@@ -95,6 +100,7 @@ data class StaffEntity(
 data class BillEntity(
     @PrimaryKey val id: String,
     val flatId: String,
+    val flatNumber: String?, // Denormalized
     val month: String,
     val amountDue: Double,
     val isPaid: Boolean,
@@ -168,7 +174,7 @@ interface BillDao {
         StaffEntity::class,
         BillEntity::class
     ],
-    version = 1,
+    version = 2, // Upgraded version
     exportSchema = false
 )
 @TypeConverters(SocioNetTypeConverters::class)

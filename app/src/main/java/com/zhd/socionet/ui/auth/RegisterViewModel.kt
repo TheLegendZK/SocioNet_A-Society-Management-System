@@ -96,18 +96,20 @@ class RegisterViewModel @Inject constructor(
                 }
             }
 
-            val finalAssignedFlatId = when {
-                isGuard -> "${_uiState.value.selectedSocietyId}_GUARD"
-                isStaff -> "${_uiState.value.selectedSocietyId}_STAFF"
-                else -> _uiState.value.selectedFlatId
-            }
+            // Look up display names from the loaded lists
+            val selectedSocietyName = _uiState.value.societies.find { it.first == _uiState.value.selectedSocietyId }?.second
+            val selectedFlatName = _uiState.value.flats.find { it.first == _uiState.value.selectedFlatId }?.second
 
             val newProfile = UserProfile(
                 fullName = name,
                 email = email,
                 phoneNumber = phone,
                 roles = listOf(_uiState.value.selectedRole),
-                assignedFlatId = finalAssignedFlatId,
+                societyId = _uiState.value.selectedSocietyId,
+                societyName = selectedSocietyName,
+                wingId = if (isGuard || isStaff) null else _uiState.value.selectedWing,
+                flatId = if (isGuard || isStaff) null else _uiState.value.selectedFlatId,
+                flatNumber = if (isGuard || isStaff) null else selectedFlatName,
                 isVerified = false
             )
 

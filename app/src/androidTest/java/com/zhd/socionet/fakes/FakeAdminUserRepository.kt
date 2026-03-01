@@ -10,9 +10,12 @@ class FakeAdminUserRepository : AdminUserRepository {
             id = "pending_1",
             fullName = "John Doe",
             roles = listOf(UserRole.OWNER),
-            assignedFlatId = "SOC1_A_101"
+            societyId = societyId,
+            wingId = "A",
+            flatId = "SOC1_A_101",
+            flatNumber = "101"
         )
     )
-    override suspend fun approveUser(userId: String): Result<Unit> = Result.success(Unit)
+    override suspend fun approveUser(user: UserProfile): Result<Unit> = Result.success(Unit)
     override suspend fun rejectUser(userId: String): Result<Unit> = Result.success(Unit)
 }

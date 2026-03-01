@@ -27,7 +27,7 @@ class NoticeRepositoryImpl @Inject constructor(
     override suspend fun createNotice(notice: Notice): Result<Unit> {
         return try {
             val docRef = firestore.collection(AppConstants.COLL_NOTICES).document()
-            val finalNotice = notice.copy(id = docRef.id)
+            val finalNotice = notice.copy(id = docRef.id, timestamp = Timestamp.now())
             firestore.collection(AppConstants.COLL_NOTICES).document(docRef.id).set(finalNotice).await()
             dao.insertNotices(listOf(finalNotice.toEntity()))
             Result.success(Unit)
@@ -64,16 +64,24 @@ class NoticeRepositoryImpl @Inject constructor(
 }
 
 fun Notice.toEntity() = NoticeEntity(
-    id,
-    title,
-    content,
-    priority,
-    targetAudience,
-    postedByAdminId,
-    timestamp.toDate().time
+    id = id,
+    title = title,
+    content = content,
+    priority = priority,
+    targetAudience = targetAudience,
+    postedByAdminId = postedByAdminId,
+    authorName = authorName,
+    timestamp = timestamp.toDate().time
 )
 
 fun NoticeEntity.toDomain() = Notice(
-    id, title, content, null, priority, targetAudience, postedByAdminId,
-    Timestamp(Date(timestamp))
+    id = id,
+    title = title,
+    content = content,
+    attachmentUrl = null,
+    priority = priority,
+    targetAudience = targetAudience,
+    postedByAdminId = postedByAdminId,
+    authorName = authorName,
+    timestamp = Timestamp(Date(timestamp))
 )

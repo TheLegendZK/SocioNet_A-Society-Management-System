@@ -41,7 +41,7 @@ class SplashViewModel @Inject constructor(
         return when {
             profile.roles.contains(UserRole.SUPER_ADMIN) -> "admin_dashboard"
             profile.roles.contains(UserRole.SECURITY_GUARD) -> "security_dashboard"
-            else -> "resident_home/${profile.assignedFlatId ?: "0"}/${profile.id}"
+            else -> "resident_home/${profile.flatId ?: profile.societyId ?: "0"}/${profile.id}"
         }
     }
 }

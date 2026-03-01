@@ -1,0 +1,14 @@
+service cloud.firestore {
+    match /databases/{database}/documents {
+        match /societies/{societyId} {
+            allow read: if true;
+            // wings are inside society document, so this allows reading wings too
+        }
+        match /flats/{flatId} {
+            allow read: if true;
+        }
+        match /{document=**} {
+            allow read, write: if request.auth != null;
+        }
+    }
+}

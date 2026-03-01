@@ -26,9 +26,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationCity
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -313,21 +316,59 @@ fun ProfileScreen(
                                 )
                                 HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
 
-                                val flatNo =
-                                    user.assignedFlatId?.split("_")?.last() ?: "Not Assigned"
-                                val wing = user.assignedFlatId?.split("_")?.getOrNull(1) ?: "N/A"
+                                // Wing and Flat Info
+                                val isStaffOrGuard = user.roles.contains(UserRole.SECURITY_GUARD) || user.roles.contains(UserRole.SERVICE_STAFF)
+                                if (!isStaffOrGuard) {
+                                    val flatNo = user.flatNumber ?: "Not Assigned"
+                                    val wing = user.wingId ?: "N/A"
 
-                                ProfileInfoRow(
-                                    Icons.Default.LocationCity,
-                                    stringResource(R.string.wing_block),
-                                    stringResource(R.string.wing, wing)
-                                )
-                                HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
-                                ProfileInfoRow(
-                                    Icons.Default.MeetingRoom,
-                                    stringResource(R.string.flat_number),
-                                    stringResource(R.string.flat, flatNo)
-                                )
+                                    ProfileInfoRow(
+                                        Icons.Default.LocationCity,
+                                        stringResource(R.string.wing_block),
+                                        stringResource(R.string.wing, wing)
+                                    )
+                                    HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
+                                    ProfileInfoRow(
+                                        Icons.Default.MeetingRoom,
+                                        stringResource(R.string.flat_number),
+                                        stringResource(R.string.flat, flatNo)
+                                    )
+                                } else {
+                                    ProfileInfoRow(
+                                        Icons.Default.Badge,
+                                        "Role Status",
+                                        "Society Employee"
+                                    )
+                                }
+
+                                // Society Info
+                                (user.societyName ?: uiState.society?.name)?.let {
+                                    HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
+                                    ProfileInfoRow(
+                                        Icons.Default.Apartment,
+                                        "Society",
+                                        it
+                                    )
+                                }
+
+                                uiState.society?.let { society ->
+                                    if (society.address.isNotEmpty()) {
+                                        HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
+                                        ProfileInfoRow(
+                                            Icons.Default.LocationOn,
+                                            "Address",
+                                            society.address
+                                        )
+                                    }
+                                    if (society.registrationNumber.isNotEmpty()) {
+                                        HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
+                                        ProfileInfoRow(
+                                            Icons.Default.Badge,
+                                            "Registration No.",
+                                            society.registrationNumber
+                                        )
+                                    }
+                                }
                             }
                         }
 

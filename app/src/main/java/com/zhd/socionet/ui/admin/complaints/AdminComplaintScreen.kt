@@ -82,11 +82,6 @@ fun AdminComplaintScreen(viewModel: AdminComplaintViewModel = hiltViewModel(), o
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                         }
                     },
-                    actions = {
-                        IconButton(onClick = { viewModel.loadAllComplaints() }) {
-                            Icon(Icons.Default.Refresh, null, tint = Color.White)
-                        }
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.White,
@@ -108,12 +103,21 @@ fun AdminComplaintScreen(viewModel: AdminComplaintViewModel = hiltViewModel(), o
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
-                        Text(
-                            text = stringResource(R.string.manage_complaints),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.manage_complaints),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            IconButton(onClick = { viewModel.loadAllComplaints() }) {
+                                Icon(Icons.Default.Refresh, null, tint = Color.White)
+                            }
+                        }
                         Spacer(Modifier.height(8.dp))
                     }
 
@@ -157,25 +161,25 @@ fun ComplaintAdminItem(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = complaint.flatId?.split("_")?.last() ?: "C",
+                            text = complaint.flatNumber ?: complaint.flatId?.substringAfterLast("_") ?: "C",
                             fontWeight = FontWeight.Bold,
                             color = SoftTheme.primary,
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelSmall
                         )
                     }
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Flat ${complaint.flatId?.replace("_", " ") ?: "Community"}",
+                        text = "Flat ${complaint.flatNumber ?: complaint.flatId?.substringAfterLast("_") ?: "Community"}",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = SoftTheme.textPrimary
                     )
                     Text(
-                        text = complaint.category.name,
+                        text = "By ${complaint.raisedByUserName ?: "Resident"}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = SoftTheme.primary
+                        color = SoftTheme.textSecondary
                     )
                 }
                 Box {
@@ -228,6 +232,19 @@ fun ComplaintAdminItem(
                 style = MaterialTheme.typography.bodyMedium,
                 color = SoftTheme.textSecondary
             )
+            Spacer(Modifier.height(12.dp))
+            Surface(
+                color = SoftTheme.primary.copy(alpha = 0.05f),
+                shape = CircleShape
+            ) {
+                Text(
+                    text = complaint.category.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SoftTheme.primary,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

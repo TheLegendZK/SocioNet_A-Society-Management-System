@@ -43,7 +43,11 @@ class ManualEntryViewModel @Inject constructor(
     }
 
     fun onWingSelected(wing: String) {
-        val flatsInWing = allFlats.filter { it.wing == wing }.map { it.flatNumber }.sorted()
+        val flatsInWing = allFlats
+            .filter { it.wing == wing }
+            .map { it.flatNumber }
+            .sortedBy { it.toIntOrNull() ?: 0 }
+
         _uiState.update { 
             it.copy(
                 selectedWing = wing, 
@@ -60,15 +64,12 @@ class ManualEntryViewModel @Inject constructor(
     fun logEntry(name: String, vehicle: String) {
         val wing = _uiState.value.selectedWing
         val flatNumber = _uiState.value.selectedFlat
-        val flatId = "${wing}-${flatNumber}" // Assuming this format matches what's expected
-
+        
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            // Find the user associated with the flat
-            // Note: assignedFlatId in UserProfile might need to match this format or use the full flat ID from Flat model
             val targetFlat = allFlats.find { it.wing == wing && it.flatNumber == flatNumber }
-            val hostFlatId = targetFlat?.id ?: flatId
+            val hostFlatId = targetFlat?.id ?: "${wing}_${flatNumber}"
             
             val user = gateRepository.getUserByFlat(hostFlatId)
             val hostUserId = user?.id ?: ""
@@ -78,6 +79,7 @@ class ManualEntryViewModel @Inject constructor(
                 visitorType = VisitorType.DELIVERY,
                 vehicleNumber = vehicle,
                 hostFlatId = hostFlatId,
+                hostFlatNumber = targetFlat?.flatNumber ?: flatNumber,
                 hostUserId = hostUserId,
                 entryTime = Timestamp(Date()),
                 status = EntryStatus.PENDING_APPROVAL

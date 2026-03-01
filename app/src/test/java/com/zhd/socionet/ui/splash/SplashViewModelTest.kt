@@ -69,7 +69,7 @@ class SplashViewModelTest {
         // Given
         val userId = "user_1"
         val flatId = "A_101"
-        val profile = UserProfile(id = userId, roles = listOf(UserRole.OWNER), assignedFlatId = flatId)
+        val profile = UserProfile(id = userId, roles = listOf(UserRole.OWNER), flatId = flatId)
 
         every { authRepository.getCurrentUserId() } returns userId
         coEvery { profileRepository.getUserProfile(userId) } returns Result.success(profile)

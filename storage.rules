@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+    match /b/{bucket}/o {
+
+        function isAuthenticated() {
+            return request.auth != null;
+        }
+
+        // 1. Profile Pictures
+        match /profile_photos/{userId}/{fileName} {
+            allow read: if isAuthenticated();
+            allow write: if isAuthenticated()
+                && request.auth.uid == userId
+                && request.resource.size < 5 * 1024 * 1024
+                && request.resource.contentType.matches('image/.*');
+        }
+
+        // 2. Notice Attachments
+        match /notice_attachments/{fileName} {
+            allow read: if isAuthenticated();
+            // In production, you'd check custom claims for ADMIN role here
+            allow write: if isAuthenticated();
+        }
+
+        // 3. Complaint Photos
+        match /complaint_photos/{userId}/{fileName} {
+            allow read: if isAuthenticated();
+            allow write: if isAuthenticated() && request.auth.uid == userId;
+        }
+
+        // Default rule: Deny all other access
+        match /{allPaths=**} {
+            allow read, write: if false;
+        }
+    }
+}

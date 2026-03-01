@@ -10,7 +10,13 @@ data class UserProfile(
     val profilePhotoUrl: String = "",
     val fcmToken: String = "",
     val roles: List<UserRole> = emptyList(),
-    val assignedFlatId: String? = null,
+
+    // Residency Details (Denormalized for efficient queries)
+    val societyId: String? = null,
+    val societyName: String? = null,
+    val wingId: String? = null,
+    val flatId: String? = null,
+    val flatNumber: String? = null,
 
     // FIX: Ensure boolean is mapped correctly
     @get:PropertyName("verified") @set:PropertyName("verified")

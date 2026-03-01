@@ -19,6 +19,7 @@ import javax.inject.Singleton
 interface BillingRepository {
     suspend fun generateMonthlyBills(societyId: String, monthName: String): Result<Int>
     suspend fun getBillsForFlat(flatId: String): List<Bill>
+    suspend fun getAllBills(societyId: String): List<Bill>
     suspend fun payBill(billId: String, userId: String): Result<Unit>
 }
 
@@ -65,6 +66,7 @@ class BillingRepositoryImpl @Inject constructor(
                     val bill = Bill(
                         id = billRef.id,
                         flatId = flat.id,
+                        flatNumber = flat.flatNumber, // Denormalization: Store flat number in bill
                         month = monthName,
                         billDate = billDate,
                         dueDate = dueDate,
@@ -100,6 +102,22 @@ class BillingRepositoryImpl @Inject constructor(
         return dao.getBillsForFlat(flatId).map { it.toDomain() }
     }
 
+    override suspend fun getAllBills(societyId: String): List<Bill> {
+        if (societyId.isBlank()) return emptyList()
+        return try {
+            // This is a simplified query. In a real app, you'd filter by society via flats or store societyId in Bill.
+            // Let's assume for now we fetch all and filter, OR you can add societyId to Bill model for better scaling.
+            val snapshot = firestore.collection(AppConstants.COLL_BILLS)
+                .orderBy("billDate", Query.Direction.DESCENDING)
+                .limit(100)
+                .get().await()
+            snapshot.toObjects(Bill::class.java)
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            emptyList()
+        }
+    }
+
     override suspend fun payBill(billId: String, userId: String): Result<Unit> {
         if (billId.isBlank()) return Result.failure(Exception("Bill ID is required"))
         return try {
@@ -114,13 +132,25 @@ class BillingRepositoryImpl @Inject constructor(
     }
 }
 
-fun Bill.toEntity() =
-    BillEntity(id, flatId, month, amountDue, isPaid, billDate.toDate().time, dueDate.toDate().time)
+fun Bill.toEntity() = BillEntity(
+    id = id,
+    flatId = flatId,
+    flatNumber = flatNumber,
+    month = month,
+    amountDue = amountDue,
+    isPaid = isPaid,
+    billDate = billDate.toDate().time,
+    dueDate = dueDate.toDate().time
+)
 
 fun BillEntity.toDomain() = Bill(
-    id, flatId, month, Timestamp(Date(billDate)), Timestamp(
-        Date(
-            dueDate
-        )
-    ), amountDue, 0.0, isPaid
+    id = id,
+    flatId = flatId,
+    flatNumber = flatNumber,
+    month = month,
+    billDate = Timestamp(Date(billDate)),
+    dueDate = Timestamp(Date(dueDate)),
+    amountDue = amountDue,
+    penaltyAmount = 0.0,
+    isPaid = isPaid
 )

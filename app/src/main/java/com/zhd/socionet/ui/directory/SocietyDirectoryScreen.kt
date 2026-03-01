@@ -302,7 +302,7 @@ fun SocietyDirectoryScreen(
                                 if (uiState.searchQuery.isBlank()) roleFiltered
                                 else roleFiltered.filter {
                                     it.fullName.contains(uiState.searchQuery, ignoreCase = true) ||
-                                            (it.assignedFlatId ?: "").contains(uiState.searchQuery, ignoreCase = true)
+                                            (it.flatId ?: "").contains(uiState.searchQuery, ignoreCase = true)
                                 }
                             }
                         }
@@ -527,7 +527,7 @@ fun DirectoryUserItem(
                 }
 
                 Text(
-                    text = if (user.assignedFlatId?.endsWith("_GUARD") == true || user.assignedFlatId?.endsWith("_STAFF") == true) "Society Employee" else "Flat ${user.assignedFlatId?.replace("_", " ")?.split(" ")?.last() ?: "N/A"}",
+                    text = if (user.roles.contains(UserRole.SECURITY_GUARD) || user.roles.contains(UserRole.SERVICE_STAFF)) "Society Employee" else "Flat ${user.flatNumber ?: user.flatId?.substringAfterLast("_") ?: "N/A"}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = SoftTheme.primary,
                     fontWeight = FontWeight.Medium

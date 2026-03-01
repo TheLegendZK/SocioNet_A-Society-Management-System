@@ -152,7 +152,7 @@ fun ManualEntryScreen(
                                 SocioTextField(
                                     value = uiState.selectedWing,
                                     onValueChange = {},
-                                    label = "Wing",
+                                    label = stringResource(R.string.wing),
                                     readOnly = true,
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = wingExpanded) },
                                     modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
@@ -182,7 +182,7 @@ fun ManualEntryScreen(
                                 SocioTextField(
                                     value = uiState.selectedFlat,
                                     onValueChange = {},
-                                    label = "Flat",
+                                    label = stringResource(R.string.flat),
                                     readOnly = true,
                                     enabled = uiState.selectedWing.isNotBlank(),
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = flatExpanded) },

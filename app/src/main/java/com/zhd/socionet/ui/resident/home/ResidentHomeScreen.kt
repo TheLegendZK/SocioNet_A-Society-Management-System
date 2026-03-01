@@ -95,7 +95,7 @@ fun ResidentHomeScreen(
     LaunchedEffect(profileState.userProfile) {
         val user = profileState.userProfile
         if (user != null) {
-            val wing = user.assignedFlatId?.split("_")?.getOrNull(1) ?: "A"
+            val wing = user.wingId ?: "A"
             noticeViewModel.loadNotices(wing, user.roles)
         }
     }
@@ -112,7 +112,7 @@ fun ResidentHomeScreen(
     fun launchSms() {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = "sms:".toUri()
-            putExtra("sms_body", "HELP! Emergency at ${user?.assignedFlatId ?: flatId}. Please help!")
+            putExtra("sms_body", "HELP! Emergency at ${user?.flatId ?: flatId}. Please help!")
         }
         context.startActivity(intent)
     }
@@ -214,7 +214,7 @@ fun ResidentHomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = user?.assignedFlatId?.replace("_", " ") ?: flatId.replace("_", " "),
+                            text = user?.flatNumber ?: user?.flatId?.substringAfterLast("_") ?: flatId.substringAfterLast("_"),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f)
                         )

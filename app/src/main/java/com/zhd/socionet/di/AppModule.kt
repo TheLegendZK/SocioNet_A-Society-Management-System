@@ -9,6 +9,7 @@ import com.zhd.socionet.core.utils.OtpGenerator
 import com.zhd.socionet.core.utils.OtpGeneratorImpl
 import com.zhd.socionet.data.local.BillDao
 import com.zhd.socionet.data.local.ComplaintDao
+import com.zhd.socionet.data.local.GateEntryDao
 import com.zhd.socionet.data.local.NoticeDao
 import com.zhd.socionet.data.repository.AdminRepository
 import com.zhd.socionet.data.repository.AdminRepositoryImpl
@@ -95,9 +96,10 @@ object AppModule {
     @Singleton
     fun provideGatePassRepository(
         db: FirebaseFirestore,
+        dao: GateEntryDao,
         crashlytics: FirebaseCrashlytics
     ): GatePassRepository {
-        return GatePassRepositoryImpl(db, crashlytics)
+        return GatePassRepositoryImpl(db, dao, crashlytics)
     }
 
     @Provides
@@ -156,7 +158,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSosRepository(db: FirebaseFirestore): SosRepository {
+    fun provideSosRepository(db: FirebaseFirestore, authRepository: AuthRepository): SosRepository {
         return SosRepositoryImpl(db)
     }
 

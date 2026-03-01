@@ -23,8 +23,7 @@ class SocietyRepositoryImpl @Inject constructor(
     override suspend fun getSocietyResidents(societyId: String): Result<List<UserProfile>> {
         return try {
             val snapshot = firestore.collection(AppConstants.COLL_USERS)
-                .whereGreaterThanOrEqualTo("assignedFlatId", societyId)
-                .whereLessThanOrEqualTo("assignedFlatId", societyId + "\uf8ff")
+                .whereEqualTo("societyId", societyId)
                 .get()
                 .await()
 
@@ -40,7 +39,11 @@ class SocietyRepositoryImpl @Inject constructor(
             firestore.collection(AppConstants.COLL_USERS).document(userId)
                 .update(
                     mapOf(
-                        "assignedFlatId" to null,
+                        "societyId" to null,
+                        "wingId" to null,
+                        "flatId" to null,
+                        "societyName" to null,
+                        "flatNumber" to null,
                         "isVerified" to false
                     )
                 ).await()
@@ -53,13 +56,12 @@ class SocietyRepositoryImpl @Inject constructor(
     override suspend fun addStaffMember(societyId: String, name: String, phone: String, role: UserRole): Result<Unit> {
         return try {
             val staffId = UUID.randomUUID().toString()
-            val flatIdSuffix = if (role == UserRole.SECURITY_GUARD) "_GUARD" else "_STAFF"
             val newProfile = UserProfile(
                 id = staffId,
                 fullName = name,
                 phoneNumber = phone,
                 roles = listOf(role),
-                assignedFlatId = societyId + flatIdSuffix,
+                societyId = societyId,
                 isVerified = true
             )
 
