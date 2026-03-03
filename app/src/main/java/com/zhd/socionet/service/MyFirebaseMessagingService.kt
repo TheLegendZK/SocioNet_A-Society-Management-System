@@ -10,7 +10,6 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.zhd.socionet.MainActivity
 import com.zhd.socionet.data.repository.AuthRepository
-import com.zhd.socionet.ui.navigation.Routes
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +34,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         serviceScope.launch {
             val currentUserId = authRepository.getCurrentUserId() ?: return@launch
-
             val profile = authRepository.getUserProfile(currentUserId)
             
             // SECURITY CHECK: Only show notification if it's targeted to this user or their flat
@@ -44,52 +42,35 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val isForThisFlat = hostFlatId != null && profile?.flatId == hostFlatId
                 
                 if (!isForThisUser && !isForThisFlat) {
-                    // Ignore notification meant for a different user/device
                     return@launch
                 }
             }
 
-            // Check if message contains a notification payload.
-            remoteMessage.notification?.let {
-                showNotification(it.title ?: "SocioNet", it.body ?: "New Alert")
-            } ?: run {
-                // Also handle data-only payload
-                val title = remoteMessage.data["title"] ?: "SocioNet"
-                val body = remoteMessage.data["body"] ?: "New Alert"
-                if (remoteMessage.data.containsKey("entryId")) {
-                    showNotification(title, body)
-                }
-            }
+            // Extract display info
+            val title = remoteMessage.notification?.title ?: remoteMessage.data["title"] ?: "SocioNet"
+            val body = remoteMessage.notification?.body ?: remoteMessage.data["body"] ?: "New Alert"
+            
+            showNotification(title, body, remoteMessage.data)
         }
     }
 
-    private suspend fun showNotification(title: String, message: String) {
+    private suspend fun showNotification(title: String, message: String, data: Map<String, String>) {
         val channelId = "socionet_alerts"
         val notificationId = System.currentTimeMillis().toInt()
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            // Add all data to intent extras so MainActivity can handle it
+            data.forEach { (key, value) -> putExtra(key, value) }
         }
 
-        // Determine target route if user is logged in
-        val userId = authRepository.getCurrentUserId()
-        if (userId != null) {
-            val profile = authRepository.getUserProfile(userId)
-            if (profile != null && !profile.flatId.isNullOrBlank()) {
-                // Navigate to Approvals tab (index 1)
-                val route = Routes.buildResidentCreatePass(profile.flatId, userId, tab = 1)
-                intent.putExtra("navigation_route", route)
-            }
-        }
-
-        // Open the app when clicked
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this, notificationId, intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert) // Replace with your app icon
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
@@ -98,7 +79,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create Channel for Android O+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,

@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -228,8 +230,8 @@ fun AdminDashboardScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
-                                            Icons.Default.VerifiedUser, 
-                                            null, 
+                                            Icons.Default.VerifiedUser,
+                                            null,
                                             tint = if(approvalState.pendingUsers.isNotEmpty()) SoftAccent else SoftTheme.primary
                                         )
                                     }
@@ -250,16 +252,23 @@ fun AdminDashboardScreen(
                                 }
                             }
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = CircleShape,
                                 color = if(approvalState.pendingUsers.isNotEmpty()) SoftAccent else SoftTheme.bg,
-                                modifier = Modifier.padding(start = 8.dp)
+                                modifier = Modifier.padding(start = 8.dp).wrapContentSize(Alignment.Center)
                             ) {
-                                Text(
-                                    text = "${approvalState.pendingUsers.size}",
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    color = if(approvalState.pendingUsers.isNotEmpty()) Color.White else SoftTheme.textPrimary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.defaultMinSize(minWidth = 32.dp, minHeight = 32.dp)
+                                ) {
+                                    Text(
+                                        text = "${approvalState.pendingUsers.size}",
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                        color = if (approvalState.pendingUsers.isNotEmpty()) Color.White else SoftTheme.textPrimary,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
@@ -320,12 +329,13 @@ fun AdminDashboardScreen(
 
 @Composable
 fun AdminActionCard(title: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
-    SoftCard(onClick = onClick) {
+    SoftCard(
+        onClick = onClick,
+        padding = 16.dp
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
             Surface(

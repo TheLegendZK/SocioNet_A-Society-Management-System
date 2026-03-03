@@ -30,11 +30,15 @@ import com.zhd.socionet.ui.common.SoftTheme
 @Composable
 fun SplashScreen(
     viewModel: SplashViewModel = hiltViewModel(),
+    isDeepLinkPending: Boolean = false, // Add this
     onNavigate: (String) -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.checkAuthStatus { destination ->
-            onNavigate(destination ?: "login_screen")
+    LaunchedEffect(isDeepLinkPending) {
+        // Only run normal auth check if there's no pending deep link navigation
+        if (!isDeepLinkPending) {
+            viewModel.checkAuthStatus { destination ->
+                onNavigate(destination ?: "login_screen")
+            }
         }
     }
 

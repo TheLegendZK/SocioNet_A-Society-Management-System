@@ -28,8 +28,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -359,12 +357,11 @@ fun QuickActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    SoftCard(
         onClick = onClick,
         modifier = modifier.height(100.dp),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = SoftTheme.surface),
-        elevation = CardDefaults.cardElevation(4.dp)
+        backgroundColor = SoftTheme.surface,
+        padding = 12.dp
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

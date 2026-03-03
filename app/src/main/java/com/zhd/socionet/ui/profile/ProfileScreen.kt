@@ -293,7 +293,7 @@ fun ProfileScreen(
                                     )
                                     Spacer(Modifier.width(12.dp))
                                     Text(
-                                        text = if (currentViewType == "admin") stringResource(R.string.switch_to_resident_view) else stringResource(R.string.switch_to_admin_console),
+                                        text = if (currentViewType == "admin") stringResource(R.string.switch_to_resident_view, uiState.displayFlatId ?: "") else stringResource(R.string.switch_to_admin_console),
                                         fontWeight = FontWeight.Bold,
                                         color = SoftTheme.primary
                                     )

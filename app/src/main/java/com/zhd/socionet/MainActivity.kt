@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
         mainViewModel.handleDeepLink(intent)
 
         setContent {
-
             val currentTheme by mainViewModel.currentTheme.collectAsState()
             val deepLinkRoute by mainViewModel.deepLinkRoute.collectAsState()
             
@@ -54,13 +53,10 @@ class MainActivity : ComponentActivity() {
                     if (!view.isInEditMode) {
                         SideEffect {
                             val window = (view.context as Activity).window
-                            // Set backgrounds too transparent to let our SoftUI background show through
                             @Suppress("DEPRECATION")
                             window.statusBarColor = Color.Transparent.toArgb()
                             @Suppress("DEPRECATION")
                             window.navigationBarColor = Color.Transparent.toArgb()
-
-                            // Adjust Icon Colors (Dark icons for Light mode, Light icons for Dark mode)
                             val wic = WindowCompat.getInsetsController(window, view)
                             wic.isAppearanceLightStatusBars = !isDarkTheme
                             wic.isAppearanceLightNavigationBars = !isDarkTheme
@@ -72,16 +68,19 @@ class MainActivity : ComponentActivity() {
                     // Handle deep link navigation
                     LaunchedEffect(deepLinkRoute) {
                         deepLinkRoute?.let { route ->
-                            // When navigating from a notification, we want to clear the Splash Screen
-                            // from the back stack to avoid it overriding our navigation later.
                             navController.navigate(route) {
+                                // If we are at Splash, clear it
                                 popUpTo(Routes.SPLASH) { inclusive = true }
+                                // If we are already elsewhere (background click), don't clear everything, just navigate
                             }
                             mainViewModel.onDeepLinkHandled()
                         }
                     }
 
-                    SocioNetNavGraph(navController = navController)
+                    SocioNetNavGraph(
+                        navController = navController,
+                        isDeepLinkPending = deepLinkRoute != null // Pass the state
+                    )
                 }
             }
         }

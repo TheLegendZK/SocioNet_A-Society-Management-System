@@ -49,18 +49,12 @@ class MainViewModel @Inject constructor(
         if (!route.isNullOrBlank()) {
             _deepLinkRoute.value = route
         } else {
-            // FALLBACK: When app is in background, Android OS handles the notification 
-            // and puts FCM data directly into the intent extras.
+            // Check raw FCM data if route is not present (background notification click)
             val hostFlatId = intent?.getStringExtra("hostFlatId")
             val targetUserId = intent?.getStringExtra("targetUserId")
-            val entryId = intent?.getStringExtra("entryId")
 
-            // If we have flat and user info, navigate to the Approvals tab (tab=1)
             if (!hostFlatId.isNullOrBlank() && !targetUserId.isNullOrBlank()) {
                 _deepLinkRoute.value = Routes.buildResidentCreatePass(hostFlatId, targetUserId, tab = 1)
-            } else if (!entryId.isNullOrBlank()) {
-                // We might only have entryId in some payloads, try to find user info or navigate to a general list
-                // For now, focusing on the Visitor Approval case which has both IDs.
             }
         }
     }
@@ -68,4 +62,7 @@ class MainViewModel @Inject constructor(
     fun onDeepLinkHandled() {
         _deepLinkRoute.value = null
     }
+
+    // Helper to check if a deep link is currently being processed to prevent navigation override
+    fun hasPendingDeepLink(): Boolean = _deepLinkRoute.value != null
 }
