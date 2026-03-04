@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +61,7 @@ fun AdaptiveAppShell(
             NavigationRail(
                 containerColor = SoftTheme.surface,
                 contentColor = SoftTheme.textPrimary,
-                header = { Box(modifier = Modifier.size(48.dp).background(SoftTheme.primary, CircleShape)) }
+//                header = { Box(modifier = Modifier.size(48.dp).background(SoftTheme.primary, CircleShape)) }
             ) {
                 Spacer(Modifier.weight(1f))
                 navItems.forEach { item ->
