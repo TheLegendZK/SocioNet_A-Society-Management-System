@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.AttachMoney
@@ -54,8 +53,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.zhd.socionet.R
+import com.zhd.socionet.core.theme.SoftAccent
 import com.zhd.socionet.ui.admin.approval.AdminApprovalViewModel
-import com.zhd.socionet.ui.common.SoftAccent
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.navigation.NavArgs

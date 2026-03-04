@@ -58,10 +58,10 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.zhd.socionet.R
+import com.zhd.socionet.core.theme.SoftAccent
 import com.zhd.socionet.core.utils.DateUtils
 import com.zhd.socionet.data.model.Notice
 import com.zhd.socionet.ui.billing.BillingViewModel
-import com.zhd.socionet.ui.common.SoftAccent
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.navigation.Routes

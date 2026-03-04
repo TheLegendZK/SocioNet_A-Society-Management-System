@@ -41,8 +41,6 @@ object SoftTheme {
     val purple: Color = SoftPurple
 }
 
-val SoftAccent = Color(0xFFFF6B6B)
-
 val GradientPrimary
     @Composable get() = Brush.linearGradient(
         colors = listOf(

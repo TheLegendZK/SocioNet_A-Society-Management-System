@@ -48,7 +48,6 @@ import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -69,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
 import com.zhd.socionet.R
+import com.zhd.socionet.core.theme.SoftAccent
 import com.zhd.socionet.core.utils.ShareUtils
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
@@ -76,7 +76,6 @@ import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.VisitorType
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioTextField
-import com.zhd.socionet.ui.common.SoftAccent
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import kotlinx.coroutines.launch
