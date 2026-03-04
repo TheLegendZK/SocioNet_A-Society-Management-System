@@ -1,14 +1,17 @@
 package com.zhd.socionet.ui.common
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +26,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,53 +62,75 @@ fun AdaptiveAppShell(
     Row(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         // 1. RAIL (Tablet)
         if (navType == NavType.RAIL) {
-            NavigationRail(
-                containerColor = SoftTheme.surface,
-                contentColor = SoftTheme.textPrimary,
-//                header = { Box(modifier = Modifier.size(48.dp).background(SoftTheme.primary, CircleShape)) }
-            ) {
-                Spacer(Modifier.weight(1f))
-                navItems.forEach { item ->
-                    val selected = isRouteSelected(currentDestination, item)
-                    NavigationRailItem(
-                        selected = selected,
-                        onClick = { onNavClick(navController, item, currentDestination) },
-                        icon = { Icon(item.icon, contentDescription = item.title) },
-                        label = { Text(item.title) },
-                        colors = NavigationRailItemDefaults.colors(
-                            selectedIconColor = SoftTheme.primary,
-                            indicatorColor = SoftTheme.primary.copy(alpha = 0.1f),
-                            unselectedIconColor = SoftTheme.textSecondary,
-                            unselectedTextColor = SoftTheme.textSecondary
-                        )
-                    )
+            Box(modifier = Modifier.padding(24.dp).fillMaxHeight()) {
+                SoftCard(
+                    padding = 0.dp,
+                    backgroundColor = SoftTheme.surface,
+                    modifier = Modifier.width(80.dp).fillMaxHeight()
+                ) {
+                    NavigationRail(
+                        containerColor = Color.Transparent,
+                        contentColor = SoftTheme.textPrimary,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Spacer(Modifier.weight(1f))
+                        navItems.forEach { item ->
+                            val selected = isRouteSelected(currentDestination, item)
+                            NavigationRailItem(
+                                selected = selected,
+                                onClick = { onNavClick(navController, item, currentDestination) },
+                                icon = { Icon(item.icon, contentDescription = item.title) },
+                                label = { Text(item.title) },
+                                colors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor = SoftTheme.primary,
+                                    indicatorColor = SoftTheme.primary.copy(alpha = 0.1f),
+                                    unselectedIconColor = SoftTheme.textSecondary,
+                                    unselectedTextColor = SoftTheme.textSecondary
+                                )
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
-                Spacer(Modifier.weight(1f))
             }
         }
 
         // 2. DRAWER (Desktop)
         if (navType == NavType.DRAWER) {
-            Column(
-                modifier = Modifier.width(250.dp).fillMaxHeight().background(SoftTheme.surface).padding(16.dp)
-            ) {
-                Text("SocioNet", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = SoftTheme.primary, modifier = Modifier.padding(vertical = 24.dp))
-                navItems.forEach { item ->
-                    val selected = isRouteSelected(currentDestination, item)
-                    NavigationDrawerItem(
-                        label = { Text(item.title) },
-                        selected = selected,
-                        onClick = { onNavClick(navController, item, currentDestination) },
-                        icon = { Icon(item.icon, null) },
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = SoftTheme.primary.copy(alpha = 0.1f),
-                            selectedTextColor = SoftTheme.primary,
-                            selectedIconColor = SoftTheme.primary,
-                            unselectedTextColor = SoftTheme.textSecondary,
-                            unselectedIconColor = SoftTheme.textSecondary
+            Box(modifier = Modifier.padding(24.dp).fillMaxHeight()) {
+                SoftCard(
+                    padding = 16.dp,
+                    backgroundColor = SoftTheme.surface,
+                    modifier = Modifier.width(280.dp).fillMaxHeight()
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = "SocioNet",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = SoftTheme.primary,
+                            modifier = Modifier.padding(vertical = 24.dp)
                         )
-                    )
+                        navItems.forEach { item ->
+                            val selected = isRouteSelected(currentDestination, item)
+                            NavigationDrawerItem(
+                                label = { Text(item.title) },
+                                selected = selected,
+                                onClick = { onNavClick(navController, item, currentDestination) },
+                                icon = { Icon(item.icon, null) },
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    selectedContainerColor = SoftTheme.primary.copy(alpha = 0.1f),
+                                    selectedTextColor = SoftTheme.primary,
+                                    selectedIconColor = SoftTheme.primary,
+                                    unselectedTextColor = SoftTheme.textSecondary,
+                                    unselectedIconColor = SoftTheme.textSecondary
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -114,31 +140,54 @@ fun AdaptiveAppShell(
             containerColor = Color.Transparent,
             bottomBar = {
                 if (navType == NavType.BOTTOM_BAR) {
-                    NavigationBar(
-                        containerColor = SoftTheme.surface,
-                        tonalElevation = 8.dp
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 8.dp)
                     ) {
-                        navItems.forEach { item ->
-                            val selected = isRouteSelected(currentDestination, item)
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = { onNavClick(navController, item, currentDestination) },
-                                icon = { Icon(item.icon, contentDescription = item.title) },
-                                label = { Text(item.title) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = SoftTheme.primary,
-                                    selectedTextColor = SoftTheme.primary,
-                                    indicatorColor = SoftTheme.primary.copy(alpha = 0.1f),
-                                    unselectedIconColor = SoftTheme.textSecondary,
-                                    unselectedTextColor = SoftTheme.textSecondary
-                                )
-                            )
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.extraLarge,
+                            color = SoftTheme.surface,
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = SoftTheme.textSecondary.copy(alpha = 0.12f)
+                            ),
+                            shadowElevation = 24.dp
+                        ) {
+                            NavigationBar(
+                                containerColor = Color.Transparent,
+                                tonalElevation = 0.dp,
+                                windowInsets = WindowInsets(0.dp),
+                                modifier = Modifier.fillMaxWidth().padding(4.dp)
+                            ) {
+                                navItems.forEach { item ->
+                                    val selected = isRouteSelected(currentDestination, item)
+                                    NavigationBarItem(
+                                        selected = selected,
+                                        onClick = { onNavClick(navController, item, currentDestination) },
+                                        icon = { Icon(item.icon, contentDescription = item.title) },
+                                        label = { Text(item.title) },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = SoftTheme.primary,
+                                            selectedTextColor = SoftTheme.primary,
+                                            indicatorColor = SoftTheme.primary.copy(alpha = 0.1f),
+                                            unselectedIconColor = SoftTheme.textSecondary,
+                                            unselectedTextColor = SoftTheme.textSecondary
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(padding).consumeWindowInsets(padding)) { content(padding) }
+            Box(
+                modifier = Modifier.fillMaxSize().consumeWindowInsets(padding)
+            ) {
+                content(padding)
+            }
         }
     }
 }

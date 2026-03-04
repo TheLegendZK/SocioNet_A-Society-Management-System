@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
@@ -328,16 +329,21 @@ fun ResidentHomeScreen(
                 } else {
                     item {
                         PaddingWrapper {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No notices yet.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = SoftTheme.textSecondary,
-                                    modifier = Modifier.padding(vertical = 16.dp)
-                                )
+                            SoftCard(backgroundColor = SoftTheme.surface.copy(alpha = 0.5f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Info,
+                                        null,
+                                        tint = SoftTheme.textSecondary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(Modifier.width(16.dp))
+                                    Text(
+                                        text = "No notices yet.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = SoftTheme.textSecondary
+                                    )
+                                }
                             }
                         }
                     }

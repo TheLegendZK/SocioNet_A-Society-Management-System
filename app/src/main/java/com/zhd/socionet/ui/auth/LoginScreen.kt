@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -195,21 +196,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            /*SocialAuthButtons()
-
-            Spacer(modifier = Modifier.height(32.dp))*/
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+            SoftCard(
+                onClick = onNavigateToRegister,
+                padding = 12.dp
             ) {
-                Text(
-                    text = stringResource(R.string.dont_have_account),
-                    color = SoftTheme.textSecondary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                TextButton(onClick = onNavigateToRegister) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.dont_have_account),
+                        color = SoftTheme.textSecondary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.register_now),
                         color = SoftTheme.primary,
