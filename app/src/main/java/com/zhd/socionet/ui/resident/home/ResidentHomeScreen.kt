@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,10 +54,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -63,6 +69,7 @@ import com.zhd.socionet.core.theme.SoftAccent
 import com.zhd.socionet.core.utils.DateUtils
 import com.zhd.socionet.data.model.Notice
 import com.zhd.socionet.ui.billing.BillingViewModel
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.navigation.Routes
@@ -85,6 +92,8 @@ fun ResidentHomeScreen(
     val profileState by profileViewModel.uiState.collectAsState()
     val billingState by billingViewModel.uiState.collectAsState()
     val noticeState by noticeViewModel.uiState.collectAsState()
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     val societyId = remember(flatId) {
         flatId.substringBefore("_")
@@ -179,9 +188,13 @@ fun ResidentHomeScreen(
         ) { padding ->
             LazyColumn(
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp),
+                contentPadding = PaddingValues(
+                    start = padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                    top = padding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                    end = padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                    bottom = 32.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
@@ -224,8 +237,8 @@ fun ResidentHomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         QuickActionCard(
                             icon = Icons.Default.Build,
@@ -348,8 +361,6 @@ fun ResidentHomeScreen(
                         }
                     }
                 }
-
-                item { Spacer(Modifier.height(64.dp)) }
             }
         }
     }
@@ -365,9 +376,9 @@ fun QuickActionCard(
 ) {
     SoftCard(
         onClick = onClick,
-        modifier = modifier.height(100.dp),
+        modifier = modifier.aspectRatio(1f),
         backgroundColor = SoftTheme.surface,
-        padding = 12.dp
+        padding = 8.dp
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -377,14 +388,23 @@ fun QuickActionCard(
             Surface(
                 shape = CircleShape,
                 color = color.copy(alpha = 0.1f),
-                modifier = Modifier.size(44.dp)
+                modifier = Modifier.size(38.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(24.dp))
+                    Icon(icon, null, tint = color, modifier = Modifier.size(20.dp))
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = label, 
+                style = MaterialTheme.typography.labelSmall, 
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp,
+                maxLines = 2,
+                color = SoftTheme.textPrimary,
+                fontSize = 10.sp
+            )
         }
     }
 }

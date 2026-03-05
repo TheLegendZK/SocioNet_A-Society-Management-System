@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +32,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,6 +45,8 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+val LocalNavPadding = compositionLocalOf { PaddingValues(0.dp) }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdaptiveAppShell(
@@ -50,7 +56,12 @@ fun AdaptiveAppShell(
 ) {
     // If no nav items, just render content directly to avoid redundant Scaffold/Layout
     if (navItems.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(SoftTheme.bg)
+                .statusBarsPadding()
+        ) {
             content(PaddingValues(0.dp))
         }
         return
@@ -60,7 +71,13 @@ fun AdaptiveAppShell(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    Row(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SoftTheme.bg)
+            .statusBarsPadding()
+            .consumeWindowInsets(WindowInsets.statusBars)
+    ) {
         // 1. RAIL (Tablet)
         if (navType == NavType.RAIL) {
             Box(modifier = Modifier.padding(24.dp).fillMaxHeight()) {
@@ -139,6 +156,7 @@ fun AdaptiveAppShell(
         // MAIN CONTENT
         Scaffold(
             containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (navType == NavType.BOTTOM_BAR) {
                     Box(
@@ -160,7 +178,7 @@ fun AdaptiveAppShell(
                                 containerColor = Color.Transparent,
                                 tonalElevation = 0.dp,
                                 windowInsets = WindowInsets(0.dp),
-                                modifier = Modifier.fillMaxWidth().padding(4.dp)
+                                modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp)
                             ) {
                                 navItems.forEach { item ->
                                     val selected = isRouteSelected(currentDestination, item)
@@ -184,10 +202,12 @@ fun AdaptiveAppShell(
                 }
             }
         ) { padding ->
-            Box(
-                modifier = Modifier.fillMaxSize().consumeWindowInsets(padding)
-            ) {
-                content(padding)
+            CompositionLocalProvider(LocalNavPadding provides padding) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    content(padding)
+                }
             }
         }
     }

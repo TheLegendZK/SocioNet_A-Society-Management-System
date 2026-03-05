@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,6 +67,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -74,6 +77,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.UserRole
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioPasswordField
 import com.zhd.socionet.ui.common.SocioTextField
@@ -94,6 +98,8 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
     var showEditDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -180,10 +186,14 @@ fun ProfileScreen(
                 if (user != null) {
                     Column(
                         modifier = Modifier
-                            .padding(padding)
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(24.dp),
+                            .padding(
+                                start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                                top = padding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                                end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                                bottom = 32.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                            ),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         // Profile Avatar

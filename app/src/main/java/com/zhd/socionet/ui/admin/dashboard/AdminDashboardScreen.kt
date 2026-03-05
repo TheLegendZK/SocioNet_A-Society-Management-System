@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +59,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.zhd.socionet.R
 import com.zhd.socionet.core.theme.SoftAccent
 import com.zhd.socionet.ui.admin.approval.AdminApprovalViewModel
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.navigation.NavArgs
@@ -71,6 +76,8 @@ fun AdminDashboardScreen(
     val approvalState by approvalViewModel.uiState.collectAsState()
     val profileState by profileViewModel.uiState.collectAsState()
     val user = profileState.userProfile
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     val societyId = user?.societyId ?: ""
 
@@ -123,9 +130,13 @@ fun AdminDashboardScreen(
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize(),
-                contentPadding = PaddingValues(24.dp),
+                contentPadding = PaddingValues(
+                    start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                    top = 24.dp + padding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                    end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                    bottom = 32.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                ),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -317,10 +328,6 @@ fun AdminDashboardScreen(
                         }
                     }
                 }
-                
-                item(span = { GridItemSpan(2) }) {
-                    Spacer(Modifier.height(32.dp))
-                }
             }
         }
     }
@@ -330,11 +337,12 @@ fun AdminDashboardScreen(
 fun AdminActionCard(title: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
     SoftCard(
         onClick = onClick,
+        modifier = Modifier.aspectRatio(1f),
         padding = 16.dp
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
             Surface(

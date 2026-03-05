@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,12 +42,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.Bill
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -64,6 +68,8 @@ fun BillingScreen(
     onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     LaunchedEffect(Unit) {
         if (!isAdmin && flatId != null) {
@@ -115,138 +121,146 @@ fun BillingScreen(
                 )
             }
         ) { padding ->
-            Column(modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = 24.dp)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                    top = padding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                    end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                    bottom = 32.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 if (isAdmin) {
-                    Spacer(Modifier.height(16.dp))
-                    SoftCard {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.monthly_billing_cycle),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = SoftTheme.textPrimary
-                            )
-                            Text(
-                                text = stringResource(R.string.billing_cycle_msg),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = SoftTheme.textSecondary
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            SocioButton(
-                                text = stringResource(R.string.generate_bills_month),
-                                onClick = { viewModel.generateBillsForCurrentMonth(societyId) },
-                                isLoading = uiState.isLoading
-                            )
-                            if (uiState.adminMessage != null) {
-                                Spacer(modifier = Modifier.height(12.dp))
+                    item {
+                        Spacer(Modifier.height(16.dp))
+                        SoftCard {
+                            Column {
                                 Text(
-                                    text = uiState.adminMessage!!,
-                                    color = SoftTheme.primary,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    text = stringResource(R.string.monthly_billing_cycle),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SoftTheme.textPrimary
                                 )
+                                Text(
+                                    text = stringResource(R.string.billing_cycle_msg),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = SoftTheme.textSecondary
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                SocioButton(
+                                    text = stringResource(R.string.generate_bills_month),
+                                    onClick = { viewModel.generateBillsForCurrentMonth(societyId) },
+                                    isLoading = uiState.isLoading
+                                )
+                                if (uiState.adminMessage != null) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Text(
+                                        text = uiState.adminMessage!!,
+                                        color = SoftTheme.primary,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    )
+                                }
                             }
                         }
+                        
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Recent Bills",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = SoftTheme.textPrimary
+                        )
                     }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Recent Bills",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = SoftTheme.textPrimary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
                     
                     // Admin view of all bills could go here, leveraging denormalized flatNumber
                 } else {
-                    Spacer(Modifier.height(16.dp))
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.total_outstanding),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            text = formatCurrency(uiState.totalOutstanding),
-                            style = MaterialTheme.typography.displayMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        if (uiState.totalOutstanding <= 0.0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .padding(top = 8.dp)
-                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.all_caught_up),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+                    item {
+                        Spacer(Modifier.height(16.dp))
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(R.string.total_outstanding),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                            Text(
+                                text = formatCurrency(uiState.totalOutstanding),
+                                style = MaterialTheme.typography.displayMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                            if (uiState.totalOutstanding <= 0.0) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.all_caught_up),
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            text = stringResource(R.string.payment_history),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = SoftTheme.textPrimary
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Text(
-                        text = stringResource(R.string.payment_history),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = SoftTheme.textPrimary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     if (uiState.isLoading) {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = SoftTheme.primary)
+                        item {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = SoftTheme.primary)
+                            }
                         }
                     } else if (uiState.bills.isEmpty()) {
-                        SoftCard {
-                            Text(
-                                text = "No billing history found",
-                                modifier = Modifier
-                                    .padding(vertical = 32.dp)
-                                    .align(Alignment.CenterHorizontally),
-                                color = SoftTheme.textSecondary
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            contentPadding = PaddingValues(bottom = 24.dp)
-                        ) {
-                            items(uiState.bills) { bill ->
-                                BillItem(
-                                    bill,
-                                    isAdmin = false,
-                                    onPay = {
-                                        if (flatId != null) {
-                                            viewModel.payBill(bill.id, userId, flatId)
-                                        }
-                                    }
+                        item {
+                            SoftCard {
+                                Text(
+                                    text = "No billing history found",
+                                    modifier = Modifier
+                                        .padding(vertical = 32.dp)
+                                        .align(Alignment.CenterHorizontally),
+                                    color = SoftTheme.textSecondary
                                 )
                             }
+                        }
+                    } else {
+                        items(uiState.bills) { bill ->
+                            BillItem(
+                                bill,
+                                isAdmin = false,
+                                onPay = {
+                                    if (flatId != null) {
+                                        viewModel.payBill(bill.id, userId, flatId)
+                                    }
+                                }
+                            )
                         }
                     }
                 }

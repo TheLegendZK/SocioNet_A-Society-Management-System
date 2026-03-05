@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -90,6 +91,7 @@ fun SecurityScannerScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
     val context = LocalContext.current
+    val navPadding = LocalNavPadding.current
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -148,7 +150,11 @@ fun SecurityScannerScreen(
                 )
             },
             floatingActionButton = {
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    horizontalAlignment = Alignment.End, 
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(bottom = navPadding.calculateBottomPadding())
+                ) {
                     FloatingActionButton(
                         onClick = onNavigateToStaffAttendance,
                         containerColor = SoftTheme.surface,

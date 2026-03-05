@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,6 +65,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,6 +76,7 @@ import com.zhd.socionet.R
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.UserRole
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -93,6 +97,8 @@ fun SocietyDirectoryScreen(
     var userToRemove by remember { mutableStateOf<UserProfile?>(null) }
     var staffToRemove by remember { mutableStateOf<ServiceStaff?>(null) }
     var showAddStaffDialog by remember { mutableStateOf(false) }
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     val tabs = listOf("Residents", "Guards", "Staff")
     val pagerState = rememberPagerState { tabs.size }
@@ -256,7 +262,8 @@ fun SocietyDirectoryScreen(
                     FloatingActionButton(
                         onClick = { showAddStaffDialog = true },
                         containerColor = SoftTheme.primary,
-                        contentColor = Color.White
+                        contentColor = Color.White,
+                        modifier = Modifier.padding(bottom = navPadding.calculateBottomPadding())
                     ) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_staff))
                     }
@@ -265,12 +272,16 @@ fun SocietyDirectoryScreen(
         ) { padding ->
             Column(
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize()
             ) {
                 Spacer(Modifier.height(16.dp))
 
-                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Box(modifier = Modifier.padding(
+                    start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                    top = padding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                    end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                    bottom = 0.dp
+                )) {
                     SocioTextField(
                         value = uiState.searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
@@ -336,7 +347,12 @@ fun SocietyDirectoryScreen(
                             }
                         } else {
                             LazyColumn(
-                                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 80.dp),
+                                contentPadding = PaddingValues(
+                                    start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                                    top = 0.dp,
+                                    end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                                    bottom = 80.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                                ),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 if (pageIndex == 2) {

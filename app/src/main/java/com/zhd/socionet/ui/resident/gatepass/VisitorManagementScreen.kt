@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -61,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -74,6 +77,7 @@ import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.VisitorType
+import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SocioTextField
 import com.zhd.socionet.ui.common.SoftCard
@@ -93,6 +97,7 @@ fun VisitorManagementScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val navPadding = LocalNavPadding.current
 
     val tabCreatePass = stringResource(R.string.tab_create_pass)
     val tabApprovals = stringResource(R.string.tab_approvals)
@@ -216,19 +221,18 @@ fun VisitorManagementScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize(),
                 beyondViewportPageCount = 1,
                 verticalAlignment = Alignment.Top
             ) { pageIndex ->
                 when (tabs.getOrNull(pageIndex)) {
-                    tabCreatePass -> CreatePassContent(viewModel, hostFlatId, hostUserId)
-                    tabApprovals -> RequestsList(uiState.pendingRequests) { entry, accept ->
+                    tabCreatePass -> CreatePassContent(viewModel, hostFlatId, hostUserId, padding)
+                    tabApprovals -> RequestsList(uiState.pendingRequests, padding) { entry, accept ->
                         viewModel.respondToRequest(entry, accept)
                     }
 
-                    tabHistory -> HistoryList(uiState.visitorHistory)
-                    tabMyStaff -> StaffTrackingList(uiState.linkedStaff, uiState.staffLogs)
+                    tabHistory -> HistoryList(uiState.visitorHistory, padding)
+                    tabMyStaff -> StaffTrackingList(uiState.linkedStaff, uiState.staffLogs, padding)
                 }
             }
         }
@@ -236,18 +240,25 @@ fun VisitorManagementScreen(
 }
 
 @Composable
-fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: String) {
+fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: String, scaffoldPadding: PaddingValues) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
 
     if (uiState.isSuccess) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(24.dp),
+                .padding(
+                    start = 24.dp + scaffoldPadding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                    top = scaffoldPadding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                    end = 24.dp + scaffoldPadding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                    bottom = 32.dp + scaffoldPadding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -339,7 +350,12 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
         }
     } else {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(
+                start = 24.dp + scaffoldPadding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                top = scaffoldPadding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                end = 24.dp + scaffoldPadding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                bottom = 32.dp + scaffoldPadding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
@@ -409,12 +425,20 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
 }
 
 @Composable
-fun RequestsList(requests: List<GateEntry>, onRespond: (GateEntry, Boolean) -> Unit) {
+fun RequestsList(requests: List<GateEntry>, scaffoldPadding: PaddingValues, onRespond: (GateEntry, Boolean) -> Unit) {
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
     if (requests.isEmpty()) {
         EmptyStateView(Icons.Default.VerifiedUser, "No pending requests")
     } else {
         LazyColumn(
-            contentPadding = PaddingValues(24.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 24.dp + scaffoldPadding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                top = scaffoldPadding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                end = 24.dp + scaffoldPadding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                bottom = 32.dp + scaffoldPadding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(requests) { entry ->
@@ -489,12 +513,20 @@ fun RequestsList(requests: List<GateEntry>, onRespond: (GateEntry, Boolean) -> U
 }
 
 @Composable
-fun HistoryList(history: List<GateEntry>) {
+fun HistoryList(history: List<GateEntry>, scaffoldPadding: PaddingValues) {
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
     if (history.isEmpty()) {
         EmptyStateView(Icons.Default.History, "No entry history found")
     } else {
         LazyColumn(
-            contentPadding = PaddingValues(24.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 24.dp + scaffoldPadding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                top = scaffoldPadding.calculateTopPadding() + navPadding.calculateTopPadding(),
+                end = 24.dp + scaffoldPadding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                bottom = 32.dp + scaffoldPadding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(history) { entry ->
@@ -558,9 +590,17 @@ fun HistoryList(history: List<GateEntry>) {
 }
 
 @Composable
-fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>) {
+fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>, scaffoldPadding: PaddingValues) {
+    val navPadding = LocalNavPadding.current
+    val layoutDirection = LocalLayoutDirection.current
     LazyColumn(
-        contentPadding = PaddingValues(24.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 24.dp + scaffoldPadding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+            top = scaffoldPadding.calculateTopPadding() + navPadding.calculateTopPadding(),
+            end = 24.dp + scaffoldPadding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+            bottom = 32.dp + scaffoldPadding.calculateBottomPadding() + navPadding.calculateBottomPadding()
+        ),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
