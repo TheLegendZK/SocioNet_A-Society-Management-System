@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -67,17 +69,44 @@ fun AdminSetupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showWingDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf<String?>(null) }
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
 
     if (uiState.isSuccess) {
         AlertDialog(
-            onDismissRequest = onSetupComplete,
+            onDismissRequest = { viewModel.resetForm() },
             title = { Text("Success", fontWeight = FontWeight.Bold) },
-            text = { Text("Society structure generated successfully.") },
+            text = { Text(if (uiState.editingSocietyId != null) "Society updated successfully." else "Society structure generated successfully.") },
             confirmButton = {
-                TextButton(onClick = onSetupComplete) {
+                TextButton(onClick = { viewModel.resetForm() }) {
                     Text("Done", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = SoftTheme.surface,
+            shape = MaterialTheme.shapes.large
+        )
+    }
+
+    if (showDeleteConfirm != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = null },
+            title = { Text("Delete Society", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this society and all its flats? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteSociety(showDeleteConfirm!!)
+                        showDeleteConfirm = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) {
+                    Text("Delete", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = null }) {
+                    Text("Cancel")
                 }
             },
             containerColor = SoftTheme.surface,
@@ -130,13 +159,67 @@ fun AdminSetupScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                if (uiState.societies.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Existing Societies",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    items(uiState.societies) { society ->
+                        SoftCard {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        society.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        society.address,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = SoftTheme.textSecondary
+                                    )
+                                }
+                                Row {
+                                    IconButton(onClick = { viewModel.selectSocietyForEdit(society) }) {
+                                        Icon(Icons.Default.Edit, "Edit", tint = SoftTheme.primary)
+                                    }
+                                    IconButton(onClick = { showDeleteConfirm = society.id }) {
+                                        Icon(Icons.Default.Delete, "Delete", tint = Color.Red.copy(alpha = 0.7f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 item {
-                    Text(
-                        text = "Society Configuration",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (uiState.editingSocietyId != null) "Edit Society" else "New Society Configuration",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = if (uiState.societies.isEmpty()) Color.White else SoftTheme.textPrimary
+                        )
+                        if (uiState.editingSocietyId != null) {
+                            TextButton(onClick = { viewModel.resetForm() }) {
+                                Text("Clear", color = SoftTheme.primary)
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
 
@@ -227,7 +310,7 @@ fun AdminSetupScreen(
                                 }
                             }
                             Spacer(Modifier.width(16.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     "Wing ${config.wingName}",
                                     style = MaterialTheme.typography.titleMedium,
@@ -240,6 +323,9 @@ fun AdminSetupScreen(
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
+                            IconButton(onClick = { viewModel.removeWingConfiguration(config) }) {
+                                Icon(Icons.Default.Delete, null, tint = SoftTheme.textSecondary.copy(alpha = 0.5f))
+                            }
                         }
                     }
                 }
@@ -247,7 +333,7 @@ fun AdminSetupScreen(
                 item {
                     Spacer(Modifier.height(16.dp))
                     SocioButton(
-                        text = "Generate Society Masterdata",
+                        text = if (uiState.editingSocietyId != null) "Update Society Masterdata" else "Generate Society Masterdata",
                         onClick = { viewModel.submitSocietySetup() },
                         isLoading = uiState.isLoading,
                         enabled = uiState.societyName.isNotEmpty() && uiState.wingConfigurations.isNotEmpty()

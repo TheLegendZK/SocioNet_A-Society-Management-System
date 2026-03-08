@@ -48,7 +48,7 @@ import com.zhd.socionet.ui.splash.SplashScreen
 fun SocioNetNavGraph(
     navController: NavHostController,
     startDestination: String = Routes.SPLASH,
-    isDeepLinkPending: Boolean = false // Added parameter
+    isDeepLinkPending: Boolean = false
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
@@ -64,10 +64,11 @@ fun SocioNetNavGraph(
             (currentRoute.startsWith(Routes.SOCIETY_DIRECTORY) && navBackStackEntry?.arguments?.getBoolean(NavArgs.IS_ADMIN) == false) -> {
                 val flatId = navBackStackEntry?.arguments?.getString(NavArgs.FLAT_ID) ?: ""
                 val userId = navBackStackEntry?.arguments?.getString(NavArgs.USER_ID) ?: ""
+                val societyId = navBackStackEntry?.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
                 listOf(
                     NavItem("Home", Routes.buildResidentHome(flatId, userId), Icons.Default.Home, Routes.RESIDENT_HOME),
                     NavItem("Gate Pass", Routes.buildResidentCreatePass(flatId, userId), Icons.Default.QrCode, Routes.RESIDENT_CREATE_PASS),
-                    NavItem("Notices", Routes.buildResidentNotices(flatId, userId), Icons.Default.Campaign, Routes.RESIDENT_NOTICES),
+                    NavItem("Notices", Routes.buildResidentNotices(flatId, userId, societyId), Icons.Default.Campaign, Routes.RESIDENT_NOTICES),
                     NavItem("Profile", Routes.buildProfile(userId, "resident", flatId), Icons.Default.Person, Routes.PROFILE_SCREEN)
                 )
             }
@@ -91,7 +92,7 @@ fun SocioNetNavGraph(
 
             composable(Routes.SPLASH) {
                 SplashScreen(
-                    isDeepLinkPending = isDeepLinkPending, // Pass the flag
+                    isDeepLinkPending = isDeepLinkPending,
                     onNavigate = { dest ->
                     navController.navigate(dest) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
@@ -144,15 +145,18 @@ fun SocioNetNavGraph(
             }
 
             composable(
-                route = "${Routes.RESIDENT_NOTICES}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}",
+                route = "${Routes.RESIDENT_NOTICES}/{${NavArgs.FLAT_ID}}/{${NavArgs.USER_ID}}?${NavArgs.SOCIETY_ID}={${NavArgs.SOCIETY_ID}}",
                 arguments = listOf(
                     navArgument(NavArgs.FLAT_ID) { type = NavType.StringType },
-                    navArgument(NavArgs.USER_ID) { type = NavType.StringType }
+                    navArgument(NavArgs.USER_ID) { type = NavType.StringType },
+                    navArgument(NavArgs.SOCIETY_ID) { type = NavType.StringType; defaultValue = "" }
                 )
-            ) {
+            ) { backStack ->
+                val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
                 NoticeBoardScreen(
-                    userWing = "A",
-                    userRoles = listOf(UserRole.OWNER),
+                    societyId = societyId,
+                    userWing = "A", // Placeholder - in real app fetch from user profile
+                    userRoles = listOf(UserRole.OWNER), // Placeholder
                     onBack = { navController.popBackStack() })
             }
 

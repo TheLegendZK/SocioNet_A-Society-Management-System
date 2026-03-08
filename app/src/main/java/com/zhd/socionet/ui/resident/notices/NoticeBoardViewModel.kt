@@ -22,17 +22,19 @@ class NoticeBoardViewModel @Inject constructor(
     val uiState: StateFlow<NoticeBoardUiState> = _uiState.asStateFlow()
 
     private var lastLoadedWing: String? = null
+    private var lastLoadedSociety: String? = null
 
-    fun loadNotices(userWing: String, userRoles: List<UserRole>) {
-        // Optimization: Avoid setting isLoading = true if data is already present for same wing
-        if (_uiState.value.notices.isNotEmpty() && lastLoadedWing == userWing) return
+    fun loadNotices(societyId: String, userWing: String, userRoles: List<UserRole>) {
+        // Optimization: Avoid setting isLoading = true if data is already present for same wing/society
+        if (_uiState.value.notices.isNotEmpty() && lastLoadedWing == userWing && lastLoadedSociety == societyId) return
 
         lastLoadedWing = userWing
+        lastLoadedSociety = societyId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             val isOwner = userRoles.contains(UserRole.OWNER)
-            val notices = repository.getNoticesForUser(userWing, isOwner)
+            val notices = repository.getNoticesForUser(societyId, userWing, isOwner)
             _uiState.update { it.copy(isLoading = false, notices = notices) }
         }
     }

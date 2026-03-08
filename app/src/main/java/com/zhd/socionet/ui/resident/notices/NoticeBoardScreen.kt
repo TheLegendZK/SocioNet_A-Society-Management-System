@@ -56,6 +56,7 @@ import java.util.Locale
 @Composable
 fun NoticeBoardScreen(
     viewModel: NoticeBoardViewModel = hiltViewModel(),
+    societyId: String,
     userWing: String,
     userRoles: List<UserRole>,
     onBack: () -> Unit
@@ -64,7 +65,9 @@ fun NoticeBoardScreen(
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
     
-    LaunchedEffect(Unit) { viewModel.loadNotices(userWing, userRoles) }
+    LaunchedEffect(societyId, userWing) { 
+        viewModel.loadNotices(societyId, userWing, userRoles) 
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {
         Box(

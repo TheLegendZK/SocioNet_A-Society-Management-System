@@ -230,4 +230,7 @@
     <string name="log_entry_request">LOG ENTRY REQUEST</string>
     <string name="manual_entry">Manual Entry</string>
     <string name="gate_keeper">Gate Keeper</string>
+    <string name="logout_confirmation">Logout Confirmation</string>
+    <string name="are_you_sure_you_want_to_logout">Are you sure you want to logout?</string>
+    <string name="yes_logout">Yes, Logout</string>
 </resources>

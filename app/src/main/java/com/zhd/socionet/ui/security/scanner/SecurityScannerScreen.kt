@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GppBad
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -47,6 +48,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -101,6 +103,8 @@ fun SecurityScannerScreen(
         )
     }
 
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -112,6 +116,29 @@ fun SecurityScannerScreen(
         if (!hasCameraPermission) {
             launcher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(stringResource(R.string.logout_confirmation), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_logout)) },
+            confirmButton = {
+                TextButton(onClick = { 
+                    showLogoutDialog = false
+                    profileViewModel.logout(onLogout) 
+                }) {
+                    Text(stringResource(R.string.yes_logout), fontWeight = FontWeight.Bold, color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            containerColor = SoftTheme.surface,
+            shape = MaterialTheme.shapes.large
+        )
     }
 
     Box(modifier = Modifier
@@ -138,7 +165,7 @@ fun SecurityScannerScreen(
                 CenterAlignedTopAppBar(
                     title = { Text(stringResource(R.string.gate_keeper), fontWeight = FontWeight.ExtraBold, color = Color.White) },
                     actions = {
-                        IconButton(onClick = { profileViewModel.logout(onLogout) }) {
+                        IconButton(onClick = { showLogoutDialog = true }) {
                             Icon(Icons.AutoMirrored.Filled.Logout,
                                 stringResource(R.string.logout), tint = Color.Red)
                         }

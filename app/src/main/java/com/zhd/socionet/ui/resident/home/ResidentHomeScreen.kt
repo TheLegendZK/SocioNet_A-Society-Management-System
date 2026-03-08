@@ -104,7 +104,7 @@ fun ResidentHomeScreen(
         val user = profileState.userProfile
         if (user != null) {
             val wing = user.wingId ?: "A"
-            noticeViewModel.loadNotices(wing, user.roles)
+            noticeViewModel.loadNotices(societyId, wing, user.roles)
         }
     }
     LaunchedEffect(flatId) {
@@ -322,7 +322,7 @@ fun ResidentHomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = SoftTheme.textPrimary
                             )
-                            TextButton(onClick = { navController.navigate("${Routes.RESIDENT_NOTICES}/$flatId/$userId") }) {
+                            TextButton(onClick = { navController.navigate(Routes.buildResidentNotices(flatId, userId, societyId)) }) {
                                 Text(
                                     text = stringResource(R.string.view_all),
                                     color = SoftTheme.primary,

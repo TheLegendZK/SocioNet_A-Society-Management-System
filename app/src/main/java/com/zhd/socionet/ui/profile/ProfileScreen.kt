@@ -98,6 +98,7 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
     var showEditDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
 
@@ -120,6 +121,29 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(onClick = { viewModel.clearMessages() }) {
                     Text("OK", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = SoftTheme.surface,
+            shape = MaterialTheme.shapes.large
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(stringResource(R.string.logout_confirmation), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_logout)) },
+            confirmButton = {
+                TextButton(onClick = { 
+                    showLogoutDialog = false
+                    viewModel.logout(onLogout) 
+                }) {
+                    Text(stringResource(R.string.yes_logout), fontWeight = FontWeight.Bold, color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             },
             containerColor = SoftTheme.surface,
@@ -165,7 +189,7 @@ fun ProfileScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.logout(onLogout) }) {
+                        IconButton(onClick = { showLogoutDialog = true }) {
                             Icon(Icons.AutoMirrored.Filled.Logout, "Logout", tint = Color.Red)
                         }
                     },
