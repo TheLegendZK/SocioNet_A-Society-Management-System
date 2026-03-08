@@ -376,16 +376,14 @@ fun ProfileScreen(
                                 }
 
                                 // Society Info
-                                (user.societyName ?: uiState.society?.name)?.let {
+                                uiState.society?.let { society ->
                                     HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
                                     ProfileInfoRow(
                                         Icons.Default.Apartment,
                                         "Society",
-                                        it
+                                        society.name
                                     )
-                                }
-
-                                uiState.society?.let { society ->
+                                    
                                     if (society.address.isNotEmpty()) {
                                         HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
                                         ProfileInfoRow(
@@ -400,6 +398,16 @@ fun ProfileScreen(
                                             Icons.Default.Badge,
                                             "Registration No.",
                                             society.registrationNumber
+                                        )
+                                    }
+                                } ?: run {
+                                    // Fallback if society object isn't loaded yet
+                                    user.societyName?.let {
+                                        HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
+                                        ProfileInfoRow(
+                                            Icons.Default.Apartment,
+                                            "Society",
+                                            it
                                         )
                                     }
                                 }
