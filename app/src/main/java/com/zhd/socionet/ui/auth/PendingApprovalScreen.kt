@@ -34,6 +34,8 @@ import com.zhd.socionet.ui.common.SoftTheme
 
 @Composable
 fun PendingApprovalScreen(
+    wing: String? = null,
+    flat: String? = null,
     onBackToLogin: () -> Unit
 ) {
     val context = LocalContext.current
@@ -93,6 +95,22 @@ fun PendingApprovalScreen(
                             lineHeight = 22.sp,
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
+
+                        if (!wing.isNullOrEmpty() || !flat.isNullOrEmpty()) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            val location = buildString {
+                                if (!wing.isNullOrEmpty()) append("Wing $wing")
+                                if (!wing.isNullOrEmpty() && !flat.isNullOrEmpty()) append(", ")
+                                if (!flat.isNullOrEmpty()) append("Flat $flat")
+                            }
+                            Text(
+                                text = "Registration for $location",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = SoftTheme.primary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
 
                     SocioButton(

@@ -109,10 +109,22 @@ fun SocioNetNavGraph(
                 )
             }
             composable(Routes.REGISTER) { RegisterScreen(onNavigateToLogin = { navController.navigateUp() }) }
-            composable(Routes.PENDING_APPROVAL) {
-                PendingApprovalScreen(onBackToLogin = {
-                    navController.navigate(Routes.LOGIN) { popUpTo(0) }
-                })
+            composable(
+                route = "${Routes.PENDING_APPROVAL}?wing={wing}&flat={flat}",
+                arguments = listOf(
+                    navArgument("wing") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("flat") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
+            ) { backStack ->
+                val wing = backStack.arguments?.getString("wing")
+                val flat = backStack.arguments?.getString("flat")
+                PendingApprovalScreen(
+                    wing = wing,
+                    flat = flat,
+                    onBackToLogin = {
+                        navController.navigate(Routes.LOGIN) { popUpTo(0) }
+                    }
+                )
             }
 
             composable(

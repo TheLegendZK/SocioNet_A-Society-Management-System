@@ -158,8 +158,19 @@ fun AdminApprovalScreen(
                                             fontWeight = FontWeight.Bold,
                                             color = SoftTheme.textPrimary
                                         )
+                                        val locationInfo = buildString {
+                                            append(user.roles.firstOrNull()?.name ?: "User")
+                                            append(" • ")
+                                            if (!user.wingId.isNullOrEmpty() || !user.flatNumber.isNullOrEmpty()) {
+                                                if (!user.wingId.isNullOrEmpty()) append("Wing ${user.wingId}")
+                                                if (!user.wingId.isNullOrEmpty() && !user.flatNumber.isNullOrEmpty()) append(", ")
+                                                if (!user.flatNumber.isNullOrEmpty()) append("Flat ${user.flatNumber}")
+                                            } else {
+                                                append(user.societyName ?: user.societyId ?: "No Location")
+                                            }
+                                        }
                                         Text(
-                                            text = "${user.roles.firstOrNull()?.name} • ${user.flatId ?: user.societyId ?: "No Location"}",
+                                            text = locationInfo,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = SoftTheme.textSecondary
                                         )

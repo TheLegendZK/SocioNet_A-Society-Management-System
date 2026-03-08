@@ -60,6 +60,9 @@ object Routes {
 
     fun buildSecurityStaff(societyId: String) = "$SECURITY_STAFF/$societyId"
 
+    fun buildPendingApproval(wing: String? = null, flat: String? = null) = 
+        "$PENDING_APPROVAL?wing=${wing ?: ""}&flat=${flat ?: ""}"
+
     fun buildDirectory(isAdmin: Boolean, societyId: String, flatId: String? = null, userId: String? = null): String {
         return "$SOCIETY_DIRECTORY/$isAdmin/$societyId?flatId=${flatId ?: ""}&userId=${userId ?: ""}"
     }
@@ -84,7 +87,7 @@ object NavigationRouter {
         return when {
             profile.roles.contains(UserRole.SUPER_ADMIN) -> Routes.ADMIN_DASHBOARD
             profile.roles.contains(UserRole.SECURITY_GUARD) -> Routes.SECURITY_DASHBOARD
-            !profile.isVerified -> Routes.PENDING_APPROVAL
+            !profile.isVerified -> Routes.buildPendingApproval(profile.wingId, profile.flatNumber)
             else -> Routes.buildResidentHome(profile.flatId ?: profile.societyId ?: "0", profile.id)
         }
     }
