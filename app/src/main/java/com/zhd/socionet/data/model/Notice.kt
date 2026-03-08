@@ -5,6 +5,7 @@ import com.google.firebase.firestore.PropertyName
 
 data class Notice(
     @PropertyName("id") val id: String = "",
+    val societyId: String = "",
     val title: String = "",
     val content: String = "",
     val attachmentUrl: String? = null,

@@ -15,7 +15,10 @@ import javax.inject.Singleton
 
 interface NoticeRepository {
     suspend fun createNotice(notice: Notice): Result<Unit>
-    suspend fun getNoticesForUser(userWing: String, isOwner: Boolean): List<Notice>
+    suspend fun updateNotice(notice: Notice): Result<Unit>
+    suspend fun deleteNotice(noticeId: String): Result<Unit>
+    suspend fun getNoticesForSociety(societyId: String): Result<List<Notice>>
+    suspend fun getNoticesForUser(societyId: String, userWing: String, isOwner: Boolean): List<Notice>
 }
 
 @Singleton
@@ -37,13 +40,55 @@ class NoticeRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getNoticesForUser(userWing: String, isOwner: Boolean): List<Notice> {
-        try {
+    override suspend fun updateNotice(notice: Notice): Result<Unit> {
+        return try {
+            val finalNotice = notice.copy(timestamp = Timestamp.now())
+            firestore.collection(AppConstants.COLL_NOTICES).document(notice.id).set(finalNotice).await()
+            dao.insertNotices(listOf(finalNotice.toEntity()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteNotice(noticeId: String): Result<Unit> {
+        return try {
+            firestore.collection(AppConstants.COLL_NOTICES).document(noticeId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getNoticesForSociety(societyId: String): Result<List<Notice>> {
+        return try {
+            // Index Error Fix: Fetch all for society and sort locally to avoid composite index requirement
             val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(50)
+                .whereEqualTo("societyId", societyId)
+                .get()
+                .await()
+            
+            val notices = snapshot.toObjects(Notice::class.java)
+                .sortedByDescending { it.timestamp }
+            
+            Result.success(notices)
+        } catch (e: Exception) {
+            crashlytics.recordException(e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getNoticesForUser(societyId: String, userWing: String, isOwner: Boolean): List<Notice> {
+        try {
+            // Index Error Fix: Fetch and sort locally
+            val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
+                .whereEqualTo("societyId", societyId)
                 .get().await()
+                
             val networkNotices = snapshot.toObjects(Notice::class.java)
+                .sortedByDescending { it.timestamp }
 
             dao.clearNotices()
             dao.insertNotices(networkNotices.map { it.toEntity() })

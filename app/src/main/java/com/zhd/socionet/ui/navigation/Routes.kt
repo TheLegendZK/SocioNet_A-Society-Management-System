@@ -46,7 +46,7 @@ object Routes {
 
     fun buildResidentCreatePass(flatId: String, userId: String, tab: Int = 0) = "$RESIDENT_CREATE_PASS/$flatId/$userId?tab=$tab"
 
-    fun buildResidentNotices(flatId: String, userId: String) = "$RESIDENT_NOTICES/$flatId/$userId"
+    fun buildResidentNotices(flatId: String, userId: String, societyId: String = "") = "$RESIDENT_NOTICES/$flatId/$userId?${NavArgs.SOCIETY_ID}=$societyId"
 
     fun buildResidentComplaints(flatId: String, userId: String) = "$RESIDENT_COMPLAINTS/$flatId/$userId"
 

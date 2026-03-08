@@ -10,7 +10,11 @@ import javax.inject.Singleton
 
 interface AdminRepository {
     suspend fun createSociety(society: Society): Result<String>
+    suspend fun updateSociety(society: Society): Result<Unit>
+    suspend fun deleteSociety(societyId: String): Result<Unit>
+    suspend fun getAllSocieties(): Result<List<Society>>
     suspend fun batchCreateFlats(flats: List<Flat>): Result<Unit>
+    suspend fun deleteFlatsForSociety(societyId: String): Result<Unit>
 }
 
 @Singleton
@@ -30,6 +34,34 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateSociety(society: Society): Result<Unit> {
+        return try {
+            firestore.collection(AppConstants.COLL_SOCIETIES).document(society.id).set(society).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteSociety(societyId: String): Result<Unit> {
+        return try {
+            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getAllSocieties(): Result<List<Society>> {
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_SOCIETIES).get().await()
+            val societies = snapshot.toObjects(Society::class.java)
+            Result.success(societies)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun batchCreateFlats(flats: List<Flat>): Result<Unit> {
         return try {
             val batch = firestore.batch()
@@ -41,6 +73,24 @@ class AdminRepositoryImpl @Inject constructor(
                 }
             }
 
+            batch.commit().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteFlatsForSociety(societyId: String): Result<Unit> {
+        return try {
+            val snapshot = firestore.collection(AppConstants.COLL_FLATS)
+                .whereEqualTo("societyId", societyId)
+                .get()
+                .await()
+
+            val batch = firestore.batch()
+            snapshot.documents.forEach { doc ->
+                batch.delete(doc.reference)
+            }
             batch.commit().await()
             Result.success(Unit)
         } catch (e: Exception) {
