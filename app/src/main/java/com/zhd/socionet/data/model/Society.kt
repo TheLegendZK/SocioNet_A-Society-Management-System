@@ -11,6 +11,7 @@ data class Society(
     val wingConfigs: List<WingConfigData> = emptyList(),
     val adminUserIds: List<String> = emptyList(),
     val maintenanceRatePerSqFt: Double = 0.0,
+    val fixedCharges: Double = 0.0, // Fixed monthly charges like security, insurance, etc.
     val gateClosingTime: String = "23:00"
 )
 

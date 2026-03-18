@@ -9,8 +9,6 @@ interface OtpGenerator {
 
 class OtpGeneratorImpl @Inject constructor() : OtpGenerator {
 
-    // FIX: Replaced kotlin.random.Random with java.security.SecureRandom
-    // SecureRandom is cryptographically strong and appropriate for security tokens like OTPs.
     private val secureRandom = SecureRandom()
 
     override fun generateOtp(): String {

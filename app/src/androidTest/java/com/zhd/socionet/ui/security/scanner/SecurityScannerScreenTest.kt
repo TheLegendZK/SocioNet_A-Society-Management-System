@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.fakes.FakeAuthRepository
 import com.zhd.socionet.fakes.FakeProfileRepository
 import com.zhd.socionet.fakes.FakeSecurityRepository
@@ -25,7 +26,7 @@ class SecurityScannerScreenTest {
         val fakeProfileRepo = FakeProfileRepository()
         
         val viewModel = SecurityScannerViewModel(fakeSecurityRepo, fakeAuthRepo)
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             SecurityScannerScreen(
@@ -48,7 +49,7 @@ class SecurityScannerScreenTest {
         val fakeProfileRepo = FakeProfileRepository()
         
         val viewModel = SecurityScannerViewModel(fakeSecurityRepo, fakeAuthRepo)
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             SecurityScannerScreen(

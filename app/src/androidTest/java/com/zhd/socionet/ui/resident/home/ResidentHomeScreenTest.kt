@@ -5,6 +5,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.FirebaseFirestore
+import com.zhd.socionet.fakes.FakeAuthRepository
 import com.zhd.socionet.fakes.FakeBillingRepository
 import com.zhd.socionet.fakes.FakeNoticeRepository
 import com.zhd.socionet.fakes.FakeProfileRepository
@@ -28,11 +30,12 @@ class ResidentHomeScreenTest {
         val fakeBillingRepo = FakeBillingRepository()
         val fakeNoticeRepo = FakeNoticeRepository()
         val fakeSosRepo = FakeSosRepository()
+        val fakeAuthRepo = FakeAuthRepository()
 
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
         val billingViewModel = BillingViewModel(fakeBillingRepo)
-        val noticeViewModel = NoticeBoardViewModel(fakeNoticeRepo)
-        val sosViewModel = SosViewModel(fakeSosRepo)
+        val noticeViewModel = NoticeBoardViewModel(fakeNoticeRepo, fakeProfileRepo)
+        val sosViewModel = SosViewModel(fakeSosRepo, fakeAuthRepo)
 
         composeTestRule.setContent {
             val navController = rememberNavController()
@@ -58,11 +61,12 @@ class ResidentHomeScreenTest {
         val fakeBillingRepo = FakeBillingRepository()
         val fakeNoticeRepo = FakeNoticeRepository()
         val fakeSosRepo = FakeSosRepository()
+        val fakeAuthRepo = FakeAuthRepository()
 
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
         val billingViewModel = BillingViewModel(fakeBillingRepo)
-        val noticeViewModel = NoticeBoardViewModel(fakeNoticeRepo)
-        val sosViewModel = SosViewModel(fakeSosRepo)
+        val noticeViewModel = NoticeBoardViewModel(fakeNoticeRepo, fakeProfileRepo)
+        val sosViewModel = SosViewModel(fakeSosRepo, fakeAuthRepo)
 
         composeTestRule.setContent {
             val navController = rememberNavController()

@@ -48,14 +48,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
+import com.zhd.socionet.core.utils.CurrencyUtils
+import com.zhd.socionet.core.utils.DateUtils
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.ui.common.LocalNavPadding
+import com.zhd.socionet.ui.common.LocalSnackbarHostState
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
-import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,10 +70,20 @@ fun BillingScreen(
     val uiState by viewModel.uiState.collectAsState()
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
+    val snackbarHostState = LocalSnackbarHostState.current
 
     LaunchedEffect(Unit) {
-        if (!isAdmin && flatId != null) {
+        if (isAdmin) {
+            viewModel.loadAllBillsForAdmin(societyId)
+        } else if (flatId != null) {
             viewModel.loadBills(flatId)
+        }
+    }
+
+    LaunchedEffect(uiState.adminMessage) {
+        uiState.adminMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessage()
         }
     }
 
@@ -97,6 +107,7 @@ fun BillingScreen(
 
         Scaffold(
             containerColor = Color.Transparent,
+            // Removed local SnackbarHost to use the global one in AdaptiveAppShell
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -153,28 +164,50 @@ fun BillingScreen(
                                     onClick = { viewModel.generateBillsForCurrentMonth(societyId) },
                                     isLoading = uiState.isLoading
                                 )
-                                if (uiState.adminMessage != null) {
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = uiState.adminMessage!!,
-                                        color = SoftTheme.primary,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                }
                             }
                         }
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = "Recent Bills",
+                            text = stringResource(R.string.recent_bills),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = SoftTheme.textPrimary
                         )
                     }
-                    
-                    // Admin view of all bills could go here, leveraging denormalized flatNumber
+
+                    if (uiState.isLoading && uiState.bills.isEmpty()) {
+                        item {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = SoftTheme.primary)
+                            }
+                        }
+                    } else if (uiState.bills.isEmpty()) {
+                        item {
+                            SoftCard {
+                                Text(
+                                    text = stringResource(R.string.no_billing_history),
+                                    modifier = Modifier
+                                        .padding(vertical = 32.dp)
+                                        .align(Alignment.CenterHorizontally),
+                                    color = SoftTheme.textSecondary
+                                )
+                            }
+                        }
+                    } else {
+                        items(uiState.bills) { bill ->
+                            BillItem(
+                                bill,
+                                isAdmin = true,
+                                onPay = {}
+                            )
+                        }
+                    }
                 } else {
                     item {
                         Spacer(Modifier.height(16.dp))
@@ -188,7 +221,7 @@ fun BillingScreen(
                                 color = Color.White.copy(alpha = 0.8f)
                             )
                             Text(
-                                text = formatCurrency(uiState.totalOutstanding),
+                                text = CurrencyUtils.formatCurrency(uiState.totalOutstanding),
                                 style = MaterialTheme.typography.displayMedium,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
@@ -227,7 +260,7 @@ fun BillingScreen(
                         )
                     }
 
-                    if (uiState.isLoading) {
+                    if (uiState.isLoading && uiState.bills.isEmpty()) {
                         item {
                             Box(
                                 Modifier
@@ -242,7 +275,7 @@ fun BillingScreen(
                         item {
                             SoftCard {
                                 Text(
-                                    text = "No billing history found",
+                                    text = stringResource(R.string.no_billing_history),
                                     modifier = Modifier
                                         .padding(vertical = 32.dp)
                                         .align(Alignment.CenterHorizontally),
@@ -272,7 +305,6 @@ fun BillingScreen(
 @Composable
 fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
     val isPaid = bill.isPaid
-    val formatter = SimpleDateFormat("dd MMM", Locale.getDefault())
 
     SoftCard {
         Row(
@@ -283,7 +315,7 @@ fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
             Column {
                 if (isAdmin) {
                     Text(
-                        text = "Flat ${bill.flatNumber ?: "N/A"}",
+                        text = stringResource(R.string.flat_number_display, bill.flatNumber ?: stringResource(R.string.not_available_short)),
                         style = MaterialTheme.typography.labelSmall,
                         color = SoftTheme.primary,
                         fontWeight = FontWeight.Bold
@@ -296,7 +328,7 @@ fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
                     color = SoftTheme.textPrimary
                 )
                 Text(
-                    text = "Due: ${formatter.format(bill.dueDate.toDate())}",
+                    text = stringResource(R.string.due_date_format, DateUtils.formatTimestamp(bill.dueDate, "dd MMM")),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (!isPaid) MaterialTheme.colorScheme.error else SoftTheme.textSecondary
                 )
@@ -304,7 +336,7 @@ fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = formatCurrency(bill.amountDue),
+                    text = CurrencyUtils.formatCurrency(bill.amountDue),
                     fontWeight = FontWeight.ExtraBold,
                     color = SoftTheme.textPrimary,
                     style = MaterialTheme.typography.titleLarge
@@ -344,8 +376,4 @@ fun BillItem(bill: Bill, isAdmin: Boolean, onPay: () -> Unit) {
             }
         }
     }
-}
-
-fun formatCurrency(amount: Double): String {
-    return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).format(amount)
 }

@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
-import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.admin.approval.AdminApprovalScreen
 import com.zhd.socionet.ui.admin.complaints.AdminComplaintScreen
 import com.zhd.socionet.ui.admin.dashboard.AdminDashboardScreen
@@ -165,10 +164,10 @@ fun SocioNetNavGraph(
                 )
             ) { backStack ->
                 val societyId = backStack.arguments?.getString(NavArgs.SOCIETY_ID) ?: ""
+                val userId = backStack.arguments?.getString(NavArgs.USER_ID) ?: ""
                 NoticeBoardScreen(
                     societyId = societyId,
-                    userWing = "A", // Placeholder - in real app fetch from user profile
-                    userRoles = listOf(UserRole.OWNER), // Placeholder
+                    userId = userId,
                     onBack = { navController.popBackStack() })
             }
 

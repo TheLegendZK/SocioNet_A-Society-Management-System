@@ -33,13 +33,13 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun generateMonthlyBills(societyId: String, monthName: String): Result<Int> {
         if (societyId.isBlank()) return Result.failure(Exception("Society ID is required"))
         return try {
-            // 1. Fetch Society Rules (Rate per SqFt)
+            // 1. Fetch Society Rules (Rate per SqFt + Fixed Charges)
             val societyDoc = firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
             val society = societyDoc.toObject(Society::class.java)
                 ?: throw Exception("Society not found")
 
-            if (society.maintenanceRatePerSqFt <= 0) {
-                throw Exception("Maintenance Rate is not set in Society Settings")
+            if (society.maintenanceRatePerSqFt <= 0 && society.fixedCharges <= 0) {
+                throw Exception("Maintenance Rate or Fixed Charges must be set in Society Settings")
             }
 
             // 2. Fetch All Flats
@@ -59,14 +59,15 @@ class BillingRepositoryImpl @Inject constructor(
             val billDate = Timestamp.now()
 
             flats.forEach { flat ->
-                if (flat.sqFtArea > 0) { // Only bill configured flats
-                    val amount = flat.sqFtArea * society.maintenanceRatePerSqFt
+                if (flat.sqFtArea > 0 || society.fixedCharges > 0) { // Only bill if something is configured
+                    val amount = (flat.sqFtArea * society.maintenanceRatePerSqFt) + society.fixedCharges
 
                     val billRef = firestore.collection(AppConstants.COLL_BILLS).document()
                     val bill = Bill(
                         id = billRef.id,
                         flatId = flat.id,
-                        flatNumber = flat.flatNumber, // Denormalization: Store flat number in bill
+                        societyId = societyId,
+                        flatNumber = flat.flatNumber,
                         month = monthName,
                         billDate = billDate,
                         dueDate = dueDate,
@@ -105,9 +106,8 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun getAllBills(societyId: String): List<Bill> {
         if (societyId.isBlank()) return emptyList()
         return try {
-            // This is a simplified query. In a real app, you'd filter by society via flats or store societyId in Bill.
-            // Let's assume for now we fetch all and filter, OR you can add societyId to Bill model for better scaling.
             val snapshot = firestore.collection(AppConstants.COLL_BILLS)
+                .whereEqualTo("societyId", societyId)
                 .orderBy("billDate", Query.Direction.DESCENDING)
                 .limit(100)
                 .get().await()
@@ -135,6 +135,7 @@ class BillingRepositoryImpl @Inject constructor(
 fun Bill.toEntity() = BillEntity(
     id = id,
     flatId = flatId,
+    societyId = societyId,
     flatNumber = flatNumber,
     month = month,
     amountDue = amountDue,
@@ -146,6 +147,7 @@ fun Bill.toEntity() = BillEntity(
 fun BillEntity.toDomain() = Bill(
     id = id,
     flatId = flatId,
+    societyId = societyId,
     flatNumber = flatNumber,
     month = month,
     billDate = Timestamp(Date(billDate)),

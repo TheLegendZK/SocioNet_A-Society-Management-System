@@ -391,7 +391,7 @@ fun ManualOtpView(onSubmit: (String) -> Unit) {
                 ),
                 placeholder = {
                     Text(
-                        "000000",
+                        "------",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         style = LocalTextStyle.current.copy(

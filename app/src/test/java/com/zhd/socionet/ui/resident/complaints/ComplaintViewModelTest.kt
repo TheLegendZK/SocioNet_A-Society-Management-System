@@ -2,6 +2,7 @@ package com.zhd.socionet.ui.resident.complaints
 
 import com.zhd.socionet.data.model.Complaint
 import com.zhd.socionet.data.model.ComplaintCategory
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.ComplaintRepository
 import com.zhd.socionet.utils.MainDispatcherRule
 import io.mockk.coEvery
@@ -21,11 +22,12 @@ class ComplaintViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository: ComplaintRepository = mockk()
+    private val authRepository: AuthRepository = mockk()
     private lateinit var viewModel: ComplaintViewModel
 
     @Before
     fun setup() {
-        viewModel = ComplaintViewModel(repository)
+        viewModel = ComplaintViewModel(repository, authRepository)
     }
 
     @Test

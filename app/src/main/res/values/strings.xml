@@ -233,4 +233,19 @@
     <string name="logout_confirmation">Logout Confirmation</string>
     <string name="are_you_sure_you_want_to_logout">Are you sure you want to logout?</string>
     <string name="yes_logout">Yes, Logout</string>
+
+    <string name="recent_bills">Recent Bills</string>
+    <string name="no_billing_history">No billing history found</string>
+    <string name="flat_number_display">Flat %1$s</string>
+    <string name="not_available_short">N/A</string>
+    <string name="due_date_format">Due: %1$s</string>
+    <string name="or_continue_with">Or continue with</string>
+    <string name="google">Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="apple">Apple</string>
+    <string name="no_pending_requests">No pending requests</string>
+    <string name="no_entry_history">No entry history found</string>
+    <string name="no_recent_activity">No recent staff activity</string>
+    <string name="checked_in">Checked In</string>
+    <string name="checked_out">Checked Out</string>
 </resources>

@@ -23,9 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zhd.socionet.R
 import com.zhd.socionet.ui.common.SoftTheme
 
 @Composable
@@ -82,13 +84,17 @@ fun AuthHeader(
 }
 
 @Composable
-fun SocialAuthButtons() {
+fun SocialAuthButtons(
+    onGoogleClick: () -> Unit = {},
+    onFacebookClick: () -> Unit = {},
+    onAppleClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Or continue with",
+            text = stringResource(R.string.or_continue_with),
             style = MaterialTheme.typography.labelMedium,
             color = SoftTheme.textSecondary
         )
@@ -96,10 +102,21 @@ fun SocialAuthButtons() {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Placeholder for Social Icons
-            SocialButton(onClick = {}, icon = "G") // Google
-            SocialButton(onClick = {}, icon = "F") // Facebook
-            SocialButton(onClick = {}, icon = "A") // Apple
+            SocialButton(
+                onClick = onGoogleClick,
+                label = stringResource(R.string.google).take(1),
+                backgroundColor = Color(0xFFDB4437)
+            )
+            SocialButton(
+                onClick = onFacebookClick,
+                label = stringResource(R.string.facebook).take(1),
+                backgroundColor = Color(0xFF4267B2)
+            )
+            SocialButton(
+                onClick = onAppleClick,
+                label = stringResource(R.string.apple).take(1),
+                backgroundColor = Color.Black
+            )
         }
     }
 }
@@ -107,20 +124,22 @@ fun SocialAuthButtons() {
 @Composable
 fun SocialButton(
     onClick: () -> Unit,
-    icon: String
+    label: String,
+    backgroundColor: Color
 ) {
     Surface(
         onClick = onClick,
         modifier = Modifier.size(50.dp),
         shape = CircleShape,
-        color = SoftTheme.surface,
+        color = backgroundColor.copy(alpha = 0.1f),
         border = AssistChipDefaults.assistChipBorder(enabled = true)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = icon,
+                text = label,
                 fontWeight = FontWeight.Bold,
-                color = SoftTheme.primary
+                color = backgroundColor,
+                fontSize = 18.sp
             )
         }
     }

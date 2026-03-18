@@ -296,7 +296,7 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                         color = SoftTheme.textSecondary
                     )
                     Text(
-                        text = uiState.generatedOtp ?: "000000",
+                        text = uiState.generatedOtp ?: "------",
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Black,
                         color = SoftTheme.primary
@@ -332,7 +332,7 @@ fun CreatePassContent(viewModel: GatePassViewModel, flatId: String, userId: Stri
                         ShareUtils.shareGatePass(
                             context = context,
                             visitorName = uiState.visitorName,
-                            otp = uiState.generatedOtp ?: "000000",
+                            otp = uiState.generatedOtp ?: "------",
                             qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${uiState.generatedPassId}",
                             scope = scope
                         )
@@ -429,7 +429,7 @@ fun RequestsList(requests: List<GateEntry>, scaffoldPadding: PaddingValues, onRe
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
     if (requests.isEmpty()) {
-        EmptyStateView(Icons.Default.VerifiedUser, "No pending requests")
+        EmptyStateView(Icons.Default.VerifiedUser, stringResource(R.string.no_pending_requests))
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -517,7 +517,7 @@ fun HistoryList(history: List<GateEntry>, scaffoldPadding: PaddingValues) {
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
     if (history.isEmpty()) {
-        EmptyStateView(Icons.Default.History, "No entry history found")
+        EmptyStateView(Icons.Default.History, stringResource(R.string.no_entry_history))
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -666,7 +666,7 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>, scaffo
             item {
                 SoftCard(backgroundColor = SoftTheme.bg.copy(alpha = 0.5f)) {
                     Text(
-                        "No recent staff activity",
+                        stringResource(R.string.no_recent_activity),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
@@ -705,7 +705,7 @@ fun StaffTrackingList(myStaff: List<ServiceStaff>, logs: List<GateEntry>, scaffo
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "${if (isCheckIn) "Checked In" else "Checked Out"} • ${
+                                text = "${if (isCheckIn) stringResource(R.string.checked_in) else stringResource(R.string.checked_out)} • ${
                                     formatTime(
                                         log.entryTime
                                     )

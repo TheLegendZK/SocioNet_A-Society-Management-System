@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.zhd.socionet.fakes.FakeAuthRepository
 import com.zhd.socionet.fakes.FakeGatePassRepository
 import com.zhd.socionet.fakes.FakeOtpGenerator
 import com.zhd.socionet.fakes.FakeStaffRepository
@@ -22,8 +23,9 @@ class VisitorManagementScreenTest {
     fun visitorManagementScreen_displaysTitle() {
         val fakeGatePassRepo = FakeGatePassRepository()
         val fakeStaffRepo = FakeStaffRepository()
+        val fakeAuthRepo = FakeAuthRepository()
         val fakeOtpGenerator = FakeOtpGenerator()
-        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeOtpGenerator)
+        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeAuthRepo, fakeOtpGenerator)
 
         composeTestRule.setContent {
             VisitorManagementScreen(
@@ -41,8 +43,9 @@ class VisitorManagementScreenTest {
     fun visitorManagementScreen_displaysTabs() {
         val fakeGatePassRepo = FakeGatePassRepository()
         val fakeStaffRepo = FakeStaffRepository()
+        val fakeAuthRepo = FakeAuthRepository()
         val fakeOtpGenerator = FakeOtpGenerator()
-        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeOtpGenerator)
+        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeAuthRepo, fakeOtpGenerator)
 
         composeTestRule.setContent {
             VisitorManagementScreen(
@@ -62,8 +65,9 @@ class VisitorManagementScreenTest {
     fun visitorManagementScreen_displaysPendingRequestsInApprovalsTab() {
         val fakeGatePassRepo = FakeGatePassRepository()
         val fakeStaffRepo = FakeStaffRepository()
+        val fakeAuthRepo = FakeAuthRepository()
         val fakeOtpGenerator = FakeOtpGenerator()
-        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeOtpGenerator)
+        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeAuthRepo, fakeOtpGenerator)
 
         composeTestRule.setContent {
             VisitorManagementScreen(
@@ -82,8 +86,9 @@ class VisitorManagementScreenTest {
     fun visitorManagementScreen_displaysHistoryInHistoryTab() {
         val fakeGatePassRepo = FakeGatePassRepository()
         val fakeStaffRepo = FakeStaffRepository()
+        val fakeAuthRepo = FakeAuthRepository()
         val fakeOtpGenerator = FakeOtpGenerator()
-        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeOtpGenerator)
+        val viewModel = GatePassViewModel(fakeGatePassRepo, fakeStaffRepo, fakeAuthRepo, fakeOtpGenerator)
 
         composeTestRule.setContent {
             VisitorManagementScreen(

@@ -35,13 +35,27 @@ class BillingViewModel @Inject constructor(
         }
     }
 
+    fun loadAllBillsForAdmin(societyId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val bills = repository.getAllBills(societyId)
+            _uiState.update { it.copy(isLoading = false, bills = bills) }
+        }
+    }
+
     fun payBill(billId: String, userId: String, flatId: String) {
         viewModelScope.launch {
-            repository.payBill(billId, userId)
-            // Force reload after payment
-            val bills = repository.getBillsForFlat(flatId)
-            val outstanding = bills.filter { !it.isPaid }.sumOf { it.amountDue }
-            _uiState.update { it.copy(bills = bills, totalOutstanding = outstanding) }
+            _uiState.update { it.copy(isLoading = true) }
+            val result = repository.payBill(billId, userId)
+            
+            result.onSuccess {
+                // Force reload after payment
+                val bills = repository.getBillsForFlat(flatId)
+                val outstanding = bills.filter { !it.isPaid }.sumOf { it.amountDue }
+                _uiState.update { it.copy(isLoading = false, bills = bills, totalOutstanding = outstanding, adminMessage = "Payment Successful") }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, adminMessage = "Payment Failed: ${e.message}") }
+            }
         }
     }
 
@@ -59,6 +73,7 @@ class BillingViewModel @Inject constructor(
                         adminMessage = "Success! Generated $count bills for $currentMonth."
                     )
                 }
+                loadAllBillsForAdmin(societyId) // Refresh admin list
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
@@ -68,6 +83,10 @@ class BillingViewModel @Inject constructor(
                 }
             }
         }
+    }
+    
+    fun clearMessage() {
+        _uiState.update { it.copy(adminMessage = null) }
     }
 }
 

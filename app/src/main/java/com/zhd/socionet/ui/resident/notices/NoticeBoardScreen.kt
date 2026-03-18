@@ -45,7 +45,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
-import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
@@ -57,16 +56,15 @@ import java.util.Locale
 fun NoticeBoardScreen(
     viewModel: NoticeBoardViewModel = hiltViewModel(),
     societyId: String,
-    userWing: String,
-    userRoles: List<UserRole>,
+    userId: String,
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
     
-    LaunchedEffect(societyId, userWing) { 
-        viewModel.loadNotices(societyId, userWing, userRoles) 
+    LaunchedEffect(societyId, userId) { 
+        viewModel.loadNotices(societyId, userId)
     }
 
     Box(modifier = Modifier.fillMaxSize().background(SoftTheme.bg)) {

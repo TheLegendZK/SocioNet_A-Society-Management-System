@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.fakes.FakeProfileRepository
 import org.junit.Rule
 import org.junit.Test
@@ -19,7 +20,7 @@ class ProfileScreenTest {
     @Test
     fun profileScreen_displaysUserNameAndEmail() {
         val fakeRepository = FakeProfileRepository()
-        val viewModel = ProfileViewModel(fakeRepository)
+        val viewModel = ProfileViewModel(fakeRepository, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             ProfileScreen(
@@ -38,7 +39,7 @@ class ProfileScreenTest {
     @Test
     fun profileScreen_displaysActionButtons() {
         val fakeRepository = FakeProfileRepository()
-        val viewModel = ProfileViewModel(fakeRepository)
+        val viewModel = ProfileViewModel(fakeRepository, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             ProfileScreen(

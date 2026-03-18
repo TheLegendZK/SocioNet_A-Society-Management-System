@@ -58,7 +58,7 @@ class AdminApprovalViewModelTest {
         viewModel.loadPendingRequests("soc_1")
 
         // Mock approval
-        coEvery { repository.approveUser("1") } returns Result.success(Unit)
+        coEvery { repository.approveUser(userToApprove) } returns Result.success(Unit)
 
         // When
         viewModel.approveUser(userToApprove)
@@ -69,7 +69,7 @@ class AdminApprovalViewModelTest {
         assertEquals("User B", state.pendingUsers[0].fullName) // Only User B remains
         assertTrue(state.message!!.contains("Approved"))
 
-        coVerify { repository.approveUser("1") }
+        coVerify { repository.approveUser(userToApprove) }
     }
 
     @Test
@@ -80,7 +80,7 @@ class AdminApprovalViewModelTest {
         coEvery { repository.getPendingUsers(any()) } returns listOf(userToReject)
         viewModel.loadPendingRequests("soc_1")
 
-        coEvery { repository.rejectUser("1") } returns Result.success(Unit)
+        coEvery { repository.rejectUser(userToReject.id) } returns Result.success(Unit)
 
         // When
         viewModel.rejectUser(userToReject)
@@ -89,6 +89,8 @@ class AdminApprovalViewModelTest {
         val state = viewModel.uiState.value
         assertTrue(state.pendingUsers.isEmpty())
         assertTrue(state.message!!.contains("Rejected"))
+
+        coVerify { repository.rejectUser(userToReject.id) }
     }
 
     @Test
@@ -97,7 +99,7 @@ class AdminApprovalViewModelTest {
         val user = UserProfile(id = "1", fullName = "User A")
         val errorMsg = "Network Error"
 
-        coEvery { repository.approveUser("1") } returns Result.failure(Exception(errorMsg))
+        coEvery { repository.approveUser(user) } returns Result.failure(Exception(errorMsg))
 
         // When
         viewModel.approveUser(user)

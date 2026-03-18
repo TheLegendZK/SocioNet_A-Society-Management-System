@@ -1,9 +1,8 @@
 package com.zhd.socionet.ui.security.scanner
 
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SecurityRepository
 import com.zhd.socionet.utils.MainDispatcherRule
 import io.mockk.coEvery
@@ -24,17 +23,15 @@ class SecurityScannerViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository: SecurityRepository = mockk()
-    private val auth: FirebaseAuth = mockk()
-    private val mockUser: FirebaseUser = mockk()
+    private val authRepository: AuthRepository = mockk()
     private lateinit var viewModel: SecurityScannerViewModel
 
     @Before
     fun setup() {
         // Mock Auth to return a specific guard ID
-        every { auth.currentUser } returns mockUser
-        every { mockUser.uid } returns "guard_007"
+        every { authRepository.getCurrentUserId() } returns "guard_007"
 
-        viewModel = SecurityScannerViewModel(repository, auth)
+        viewModel = SecurityScannerViewModel(repository, authRepository)
     }
 
     @Test

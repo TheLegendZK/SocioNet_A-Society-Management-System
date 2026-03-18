@@ -63,7 +63,6 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun getNoticesForSociety(societyId: String): Result<List<Notice>> {
         return try {
-            // Index Error Fix: Fetch all for society and sort locally to avoid composite index requirement
             val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
                 .whereEqualTo("societyId", societyId)
                 .get()
@@ -81,7 +80,6 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun getNoticesForUser(societyId: String, userWing: String, isOwner: Boolean): List<Notice> {
         try {
-            // Index Error Fix: Fetch and sort locally
             val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
                 .whereEqualTo("societyId", societyId)
                 .get().await()
@@ -111,6 +109,7 @@ fun Notice.toEntity() = NoticeEntity(
     id = id,
     title = title,
     content = content,
+    attachmentUrl = attachmentUrl,
     priority = priority,
     targetAudience = targetAudience,
     postedByAdminId = postedByAdminId,
@@ -122,7 +121,7 @@ fun NoticeEntity.toDomain() = Notice(
     id = id,
     title = title,
     content = content,
-    attachmentUrl = null,
+    attachmentUrl = attachmentUrl,
     priority = priority,
     targetAudience = targetAudience,
     postedByAdminId = postedByAdminId,

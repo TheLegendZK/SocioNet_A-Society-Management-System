@@ -32,8 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -59,6 +57,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
 import com.zhd.socionet.data.model.ThemeMode
 import com.zhd.socionet.ui.common.LocalNavPadding
+import com.zhd.socionet.ui.common.LocalSnackbarHostState
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 
@@ -70,7 +69,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showThemeDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = LocalSnackbarHostState.current
     val navPadding = LocalNavPadding.current
     val layoutDirection = LocalLayoutDirection.current
 
@@ -98,7 +97,7 @@ fun SettingsScreen(
 
         Scaffold(
             containerColor = Color.Transparent,
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            // Removed local SnackbarHost to use the global one in AdaptiveAppShell
             topBar = {
                 CenterAlignedTopAppBar(
                     title = { Text(stringResource(R.string.app_settings), fontWeight = FontWeight.Bold, color = Color.White) },

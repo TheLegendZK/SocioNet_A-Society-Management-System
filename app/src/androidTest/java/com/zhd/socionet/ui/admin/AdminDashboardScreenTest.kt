@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.fakes.FakeAdminUserRepository
 import com.zhd.socionet.fakes.FakeProfileRepository
 import com.zhd.socionet.ui.admin.approval.AdminApprovalViewModel
@@ -25,7 +26,7 @@ class AdminDashboardScreenTest {
         val fakeApprovalRepo = FakeAdminUserRepository()
         val fakeProfileRepo = FakeProfileRepository()
         val approvalViewModel = AdminApprovalViewModel(fakeApprovalRepo)
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             val navController = rememberNavController()
@@ -45,7 +46,7 @@ class AdminDashboardScreenTest {
         val fakeApprovalRepo = FakeAdminUserRepository()
         val fakeProfileRepo = FakeProfileRepository()
         val approvalViewModel = AdminApprovalViewModel(fakeApprovalRepo)
-        val profileViewModel = ProfileViewModel(fakeProfileRepo)
+        val profileViewModel = ProfileViewModel(fakeProfileRepo, FirebaseFirestore.getInstance())
 
         composeTestRule.setContent {
             val navController = rememberNavController()

@@ -39,7 +39,7 @@ class CreateNoticeViewModel @Inject constructor(
         }
     }
 
-    private fun loadWings(societyId: String) {
+    fun loadWings(societyId: String) {
         viewModelScope.launch {
             val wings = authRepository.fetchWings(societyId)
             _uiState.update { it.copy(availableWings = wings) }

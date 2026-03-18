@@ -1,5 +1,6 @@
 package com.zhd.socionet.ui.profile
 
+import com.google.firebase.firestore.FirebaseFirestore
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.repository.ProfileRepository
 import com.zhd.socionet.utils.MainDispatcherRule
@@ -21,11 +22,12 @@ class ProfileViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository: ProfileRepository = mockk()
+    private val firestore: FirebaseFirestore = mockk()
     private lateinit var viewModel: ProfileViewModel
 
     @Before
     fun setup() {
-        viewModel = ProfileViewModel(repository)
+        viewModel = ProfileViewModel(repository, firestore)
     }
 
     @Test

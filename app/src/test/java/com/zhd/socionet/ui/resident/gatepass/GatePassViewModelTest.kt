@@ -5,6 +5,7 @@ import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.data.model.ServiceStaff
 import com.zhd.socionet.data.model.VisitorType
+import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.GatePassRepository
 import com.zhd.socionet.data.repository.StaffRepository
 import com.zhd.socionet.utils.MainDispatcherRule
@@ -27,12 +28,13 @@ class GatePassViewModelTest {
 
     private val repository: GatePassRepository = mockk()
     private val staffRepository: StaffRepository = mockk()
+    private val authRepository: AuthRepository = mockk()
     private val otpGenerator: OtpGenerator = mockk()
     private lateinit var viewModel: GatePassViewModel
 
     @Before
     fun setup() {
-        viewModel = GatePassViewModel(repository, staffRepository, otpGenerator)
+        viewModel = GatePassViewModel(repository, staffRepository, authRepository, otpGenerator)
     }
 
     @Test

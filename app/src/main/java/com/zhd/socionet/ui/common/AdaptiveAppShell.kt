@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -29,12 +30,15 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +50,9 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 val LocalNavPadding = compositionLocalOf { PaddingValues(0.dp) }
+val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
+    error("No SnackbarHostState provided")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +61,8 @@ fun AdaptiveAppShell(
     navItems: List<NavItem>,
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     // If no nav items, just render content directly to avoid redundant Scaffold/Layout
     if (navItems.isEmpty()) {
         Box(
@@ -61,8 +70,11 @@ fun AdaptiveAppShell(
                 .fillMaxSize()
                 .background(SoftTheme.bg)
                 .statusBarsPadding()
+                .navigationBarsPadding() // Fixed: Ensure content/toast is above system nav bar
         ) {
-            content(PaddingValues(0.dp))
+            CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+                content(PaddingValues(0.dp))
+            }
         }
         return
     }
@@ -80,7 +92,7 @@ fun AdaptiveAppShell(
     ) {
         // 1. RAIL (Tablet)
         if (navType == NavType.RAIL) {
-            Box(modifier = Modifier.padding(24.dp).fillMaxHeight()) {
+            Box(modifier = Modifier.padding(24.dp).fillMaxHeight().navigationBarsPadding()) {
                 SoftCard(
                     padding = 0.dp,
                     backgroundColor = SoftTheme.surface,
@@ -115,7 +127,7 @@ fun AdaptiveAppShell(
 
         // 2. DRAWER (Desktop)
         if (navType == NavType.DRAWER) {
-            Box(modifier = Modifier.padding(24.dp).fillMaxHeight()) {
+            Box(modifier = Modifier.padding(24.dp).fillMaxHeight().navigationBarsPadding()) {
                 SoftCard(
                     padding = 16.dp,
                     backgroundColor = SoftTheme.surface,
@@ -157,11 +169,16 @@ fun AdaptiveAppShell(
         Scaffold(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = { 
+                // Positioning SnackbarHost here ensures it is above the bottomBar
+                SnackbarHost(snackbarHostState) 
+            },
             bottomBar = {
                 if (navType == NavType.BOTTOM_BAR) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding() // Fixed: Respect system navigation bar
                             .padding(horizontal = 32.dp, vertical = 8.dp)
                     ) {
                         Surface(
@@ -202,7 +219,10 @@ fun AdaptiveAppShell(
                 }
             }
         ) { padding ->
-            CompositionLocalProvider(LocalNavPadding provides padding) {
+            CompositionLocalProvider(
+                LocalNavPadding provides padding,
+                LocalSnackbarHostState provides snackbarHostState
+            ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {

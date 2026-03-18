@@ -3,6 +3,7 @@ package com.zhd.socionet.ui.resident.notices
 import com.zhd.socionet.data.model.Notice
 import com.zhd.socionet.data.model.UserRole
 import com.zhd.socionet.data.repository.NoticeRepository
+import com.zhd.socionet.data.repository.ProfileRepository
 import com.zhd.socionet.utils.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -20,24 +21,26 @@ class NoticeBoardViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository: NoticeRepository = mockk()
+    private val profileRepository: ProfileRepository = mockk()
     private lateinit var viewModel: NoticeBoardViewModel
 
     @Before
     fun setup() {
-        viewModel = NoticeBoardViewModel(repository)
+        viewModel = NoticeBoardViewModel(repository, profileRepository)
     }
 
     @Test
     fun `loadNotices for Owner passes isOwner=true`() = runTest {
         // Given
+        val societyId = "soc_1"
         val wing = "A"
-        val roles = listOf(UserRole.OWNER, UserRole.OWNER) // User is an Owner
+        val roles = listOf(UserRole.OWNER) // User is an Owner
         val mockNotices = listOf(Notice(id = "1", title = "AGM Meeting"))
 
-        coEvery { repository.getNoticesForUser(wing, isOwner = true) } returns mockNotices
+        coEvery { repository.getNoticesForUser(societyId, wing, isOwner = true) } returns mockNotices
 
         // When
-        viewModel.loadNotices(wing, roles)
+        viewModel.loadNotices(societyId, wing, roles)
 
         // Then
         val state = viewModel.uiState.value
@@ -46,21 +49,22 @@ class NoticeBoardViewModelTest {
         assertEquals("AGM Meeting", state.notices[0].title)
 
         // Verify correct flag was passed
-        coVerify { repository.getNoticesForUser(wing, isOwner = true) }
+        coVerify { repository.getNoticesForUser(societyId, wing, isOwner = true) }
     }
 
     @Test
     fun `loadNotices for Tenant passes isOwner=false`() = runTest {
         // Given
+        val societyId = "soc_1"
         val wing = "B"
         val roles = listOf(UserRole.TENANT) // User is NOT an Owner
 
-        coEvery { repository.getNoticesForUser(wing, isOwner = false) } returns emptyList()
+        coEvery { repository.getNoticesForUser(societyId, wing, isOwner = false) } returns emptyList()
 
         // When
-        viewModel.loadNotices(wing, roles)
+        viewModel.loadNotices(societyId, wing, roles)
 
         // Then
-        coVerify { repository.getNoticesForUser(wing, isOwner = false) }
+        coVerify { repository.getNoticesForUser(societyId, wing, isOwner = false) }
     }
 }
