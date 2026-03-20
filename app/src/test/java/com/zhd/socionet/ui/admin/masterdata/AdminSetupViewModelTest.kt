@@ -23,6 +23,8 @@ class AdminSetupViewModelTest {
 
     @Before
     fun setup() {
+        // Mock init load
+        coEvery { repository.getAllSocieties() } returns Result.success(emptyList())
         viewModel = AdminSetupViewModel(repository)
     }
 

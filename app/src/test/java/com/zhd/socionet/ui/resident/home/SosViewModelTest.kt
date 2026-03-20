@@ -1,5 +1,6 @@
 package com.zhd.socionet.ui.resident.home
 
+import com.zhd.socionet.data.model.EmergencyAlert
 import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SosRepository
 import com.zhd.socionet.utils.MainDispatcherRule
@@ -22,6 +23,8 @@ class SosViewModelTest {
 
     @Before
     fun setup() {
+        // Default stub for authRepository
+        coEvery { authRepository.getUserProfile(any()) } returns null
         viewModel = SosViewModel(repository, authRepository)
     }
 
@@ -36,7 +39,7 @@ class SosViewModelTest {
         // Then
         coVerify {
             repository.triggerSos(match {
-                it.raisedByUserId == "user_123" && it.flatId == "flat_101" && it.type == "General Emergency"
+                it.raisedByUserId == "user_123" && it.flatId == "flat_101" && it.subType == "General Emergency"
             })
         }
     }

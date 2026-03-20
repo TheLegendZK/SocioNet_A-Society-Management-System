@@ -43,7 +43,8 @@ class NavigationLogicTest {
 
         val destination = NavigationRouter.getHomeDestination(profile)
 
-        assertEquals(Routes.PENDING_APPROVAL, destination)
+        val expected = Routes.buildPendingApproval(profile.wingId, profile.flatNumber)
+        assertEquals(expected, destination)
     }
 
     @Test

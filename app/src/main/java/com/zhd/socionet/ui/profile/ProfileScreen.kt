@@ -359,13 +359,13 @@ fun ProfileScreen(
                                     ProfileInfoRow(
                                         Icons.Default.LocationCity,
                                         stringResource(R.string.wing_block),
-                                        stringResource(R.string.wing, wing)
+                                        stringResource(R.string.wing_name, wing)
                                     )
                                     HorizontalDivider(color = SoftTheme.textSecondary.copy(alpha = 0.1f))
                                     ProfileInfoRow(
                                         Icons.Default.MeetingRoom,
                                         stringResource(R.string.flat_number),
-                                        stringResource(R.string.flat, flatNo)
+                                        stringResource(R.string.flat_name, flatNo)
                                     )
                                 } else {
                                     ProfileInfoRow(

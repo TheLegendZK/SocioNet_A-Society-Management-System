@@ -20,7 +20,7 @@ class RoutesTest {
     fun `buildResidentCreatePass creates correct route`() {
         val flatId = "A_101"
         val userId = "U_999"
-        val expected = "resident_create_pass/A_101/U_999"
+        val expected = "resident_create_pass/A_101/U_999?tab=0"
 
         val actual = Routes.buildResidentCreatePass(flatId, userId)
 

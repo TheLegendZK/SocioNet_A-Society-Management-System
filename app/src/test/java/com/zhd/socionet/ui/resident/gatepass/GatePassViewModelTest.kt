@@ -34,6 +34,8 @@ class GatePassViewModelTest {
 
     @Before
     fun setup() {
+        // Default stub for authRepository
+        coEvery { authRepository.getUserProfile(any()) } returns null
         viewModel = GatePassViewModel(repository, staffRepository, authRepository, otpGenerator)
     }
 

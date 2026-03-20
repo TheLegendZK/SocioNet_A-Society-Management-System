@@ -24,6 +24,8 @@ class BillingViewModelTest {
 
     @Before
     fun setup() {
+        // Default stub for admin refresh
+        coEvery { repository.getAllBills(any()) } returns emptyList()
         viewModel = BillingViewModel(repository)
     }
 
@@ -32,9 +34,9 @@ class BillingViewModelTest {
         // Given
         val flatId = "flat_101"
         val bills = listOf(
-            Bill(id = "1", amountDue = 1000.0, isPaid = false), // Unpaid
-            Bill(id = "2", amountDue = 2000.0, isPaid = false), // Unpaid
-            Bill(id = "3", amountDue = 1500.0, isPaid = true)   // Paid (Should be ignored)
+            Bill(id = "1", amountDue = 1000.0, isPaid = false, flatId = flatId), // Unpaid
+            Bill(id = "2", amountDue = 2000.0, isPaid = false, flatId = flatId), // Unpaid
+            Bill(id = "3", amountDue = 1500.0, isPaid = true, flatId = flatId)   // Paid (Should be ignored)
         )
 
         coEvery { repository.getBillsForFlat(flatId) } returns bills
@@ -83,7 +85,7 @@ class BillingViewModelTest {
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
         assertTrue(state.adminMessage!!.contains("Success"))
-        assertTrue(state.adminMessage.contains("$count"))
+        assertTrue(state.adminMessage!!.contains("$count"))
     }
 
     @Test

@@ -16,4 +16,8 @@ interface AuthRepository {
     ): List<Pair<String, String>>
 
     suspend fun checkFlatOccupancy(flatId: String): String?
+    suspend fun updateFcmToken(token: String)
+    suspend fun refreshFcmToken()
+    suspend fun getUserProfile(userId: String): UserProfile?
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 }

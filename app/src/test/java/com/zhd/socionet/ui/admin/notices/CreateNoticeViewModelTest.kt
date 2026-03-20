@@ -25,6 +25,10 @@ class CreateNoticeViewModelTest {
 
     @Before
     fun setup() {
+        // Default stubs
+        coEvery { authRepository.getUserProfile(any()) } returns null
+        coEvery { noticeRepository.getNoticesForSociety(any()) } returns Result.success(emptyList())
+        
         viewModel = CreateNoticeViewModel(noticeRepository, authRepository)
     }
 

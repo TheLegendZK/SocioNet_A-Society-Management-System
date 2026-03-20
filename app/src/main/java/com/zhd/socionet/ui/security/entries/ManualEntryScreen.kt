@@ -130,9 +130,13 @@ fun ManualEntryScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(layoutDirection),
+                        start = 24.dp + padding.calculateStartPadding(layoutDirection) + navPadding.calculateStartPadding(
+                            layoutDirection
+                        ),
                         top = padding.calculateTopPadding() + navPadding.calculateTopPadding(),
-                        end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(layoutDirection),
+                        end = 24.dp + padding.calculateEndPadding(layoutDirection) + navPadding.calculateEndPadding(
+                            layoutDirection
+                        ),
                         bottom = 32.dp + padding.calculateBottomPadding() + navPadding.calculateBottomPadding()
                     ),
                 verticalArrangement = Arrangement.spacedBy(20.dp)

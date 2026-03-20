@@ -4,6 +4,7 @@ import com.zhd.socionet.data.model.ThemeMode
 import com.zhd.socionet.data.repository.AuthRepository
 import com.zhd.socionet.data.repository.SettingsRepository
 import com.zhd.socionet.utils.MainDispatcherRule
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -31,7 +32,10 @@ class MainViewModelTest {
         // 1. Mock Auth Flow emitting a user ID
         every { authRepository.observeAuthState() } returns flowOf(userId)
 
-        // 2. Mock Settings Flow emitting Dark Mode for that user
+        // 2. Mock FCM token refresh
+        coEvery { authRepository.refreshFcmToken() } returns Unit
+
+        // 3. Mock Settings Flow emitting Dark Mode for that user
         every { settingsRepository.getThemeMode(userId) } returns flowOf(expectedTheme)
 
         // When
