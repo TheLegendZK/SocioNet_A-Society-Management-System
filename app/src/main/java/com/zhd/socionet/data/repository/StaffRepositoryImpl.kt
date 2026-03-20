@@ -1,9 +1,8 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.ServiceStaff
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,12 +17,12 @@ interface StaffRepository {
 
 @Singleton
 class StaffRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val db: FirestoreHelper
 ) : StaffRepository {
 
     override suspend fun addStaff(staff: ServiceStaff): Result<Unit> {
         return try {
-            val docRef = firestore.collection(AppConstants.COLL_SERVICE_STAFF).document()
+            val docRef = db.getStaffRef().document()
             val finalStaff = staff.copy(id = docRef.id)
             docRef.set(finalStaff).await()
             Result.success(Unit)
@@ -35,7 +34,7 @@ class StaffRepositoryImpl @Inject constructor(
     override suspend fun getStaffList(societyId: String): List<ServiceStaff> {
         if (societyId.isBlank()) return emptyList()
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_SERVICE_STAFF)
+            val snapshot = db.getStaffRef()
                 .whereEqualTo("societyId", societyId)
                 .get().await()
             snapshot.toObjects(ServiceStaff::class.java)
@@ -47,7 +46,7 @@ class StaffRepositoryImpl @Inject constructor(
     override suspend fun updateStaffStatus(staffId: String, isActive: Boolean): Result<Unit> {
         if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
-            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
+            db.getStaffRef().document(staffId)
                 .update("isActive", isActive)
                 .await()
             Result.success(Unit)
@@ -59,7 +58,7 @@ class StaffRepositoryImpl @Inject constructor(
     override suspend fun linkStaffToFlat(staffId: String, flatId: String): Result<Unit> {
         if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
-            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
+            db.getStaffRef().document(staffId)
                 .update("employerFlatIds", FieldValue.arrayUnion(flatId))
                 .await()
             Result.success(Unit)
@@ -71,7 +70,7 @@ class StaffRepositoryImpl @Inject constructor(
     override suspend fun unlinkStaffFromFlat(staffId: String, flatId: String): Result<Unit> {
         if (staffId.isBlank()) return Result.failure(Exception("Staff ID is required"))
         return try {
-            firestore.collection(AppConstants.COLL_SERVICE_STAFF).document(staffId)
+            db.getStaffRef().document(staffId)
                 .update("employerFlatIds", FieldValue.arrayRemove(flatId))
                 .await()
             Result.success(Unit)

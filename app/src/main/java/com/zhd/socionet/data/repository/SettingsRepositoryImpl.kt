@@ -1,10 +1,10 @@
 package com.zhd.socionet.data.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.SettingsPreferences
 import com.zhd.socionet.data.model.ThemeMode
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -24,13 +24,13 @@ interface SettingsRepository {
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val db: FirestoreHelper
 ) : SettingsRepository {
 
     private val fcm by lazy { FirebaseMessaging.getInstance() }
 
     override fun getThemeMode(userId: String): Flow<ThemeMode> = callbackFlow {
-        val listener = firestore.collection(AppConstants.COLL_USERS).document(userId)
+        val listener = db.getUsersRef().document(userId)
             .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -51,7 +51,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun getSettings(userId: String): Result<SettingsPreferences> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_USERS).document(userId)
+            val snapshot = db.getUsersRef().document(userId)
                 .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
                 .get().await()
 
@@ -71,7 +71,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateSettings(userId: String, settings: SettingsPreferences): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_USERS).document(userId)
+            db.getUsersRef().document(userId)
                 .collection(AppConstants.COLL_CONFIG).document(AppConstants.DOC_SETTINGS)
                 .set(settings).await()
             Result.success(Unit)

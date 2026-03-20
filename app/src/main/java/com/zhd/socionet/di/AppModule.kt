@@ -11,6 +11,7 @@ import com.zhd.socionet.data.local.BillDao
 import com.zhd.socionet.data.local.ComplaintDao
 import com.zhd.socionet.data.local.GateEntryDao
 import com.zhd.socionet.data.local.NoticeDao
+import com.zhd.socionet.data.remote.FirestoreHelper
 import com.zhd.socionet.data.repository.AdminRepository
 import com.zhd.socionet.data.repository.AdminRepositoryImpl
 import com.zhd.socionet.data.repository.AdminUserRepository
@@ -68,109 +69,115 @@ object AppModule {
     @Singleton
     fun provideOtpGenerator(): OtpGenerator = OtpGeneratorImpl()
 
+    @Provides
+    @Singleton
+    fun provideFirestoreHelper(db: FirebaseFirestore): FirestoreHelper {
+        return FirestoreHelper(db)
+    }
+
     // --- Repository Bindings ---
 
     @Provides
     @Singleton
     fun provideAuthRepository(
         auth: FirebaseAuth, 
-        db: FirebaseFirestore, 
+        firestoreHelper: FirestoreHelper, 
         crashlytics: FirebaseCrashlytics
     ): AuthRepository {
-        return AuthRepositoryImpl(auth, db, crashlytics)
+        return AuthRepositoryImpl(auth, firestoreHelper, crashlytics)
     }
 
     @Provides
     @Singleton
-    fun provideAdminRepository(db: FirebaseFirestore): AdminRepository {
-        return AdminRepositoryImpl(db)
+    fun provideAdminRepository(firestoreHelper: FirestoreHelper): AdminRepository {
+        return AdminRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
-    fun provideAdminUserRepository(db: FirebaseFirestore): AdminUserRepository {
-        return AdminUserRepositoryImpl(db)
+    fun provideAdminUserRepository(firestoreHelper: FirestoreHelper): AdminUserRepository {
+        return AdminUserRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
     fun provideGatePassRepository(
-        db: FirebaseFirestore,
+        firestoreHelper: FirestoreHelper,
         dao: GateEntryDao,
         crashlytics: FirebaseCrashlytics
     ): GatePassRepository {
-        return GatePassRepositoryImpl(db, dao, crashlytics)
+        return GatePassRepositoryImpl(firestoreHelper, dao, crashlytics)
     }
 
     @Provides
     @Singleton
-    fun provideSecurityRepository(db: FirebaseFirestore): SecurityRepository {
-        return SecurityRepositoryImpl(db)
+    fun provideSecurityRepository(firestoreHelper: FirestoreHelper): SecurityRepository {
+        return SecurityRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
     fun provideNoticeRepository(
-        db: FirebaseFirestore,
+        firestoreHelper: FirestoreHelper,
         dao: NoticeDao,
         crashlytics: FirebaseCrashlytics
     ): NoticeRepository {
-        return NoticeRepositoryImpl(db, dao, crashlytics)
+        return NoticeRepositoryImpl(firestoreHelper, dao, crashlytics)
     }
 
     @Provides
     @Singleton
     fun provideBillingRepository(
-        db: FirebaseFirestore,
+        firestoreHelper: FirestoreHelper,
         dao: BillDao,
         crashlytics: FirebaseCrashlytics
     ): BillingRepository {
-        return BillingRepositoryImpl(db, dao, crashlytics)
+        return BillingRepositoryImpl(firestoreHelper, dao, crashlytics)
     }
 
     @Provides
     @Singleton
-    fun provideStaffRepository(db: FirebaseFirestore): StaffRepository {
-        return StaffRepositoryImpl(db)
+    fun provideStaffRepository(firestoreHelper: FirestoreHelper): StaffRepository {
+        return StaffRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
     fun provideComplaintRepository(
-        db: FirebaseFirestore,
+        firestoreHelper: FirestoreHelper,
         dao: ComplaintDao,
         crashlytics: FirebaseCrashlytics
     ): ComplaintRepository {
-        return ComplaintRepositoryImpl(db, dao, crashlytics)
+        return ComplaintRepositoryImpl(firestoreHelper, dao, crashlytics)
     }
 
     @Provides
     @Singleton
     fun provideProfileRepository(
         auth: FirebaseAuth, 
-        db: FirebaseFirestore,
+        firestoreHelper: FirestoreHelper,
         storage: FirebaseStorage,
         @ApplicationContext context: Context,
         crashlytics: FirebaseCrashlytics
     ): ProfileRepository {
-        return ProfileRepositoryImpl(auth, db, storage, context, crashlytics)
+        return ProfileRepositoryImpl(auth, firestoreHelper, storage, context, crashlytics)
     }
 
     @Provides
     @Singleton
-    fun provideSosRepository(db: FirebaseFirestore, authRepository: AuthRepository): SosRepository {
-        return SosRepositoryImpl(db)
+    fun provideSosRepository(firestoreHelper: FirestoreHelper): SosRepository {
+        return SosRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
-    fun provideSocietyRepository(db: FirebaseFirestore): SocietyRepository {
-        return SocietyRepositoryImpl(db)
+    fun provideSocietyRepository(firestoreHelper: FirestoreHelper): SocietyRepository {
+        return SocietyRepositoryImpl(firestoreHelper)
     }
 
     @Provides
     @Singleton
-    fun provideSettingsRepository(db: FirebaseFirestore): SettingsRepository {
-        return SettingsRepositoryImpl(db)
+    fun provideSettingsRepository(firestoreHelper: FirestoreHelper): SettingsRepository {
+        return SettingsRepositoryImpl(firestoreHelper)
     }
 }

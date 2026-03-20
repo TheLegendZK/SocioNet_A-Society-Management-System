@@ -2,14 +2,13 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.local.BillDao
 import com.zhd.socionet.data.local.BillEntity
 import com.zhd.socionet.data.model.Bill
 import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.Society
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 import java.util.Date
@@ -25,7 +24,7 @@ interface BillingRepository {
 
 @Singleton
 class BillingRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
+    private val db: FirestoreHelper,
     private val dao: BillDao,
     private val crashlytics: FirebaseCrashlytics
 ) : BillingRepository {
@@ -34,7 +33,7 @@ class BillingRepositoryImpl @Inject constructor(
         if (societyId.isBlank()) return Result.failure(Exception("Society ID is required"))
         return try {
             // 1. Fetch Society Rules (Rate per SqFt + Fixed Charges)
-            val societyDoc = firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
+            val societyDoc = db.getSocietiesRef().document(societyId).get().await()
             val society = societyDoc.toObject(Society::class.java)
                 ?: throw Exception("Society not found")
 
@@ -43,13 +42,13 @@ class BillingRepositoryImpl @Inject constructor(
             }
 
             // 2. Fetch All Flats
-            val flatsSnapshot = firestore.collection(AppConstants.COLL_FLATS)
+            val flatsSnapshot = db.getFlatsRef()
                 .whereEqualTo("societyId", societyId)
                 .get().await()
             val flats = flatsSnapshot.toObjects(Flat::class.java)
 
             // 3. Batch Write Bills
-            val batch = firestore.batch()
+            val batch = db.getFirestore().batch()
             var count = 0
 
             // Set Due Date to 10 days from now
@@ -62,7 +61,7 @@ class BillingRepositoryImpl @Inject constructor(
                 if (flat.sqFtArea > 0 || society.fixedCharges > 0) { // Only bill if something is configured
                     val amount = (flat.sqFtArea * society.maintenanceRatePerSqFt) + society.fixedCharges
 
-                    val billRef = firestore.collection(AppConstants.COLL_BILLS).document()
+                    val billRef = db.getBillsRef().document()
                     val bill = Bill(
                         id = billRef.id,
                         flatId = flat.id,
@@ -90,7 +89,7 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun getBillsForFlat(flatId: String): List<Bill> {
         if (flatId.isBlank()) return emptyList()
         try {
-            val snapshot = firestore.collection(AppConstants.COLL_BILLS)
+            val snapshot = db.getBillsRef()
                 .whereEqualTo("flatId", flatId)
                 .orderBy("billDate", Query.Direction.DESCENDING)
                 .get().await()
@@ -106,7 +105,7 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun getAllBills(societyId: String): List<Bill> {
         if (societyId.isBlank()) return emptyList()
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_BILLS)
+            val snapshot = db.getBillsRef()
                 .whereEqualTo("societyId", societyId)
                 .orderBy("billDate", Query.Direction.DESCENDING)
                 .limit(100)
@@ -121,7 +120,7 @@ class BillingRepositoryImpl @Inject constructor(
     override suspend fun payBill(billId: String, userId: String): Result<Unit> {
         if (billId.isBlank()) return Result.failure(Exception("Bill ID is required"))
         return try {
-            firestore.collection(AppConstants.COLL_BILLS).document(billId)
+            db.getBillsRef().document(billId)
                 .update("isPaid", true, "paidByUserId", userId, "paymentTransactionId", "TXN_${System.currentTimeMillis()}")
                 .await()
             Result.success(Unit)

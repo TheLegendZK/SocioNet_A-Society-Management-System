@@ -2,11 +2,10 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.local.NoticeDao
 import com.zhd.socionet.data.local.NoticeEntity
 import com.zhd.socionet.data.model.Notice
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -22,15 +21,15 @@ interface NoticeRepository {
 
 @Singleton
 class NoticeRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
+    private val db: FirestoreHelper,
     private val dao: NoticeDao,
     private val crashlytics: FirebaseCrashlytics
 ) : NoticeRepository {
     override suspend fun createNotice(notice: Notice): Result<Unit> {
         return try {
-            val docRef = firestore.collection(AppConstants.COLL_NOTICES).document()
+            val docRef = db.getNoticesRef().document()
             val finalNotice = notice.copy(id = docRef.id, timestamp = Timestamp.now())
-            firestore.collection(AppConstants.COLL_NOTICES).document(docRef.id).set(finalNotice).await()
+            db.getNoticesRef().document(docRef.id).set(finalNotice).await()
             dao.insertNotices(listOf(finalNotice.toEntity()))
             Result.success(Unit)
         } catch (e: Exception) {
@@ -42,7 +41,7 @@ class NoticeRepositoryImpl @Inject constructor(
     override suspend fun updateNotice(notice: Notice): Result<Unit> {
         return try {
             val finalNotice = notice.copy(timestamp = Timestamp.now())
-            firestore.collection(AppConstants.COLL_NOTICES).document(notice.id).set(finalNotice).await()
+            db.getNoticesRef().document(notice.id).set(finalNotice).await()
             dao.insertNotices(listOf(finalNotice.toEntity()))
             Result.success(Unit)
         } catch (e: Exception) {
@@ -53,7 +52,7 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun deleteNotice(noticeId: String): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_NOTICES).document(noticeId).delete().await()
+            db.getNoticesRef().document(noticeId).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
             crashlytics.recordException(e)
@@ -63,7 +62,7 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun getNoticesForSociety(societyId: String): Result<List<Notice>> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
+            val snapshot = db.getNoticesRef()
                 .whereEqualTo("societyId", societyId)
                 .get()
                 .await()
@@ -80,7 +79,7 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun getNoticesForUser(societyId: String, userWing: String, isOwner: Boolean): List<Notice> {
         try {
-            val snapshot = firestore.collection(AppConstants.COLL_NOTICES)
+            val snapshot = db.getNoticesRef()
                 .whereEqualTo("societyId", societyId)
                 .get().await()
                 

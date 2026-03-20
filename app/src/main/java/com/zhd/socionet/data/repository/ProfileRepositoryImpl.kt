@@ -8,11 +8,11 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.remote.FirestoreHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -29,7 +29,7 @@ interface ProfileRepository {
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val db: FirestoreHelper,
     private val storage: FirebaseStorage,
     @get:ApplicationContext private val context: Context,
     private val crashlytics: FirebaseCrashlytics
@@ -37,7 +37,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun getUserProfile(userId: String): Result<UserProfile> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_USERS).document(userId).get().await()
+            val snapshot = db.getUsersRef().document(userId).get().await()
             val profile = snapshot.toObject(UserProfile::class.java)
             if (profile != null) {
                 Result.success(profile)
@@ -52,7 +52,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_USERS).document(profile.id).set(profile).await()
+            db.getUsersRef().document(profile.id).set(profile).await()
 
             val user = auth.currentUser
             val profileUpdates = UserProfileChangeRequest.Builder()
@@ -111,7 +111,7 @@ class ProfileRepositoryImpl @Inject constructor(
             val downloadUrl = ref.downloadUrl.await().toString()
 
             // Update Firestore
-            firestore.collection(AppConstants.COLL_USERS).document(userId)
+            db.getUsersRef().document(userId)
                 .update("profilePhotoUrl", downloadUrl).await()
 
             // Update Firebase Auth Profile

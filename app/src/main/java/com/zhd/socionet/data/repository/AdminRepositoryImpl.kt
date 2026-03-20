@@ -1,9 +1,8 @@
 package com.zhd.socionet.data.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.Flat
 import com.zhd.socionet.data.model.Society
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,15 +18,15 @@ interface AdminRepository {
 
 @Singleton
 class AdminRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val db: FirestoreHelper
 ) : AdminRepository {
 
     override suspend fun createSociety(society: Society): Result<String> {
         return try {
-            val societyId = society.id.ifBlank { firestore.collection(AppConstants.COLL_SOCIETIES).document().id }
+            val societyId = society.id.ifBlank { db.getSocietiesRef().document().id }
             val finalSociety = society.copy(id = societyId)
 
-            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).set(finalSociety).await()
+            db.getSocietiesRef().document(societyId).set(finalSociety).await()
             Result.success(societyId)
         } catch (e: Exception) {
             Result.failure(e)
@@ -36,7 +35,7 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun updateSociety(society: Society): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_SOCIETIES).document(society.id).set(society).await()
+            db.getSocietiesRef().document(society.id).set(society).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -45,7 +44,7 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun deleteSociety(societyId: String): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).delete().await()
+            db.getSocietiesRef().document(societyId).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -54,7 +53,7 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun getAllSocieties(): Result<List<Society>> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_SOCIETIES).get().await()
+            val snapshot = db.getSocietiesRef().get().await()
             val societies = snapshot.toObjects(Society::class.java)
             Result.success(societies)
         } catch (e: Exception) {
@@ -64,11 +63,11 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun batchCreateFlats(flats: List<Flat>): Result<Unit> {
         return try {
-            val batch = firestore.batch()
+            val batch = db.getFirestore().batch()
 
             flats.forEach { flat ->
                 if (flat.id.isNotBlank()) {
-                    val docRef = firestore.collection(AppConstants.COLL_FLATS).document(flat.id)
+                    val docRef = db.getFlatsRef().document(flat.id)
                     batch.set(docRef, flat)
                 }
             }
@@ -82,12 +81,12 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun deleteFlatsForSociety(societyId: String): Result<Unit> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_FLATS)
+            val snapshot = db.getFlatsRef()
                 .whereEqualTo("societyId", societyId)
                 .get()
                 .await()
 
-            val batch = firestore.batch()
+            val batch = db.getFirestore().batch()
             snapshot.documents.forEach { doc ->
                 batch.delete(doc.reference)
             }

@@ -19,4 +19,9 @@ class FirestoreHelper @Inject constructor(
     fun getGateEntriesRef(): CollectionReference = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
     fun getNoticesRef(): CollectionReference = firestore.collection(AppConstants.COLL_NOTICES)
     fun getBillsRef(): CollectionReference = firestore.collection(AppConstants.COLL_BILLS)
+    fun getStaffRef(): CollectionReference = firestore.collection(AppConstants.COLL_SERVICE_STAFF)
+    fun getComplaintsRef(): CollectionReference = firestore.collection(AppConstants.COLL_COMPLAINTS)
+    fun getEmergencyAlertsRef(): CollectionReference = firestore.collection(AppConstants.COLL_EMERGENCY_ALERTS)
+    
+    fun getFirestore() = firestore
 }

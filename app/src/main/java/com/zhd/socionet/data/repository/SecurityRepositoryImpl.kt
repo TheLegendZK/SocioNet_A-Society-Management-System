@@ -1,10 +1,9 @@
 package com.zhd.socionet.data.repository
 
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.EntryStatus
 import com.zhd.socionet.data.model.GateEntry
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,12 +16,12 @@ interface SecurityRepository {
 
 @Singleton
 class SecurityRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val db: FirestoreHelper
 ) : SecurityRepository {
 
     override suspend fun verifyEntryByOtp(otp: String): Result<GateEntry> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_GATE_ENTRIES)
+            val snapshot = db.getGateEntriesRef()
                 .whereEqualTo("entryCode", otp)
                 .whereIn("status", listOf(EntryStatus.APPROVED.name, EntryStatus.PENDING_APPROVAL.name))
                 .get().await()
@@ -40,7 +39,7 @@ class SecurityRepositoryImpl @Inject constructor(
 
     override suspend fun verifyEntryByQr(passId: String): Result<GateEntry> {
         return try {
-            val doc = firestore.collection(AppConstants.COLL_GATE_ENTRIES).document(passId).get().await()
+            val doc = db.getGateEntriesRef().document(passId).get().await()
             if (!doc.exists()) {
                 Result.failure(Exception("Invalid QR Code"))
             } else {
@@ -58,7 +57,7 @@ class SecurityRepositoryImpl @Inject constructor(
 
     override suspend fun markEntryAsCheckedIn(entryId: String, guardId: String): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_GATE_ENTRIES).document(entryId)
+            db.getGateEntriesRef().document(entryId)
                 .update(
                     mapOf(
                         "status" to EntryStatus.CHECKED_IN,

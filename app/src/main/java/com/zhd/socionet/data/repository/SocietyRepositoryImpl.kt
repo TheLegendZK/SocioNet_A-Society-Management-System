@@ -1,9 +1,8 @@
 package com.zhd.socionet.data.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
 import com.zhd.socionet.data.model.UserRole
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import javax.inject.Inject
@@ -17,12 +16,12 @@ interface SocietyRepository {
 
 @Singleton
 class SocietyRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val db: FirestoreHelper
 ) : SocietyRepository {
 
     override suspend fun getSocietyResidents(societyId: String): Result<List<UserProfile>> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_USERS)
+            val snapshot = db.getUsersRef()
                 .whereEqualTo("societyId", societyId)
                 .get()
                 .await()
@@ -36,7 +35,7 @@ class SocietyRepositoryImpl @Inject constructor(
 
     override suspend fun removeUserFromSociety(userId: String): Result<Unit> {
         return try {
-            firestore.collection(AppConstants.COLL_USERS).document(userId)
+            db.getUsersRef().document(userId)
                 .update(
                     mapOf(
                         "societyId" to null,
@@ -65,7 +64,7 @@ class SocietyRepositoryImpl @Inject constructor(
                 isVerified = true
             )
 
-            firestore.collection(AppConstants.COLL_USERS).document(staffId).set(newProfile).await()
+            db.getUsersRef().document(staffId).set(newProfile).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -2,10 +2,9 @@ package com.zhd.socionet.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
-import com.zhd.socionet.core.constants.AppConstants
 import com.zhd.socionet.data.model.UserProfile
+import com.zhd.socionet.data.remote.FirestoreHelper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,7 +34,7 @@ interface AuthRepository {
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val db: FirestoreHelper,
     private val crashlytics: FirebaseCrashlytics
 ) : AuthRepository {
 
@@ -58,7 +57,7 @@ class AuthRepositoryImpl @Inject constructor(
             val uid = authResult.user?.uid ?: throw Exception("Login failed: No UID returned")
 
             // 2. Fetch Profile
-            val doc = firestore.collection(AppConstants.COLL_USERS).document(uid).get().await()
+            val doc = db.getUsersRef().document(uid).get().await()
             val profile = doc.toObject(UserProfile::class.java)
 
             if (profile == null) {
@@ -84,7 +83,7 @@ class AuthRepositoryImpl @Inject constructor(
             val userId = authResult.user?.uid ?: throw Exception("Auth failed")
 
             val finalProfile = profile.copy(id = userId)
-            firestore.collection(AppConstants.COLL_USERS).document(userId).set(finalProfile).await()
+            db.getUsersRef().document(userId).set(finalProfile).await()
             
             // Refresh token on successful registration
             refreshFcmToken()
@@ -98,7 +97,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun fetchSocieties(): List<Pair<String, String>> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_SOCIETIES).get().await()
+            val snapshot = db.getSocietiesRef().get().await()
             snapshot.documents.map { it.id to (it.getString("name") ?: "Unknown") }
         } catch (e: Exception) {
             crashlytics.recordException(e)
@@ -110,7 +109,7 @@ class AuthRepositoryImpl @Inject constructor(
         if (societyId.isBlank()) return emptyList()
         return try {
             val doc =
-                firestore.collection(AppConstants.COLL_SOCIETIES).document(societyId).get().await()
+                db.getSocietiesRef().document(societyId).get().await()
             val wingsList = doc.get("wings") as? List<*>
             wingsList?.filterIsInstance<String>() ?: emptyList()
         } catch (e: Exception) {
@@ -121,7 +120,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun fetchFlats(societyId: String, wing: String): List<Pair<String, String>> {
         return try {
-            val snapshot = firestore.collection(AppConstants.COLL_FLATS)
+            val snapshot = db.getFlatsRef()
                 .whereEqualTo("societyId", societyId)
                 .whereEqualTo("wing", wing)
                 .get().await()
@@ -141,7 +140,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun checkFlatOccupancy(flatId: String): String? {
         if (flatId.isBlank()) return null
         return try {
-            val doc = firestore.collection(AppConstants.COLL_FLATS).document(flatId).get().await()
+            val doc = db.getFlatsRef().document(flatId).get().await()
             doc.getString("primaryOwnerId")
         } catch (e: Exception) {
             crashlytics.recordException(e)
@@ -152,7 +151,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun updateFcmToken(token: String) {
         val userId = auth.currentUser?.uid ?: return
         try {
-            firestore.collection(AppConstants.COLL_USERS).document(userId)
+            db.getUsersRef().document(userId)
                 .update("fcmToken", token)
                 .await()
         } catch (e: Exception) {
@@ -171,7 +170,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun getUserProfile(userId: String): UserProfile? {
         return try {
-            val doc = firestore.collection(AppConstants.COLL_USERS).document(userId).get().await()
+            val doc = db.getUsersRef().document(userId).get().await()
             doc.toObject(UserProfile::class.java)
         } catch (e: Exception) {
             crashlytics.recordException(e)
