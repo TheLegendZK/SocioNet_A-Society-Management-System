@@ -23,6 +23,20 @@ class SecurityScannerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
 
+    init {
+        loadSocietyId()
+    }
+
+    private fun loadSocietyId() {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                val profile = authRepository.getUserProfile(userId)
+                _uiState.update { it.copy(societyId = profile?.societyId ?: "") }
+            }
+        }
+    }
+
     fun onOtpEntered(otp: String) {
         if (otp.length == 6 && !_uiState.value.isLoading) {
             verifyPass(isQr = false, code = otp)
@@ -73,13 +87,14 @@ class SecurityScannerViewModel @Inject constructor(
     }
 
     fun resetScanner() {
-        _uiState.update { ScannerUiState() }
+        _uiState.update { it.copy(isLoading = false, scanResult = null) }
     }
 }
 
 data class ScannerUiState(
     val isLoading: Boolean = false,
-    val scanResult: ScanResult? = null
+    val scanResult: ScanResult? = null,
+    val societyId: String = ""
 )
 
 sealed class ScanResult {

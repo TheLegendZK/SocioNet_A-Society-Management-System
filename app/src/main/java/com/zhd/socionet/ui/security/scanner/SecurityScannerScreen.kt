@@ -86,7 +86,7 @@ fun SecurityScannerScreen(
     viewModel: SecurityScannerViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToManualEntry: () -> Unit,
-    onNavigateToStaffAttendance: () -> Unit,
+    onNavigateToStaffAttendance: (String) -> Unit,
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -183,7 +183,7 @@ fun SecurityScannerScreen(
                     modifier = Modifier.padding(bottom = navPadding.calculateBottomPadding())
                 ) {
                     FloatingActionButton(
-                        onClick = onNavigateToStaffAttendance,
+                        onClick = { onNavigateToStaffAttendance(uiState.societyId) },
                         containerColor = SoftTheme.surface,
                         contentColor = SoftTheme.primary,
                         shape = CircleShape

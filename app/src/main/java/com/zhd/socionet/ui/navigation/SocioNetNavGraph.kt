@@ -279,7 +279,7 @@ fun SocioNetNavGraph(
             composable(Routes.SECURITY_DASHBOARD) {
                 SecurityScannerScreen(
                     onNavigateToManualEntry = { navController.navigate(Routes.SECURITY_MANUAL_ENTRY) },
-                    onNavigateToStaffAttendance = { navController.navigate(Routes.buildSecurityStaff(NavArgs.SOCIETY_ID)) },
+                    onNavigateToStaffAttendance = { id -> navController.navigate(Routes.buildSecurityStaff(id)) },
                     onLogout = { navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } } }
                 )
             }
