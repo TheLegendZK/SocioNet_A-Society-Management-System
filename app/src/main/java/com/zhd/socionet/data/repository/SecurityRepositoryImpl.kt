@@ -9,8 +9,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface SecurityRepository {
-    suspend fun verifyEntryByOtp(otp: String): Result<GateEntry>
-    suspend fun verifyEntryByQr(passId: String): Result<GateEntry>
+    suspend fun verifyEntryByOtp(otp: String, societyId: String): Result<GateEntry>
+    suspend fun verifyEntryByQr(passId: String, societyId: String): Result<GateEntry>
     suspend fun markEntryAsCheckedIn(entryId: String, guardId: String): Result<Unit>
 }
 
@@ -19,9 +19,10 @@ class SecurityRepositoryImpl @Inject constructor(
     private val db: FirestoreHelper
 ) : SecurityRepository {
 
-    override suspend fun verifyEntryByOtp(otp: String): Result<GateEntry> {
+    override suspend fun verifyEntryByOtp(otp: String, societyId: String): Result<GateEntry> {
         return try {
             val snapshot = db.getGateEntriesRef()
+                .whereEqualTo("societyId", societyId)
                 .whereEqualTo("entryCode", otp)
                 .whereIn("status", listOf(EntryStatus.APPROVED.name, EntryStatus.PENDING_APPROVAL.name))
                 .get().await()
@@ -37,14 +38,16 @@ class SecurityRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun verifyEntryByQr(passId: String): Result<GateEntry> {
+    override suspend fun verifyEntryByQr(passId: String, societyId: String): Result<GateEntry> {
         return try {
             val doc = db.getGateEntriesRef().document(passId).get().await()
             if (!doc.exists()) {
                 Result.failure(Exception("Invalid QR Code"))
             } else {
                 val entry = doc.toObject(GateEntry::class.java)!!
-                if (entry.status != EntryStatus.APPROVED && entry.status != EntryStatus.PENDING_APPROVAL) {
+                if (entry.societyId != societyId) {
+                    Result.failure(Exception("Pass belongs to another Society"))
+                } else if (entry.status != EntryStatus.APPROVED && entry.status != EntryStatus.PENDING_APPROVAL) {
                     Result.failure(Exception("Pass is ${entry.status} (Not Valid for Entry)"))
                 } else {
                     Result.success(entry)

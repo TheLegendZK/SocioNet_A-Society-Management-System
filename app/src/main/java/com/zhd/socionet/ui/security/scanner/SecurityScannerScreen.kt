@@ -8,12 +8,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +31,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GppBad
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -73,25 +78,31 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.zhd.socionet.R
+import com.zhd.socionet.data.model.EntryStatus
+import com.zhd.socionet.data.model.GateEntry
 import com.zhd.socionet.ui.common.LocalNavPadding
 import com.zhd.socionet.ui.common.SocioButton
 import com.zhd.socionet.ui.common.SoftCard
 import com.zhd.socionet.ui.common.SoftTheme
 import com.zhd.socionet.ui.profile.ProfileViewModel
+import com.zhd.socionet.ui.security.log.SecurityLogViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecurityScannerScreen(
     viewModel: SecurityScannerViewModel = hiltViewModel(),
+    logViewModel: SecurityLogViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToManualEntry: () -> Unit,
-    onNavigateToStaffAttendance: () -> Unit,
+    onNavigateToStaffAttendance: (String) -> Unit,
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState { 2 }
+    val pagerState = rememberPagerState { 3 }
     val context = LocalContext.current
     val navPadding = LocalNavPadding.current
     var hasCameraPermission by remember {
@@ -115,6 +126,12 @@ fun SecurityScannerScreen(
     LaunchedEffect(key1 = true) {
         if (!hasCameraPermission) {
             launcher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    LaunchedEffect(uiState.societyId) {
+        if (uiState.societyId.isNotBlank()) {
+            logViewModel.loadLogs(uiState.societyId)
         }
     }
 
@@ -183,7 +200,7 @@ fun SecurityScannerScreen(
                     modifier = Modifier.padding(bottom = navPadding.calculateBottomPadding())
                 ) {
                     FloatingActionButton(
-                        onClick = onNavigateToStaffAttendance,
+                        onClick = { onNavigateToStaffAttendance(uiState.societyId) },
                         containerColor = SoftTheme.surface,
                         contentColor = SoftTheme.primary,
                         shape = CircleShape
@@ -194,7 +211,7 @@ fun SecurityScannerScreen(
                         onClick = onNavigateToManualEntry,
                         containerColor = SoftTheme.primary,
                         contentColor = Color.White,
-                        icon = { Icon(Icons.Default.Edit, stringResource(R.string.log)) },
+                        icon = { Icon(Icons.Default.Edit, stringResource(R.string.manual_entry)) },
                         text = { Text(stringResource(R.string.manual_entry), fontWeight = FontWeight.Bold) },
                         shape = RoundedCornerShape(16.dp)
                     )
@@ -237,6 +254,16 @@ fun SecurityScannerScreen(
                         selectedContentColor = Color.White,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
+                    Tab(
+                        selected = pagerState.currentPage == 2,
+                        onClick = {
+                            scope.launch { pagerState.animateScrollToPage(2) }
+                        },
+                        text = { Text(stringResource(R.string.log), fontWeight = FontWeight.Bold) },
+                        icon = { Icon(Icons.Default.History, null) },
+                        selectedContentColor = Color.White,
+                        unselectedContentColor = Color.White.copy(alpha = 0.6f)
+                    )
                 }
 
                 HorizontalPager(
@@ -246,15 +273,15 @@ fun SecurityScannerScreen(
                 ) { pageIndex ->
                     Box(modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp), contentAlignment = Alignment.TopCenter) {
-                        if (pageIndex == 0) {
-                            QrScanView(
+                        .padding(if (pageIndex == 2) 0.dp else 24.dp), contentAlignment = Alignment.TopCenter) {
+                        when (pageIndex) {
+                            0 -> QrScanView(
                                 hasPermission = hasCameraPermission,
                                 onRequestPermission = { launcher.launch(Manifest.permission.CAMERA) },
                                 onQrScanned = { viewModel.onQrScanned(it) }
                             )
-                        } else {
-                            ManualOtpView(onSubmit = { viewModel.onOtpEntered(it) })
+                            1 -> ManualOtpView(onSubmit = { viewModel.onOtpEntered(it) })
+                            2 -> SecurityLogView(viewModel = logViewModel)
                         }
                     }
                 }
@@ -410,6 +437,105 @@ fun ManualOtpView(onSubmit: (String) -> Unit) {
             text = stringResource(R.string.verify_entry),
             onClick = { onSubmit(otp) },
             enabled = otp.length == 6
+        )
+    }
+}
+
+@Composable
+fun SecurityLogView(viewModel: SecurityLogViewModel) {
+    val uiState by viewModel.uiState.collectAsState()
+    val navPadding = LocalNavPadding.current
+
+    if (uiState.isLoading && uiState.logs.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    } else if (uiState.logs.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(stringResource(R.string.no_entry_history), color = Color.White.copy(alpha = 0.6f))
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 24.dp,
+                top = 24.dp,
+                end = 24.dp,
+                bottom = 100.dp + navPadding.calculateBottomPadding()
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(uiState.logs.filter { !it.isStaffEntry }) { entry ->
+                LogEntryItem(entry)
+            }
+        }
+    }
+}
+
+@Composable
+fun LogEntryItem(entry: GateEntry) {
+    SoftCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.visitorName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = SoftTheme.textPrimary
+                )
+                val subtitle = buildString {
+                    if (entry.isStaffEntry) append("Staff") else append(entry.visitorType)
+                    if (entry.hostFlatNumber != null) {
+                        append(" • Flat ")
+                        append(entry.hostFlatNumber)
+                    }
+                }
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SoftTheme.textSecondary
+                )
+                entry.entryTime?.let {
+                    val date = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(it.toDate())
+                    Text(
+                        text = date,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SoftTheme.primary.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            
+            StatusBadge(entry.status)
+        }
+    }
+}
+
+@Composable
+fun StatusBadge(status: EntryStatus) {
+    val (color, text) = when (status) {
+        EntryStatus.CHECKED_IN -> Color(0xFF4CAF50) to "IN"
+        EntryStatus.CHECKED_OUT -> Color(0xFFF44336) to "OUT"
+        EntryStatus.APPROVED -> SoftTheme.primary to "APPROVED"
+        EntryStatus.PENDING_APPROVAL -> Color(0xFFFF9800) to "PENDING"
+        EntryStatus.DENIED -> Color.Gray to "DENIED"
+        EntryStatus.EXPIRED -> Color.LightGray to "EXPIRED"
+    }
+
+    Surface(
+        color = color.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(8.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = color
         )
     }
 }

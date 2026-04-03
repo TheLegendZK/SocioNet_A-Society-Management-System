@@ -25,9 +25,10 @@ interface GatePassRepository {
     fun getPastPassesFlow(flatId: String): Flow<List<GateEntry>>
     suspend fun respondToRequest(entryId: String, status: EntryStatus): Result<Unit>
     fun getStaffLogsFlow(staffIds: List<String>): Flow<List<GateEntry>>
-    suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit>
+    suspend fun logStaffEntry(staffId: String, staffName: String, action: String, societyId: String): Result<Unit>
     suspend fun getUserByFlat(flatId: String): UserProfile?
     suspend fun getAllFlats(): Result<List<Flat>>
+    fun getSecurityLogsFlow(societyId: String): Flow<List<GateEntry>>
 }
 
 @Singleton
@@ -128,10 +129,24 @@ class GatePassRepositoryImpl @Inject constructor(
             }
     }
 
+    override fun getSecurityLogsFlow(societyId: String): Flow<List<GateEntry>> {
+        return db.getGateEntriesRef()
+            .whereEqualTo("societyId", societyId)
+            .snapshots()
+            .map { snapshot ->
+                val list = snapshot.toObjects(GateEntry::class.java)
+                    .sortedByDescending { it.entryTime }
+                    .take(100)
+                dao.insertEntries(list.map { it.toEntity() })
+                list
+            }
+    }
+
     override suspend fun logStaffEntry(
         staffId: String,
         staffName: String,
         action: String,
+        societyId: String
     ): Result<Unit> {
         return try {
             val docRef = db.getGateEntriesRef().document()
@@ -139,6 +154,7 @@ class GatePassRepositoryImpl @Inject constructor(
 
             val entry = GateEntry(
                 id = docRef.id,
+                societyId = societyId,
                 visitorName = staffName,
                 visitorType = VisitorType.SERVICE_STAFF,
                 isStaffEntry = true,
@@ -184,6 +200,7 @@ class GatePassRepositoryImpl @Inject constructor(
 
 fun GateEntry.toEntity() = GateEntryEntity(
     id = id,
+    societyId = societyId,
     visitorName = visitorName,
     visitorType = visitorType.name,
     hostFlatId = hostFlatId,
@@ -197,6 +214,7 @@ fun GateEntry.toEntity() = GateEntryEntity(
 
 fun GateEntryEntity.toDomain() = GateEntry(
     id = id,
+    societyId = societyId,
     visitorName = visitorName,
     visitorType = VisitorType.valueOf(visitorType),
     hostFlatId = hostFlatId,

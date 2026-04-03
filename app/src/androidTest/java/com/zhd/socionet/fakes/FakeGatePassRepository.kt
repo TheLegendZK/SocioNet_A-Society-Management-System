@@ -21,7 +21,8 @@ class FakeGatePassRepository : GatePassRepository {
     ))
     override suspend fun respondToRequest(entryId: String, status: EntryStatus): Result<Unit> = Result.success(Unit)
     override fun getStaffLogsFlow(staffIds: List<String>): Flow<List<GateEntry>> = flowOf(emptyList())
-    override suspend fun logStaffEntry(staffId: String, staffName: String, action: String): Result<Unit> = Result.success(Unit)
+    override suspend fun logStaffEntry(staffId: String, staffName: String, action: String, societyId: String): Result<Unit> = Result.success(Unit)
     override suspend fun getUserByFlat(flatId: String): UserProfile? = null
     override suspend fun getAllFlats(): Result<List<Flat>> = Result.success(emptyList())
+    override fun getSecurityLogsFlow(societyId: String): Flow<List<GateEntry>> = flowOf(emptyList())
 }

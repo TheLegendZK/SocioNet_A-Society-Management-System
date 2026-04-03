@@ -86,7 +86,7 @@ fun SecurityStaffScreen(
             containerColor = Color.Transparent,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Staff Attendance", fontWeight = FontWeight.Bold, color = Color.White) },
+                    title = { Text("Household Staff", fontWeight = FontWeight.Bold, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
@@ -117,7 +117,7 @@ fun SecurityStaffScreen(
                 ) {
                     item {
                         Text(
-                            text = "Household & Society Staff",
+                            text = "Manage Staff Entry",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

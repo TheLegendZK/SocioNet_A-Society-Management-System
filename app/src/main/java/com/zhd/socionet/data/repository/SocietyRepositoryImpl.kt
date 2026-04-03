@@ -43,7 +43,7 @@ class SocietyRepositoryImpl @Inject constructor(
                         "flatId" to null,
                         "societyName" to null,
                         "flatNumber" to null,
-                        "isVerified" to false
+                        "verified" to false
                     )
                 ).await()
             Result.success(Unit)

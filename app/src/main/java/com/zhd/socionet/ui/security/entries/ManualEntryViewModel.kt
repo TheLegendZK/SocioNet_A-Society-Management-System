@@ -19,16 +19,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManualEntryViewModel @Inject constructor(
-    private val gateRepository: GatePassRepository
+    private val gateRepository: GatePassRepository,
+    private val authRepository: com.zhd.socionet.data.repository.AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ManualEntryUiState())
     val uiState: StateFlow<ManualEntryUiState> = _uiState.asStateFlow()
 
     private var allFlats: List<Flat> = emptyList()
+    private var guardSocietyId: String = ""
 
     init {
         fetchFlats()
+        loadGuardSociety()
+    }
+
+    private fun loadGuardSociety() {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                val profile = authRepository.getUserProfile(userId)
+                guardSocietyId = profile?.societyId ?: ""
+            }
+        }
     }
 
     private fun fetchFlats() {
@@ -76,6 +89,7 @@ class ManualEntryViewModel @Inject constructor(
 
             val entry = GateEntry(
                 visitorName = name,
+                societyId = guardSocietyId,
                 visitorType = VisitorType.DELIVERY,
                 vehicleNumber = vehicle,
                 hostFlatId = hostFlatId,

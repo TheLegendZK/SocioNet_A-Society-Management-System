@@ -5,6 +5,7 @@ import com.google.firebase.firestore.PropertyName
 
 data class GateEntry(
     @PropertyName("id") val id: String = "",
+    val societyId: String = "",
     val visitorName: String = "",
     val visitorType: VisitorType = VisitorType.GUEST,
     val vehicleNumber: String? = null,

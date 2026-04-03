@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "gate_entries")
 data class GateEntryEntity(
     @PrimaryKey val id: String,
+    val societyId: String,
     val visitorName: String,
     val visitorType: String,
     val hostFlatId: String,

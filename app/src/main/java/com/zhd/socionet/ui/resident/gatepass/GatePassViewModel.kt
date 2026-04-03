@@ -82,6 +82,7 @@ class GatePassViewModel @Inject constructor(
             val otp = otpGenerator.generateOtp()
             val entry = GateEntry(
                 visitorName = _uiState.value.visitorName,
+                societyId = userProfile?.societyId ?: "",
                 visitorType = _uiState.value.visitorType,
                 hostFlatId = hostFlatId,
                 hostFlatNumber = userProfile?.flatNumber,

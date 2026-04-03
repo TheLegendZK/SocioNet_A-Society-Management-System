@@ -22,17 +22,22 @@ class SecurityStaffViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SecurityStaffUiState())
     val uiState: StateFlow<SecurityStaffUiState> = _uiState.asStateFlow()
 
+    private var currentSocietyId: String = ""
+
     fun loadStaff(societyId: String) {
+        currentSocietyId = societyId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val list = staffRepo.getStaffList(societyId)
-            _uiState.update { it.copy(isLoading = false, staffList = list) }
+            // Filter: Only include staff linked to at least one household (flat)
+            val filteredList = list.filter { it.employerFlatIds.isNotEmpty() }
+            _uiState.update { it.copy(isLoading = false, staffList = filteredList) }
         }
     }
 
     fun markAttendance(staff: ServiceStaff, action: String) {
         viewModelScope.launch {
-            gateRepo.logStaffEntry(staff.id, staff.name, action)
+            gateRepo.logStaffEntry(staff.id, staff.name, action, currentSocietyId)
         }
     }
 }
