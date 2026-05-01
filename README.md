@@ -70,7 +70,7 @@ Flats act as the anchor collection, linking a primary owner and tenant IDs to a 
 
 ## 🎓 Academic & Developer Information
 
-*   **Developer:** Kamil Mohd Zahid Mohd Hamid (Seat Number: 323)
+*   **Developer:** Kamil Mohd Zahid Mohd Hamid
 *   **Project Guide:** Mrs. Saima Shaikh, Head of the Department of Information Technology
 *   **Institution:** Maharashtra College of Arts Science and Commerce, Mumbai (Affiliated to University of Mumbai)
 *   **Degree:** Bachelor of Science (Information Technology)
