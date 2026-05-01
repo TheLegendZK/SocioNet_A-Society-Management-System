@@ -35,6 +35,18 @@ SocioNet is segregated into three distinct environments based on strict Role-Bas
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+  <img src="screenshots/SocioNet_Splash.jpg" width="200" alt="Splash Screen" />
+  <img src="screenshots/SocioNet_Login.jpg" width="200" alt="Login Screen" />
+  <img src="screenshots/SocioNet_ResidentHome.jpg" width="200" alt="Resident Dashboard" />
+  <img src="screenshots/SocioNet_AdminDashboard.jpg" width="200" alt="Admin Console" />
+  <img src="screenshots/SocioNet_SecurityScanner.jpg" width="200" alt="Gate Keeper Scanner" />
+</div>
+
+---
+
 ## 🛠 Tech Stack
 
 | Component            | Technology                                                                |
@@ -71,7 +83,6 @@ Flats act as the anchor collection, linking a primary owner and tenant IDs to a 
 ## 🎓 Academic & Developer Information
 
 *   **Developer:** Kamil Mohd Zahid Mohd Hamid
-*   **Project Guide:** Mrs. Saima Shaikh, Head of the Department of Information Technology
 *   **Institution:** Maharashtra College of Arts Science and Commerce, Mumbai (Affiliated to University of Mumbai)
 *   **Degree:** Bachelor of Science (Information Technology)
 *   **Academic Year:** 2025 – 2026
