@@ -52,7 +52,7 @@ SocioNet is segregated into three distinct environments based on strict Role-Bas
       <b>Resident Home</b>
     </td>
   </tr>
-  <tr>
+  <tr align="center">
     <td align="center">
       <img src="screenshots/SocioNet_AdminDashboard.jpg" width="200" alt="Admin Console" /><br />
       <b>Admin Dashboard</b>
