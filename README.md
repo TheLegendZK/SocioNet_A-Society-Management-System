@@ -61,7 +61,6 @@ SocioNet is segregated into three distinct environments based on strict Role-Bas
       <img src="screenshots/SocioNet_SecurityScanner.jpg" width="200" alt="Security Scanner" /><br />
       <b>Security Scanner</b>
     </td>
-    <td></td> 
   </tr>
 </table>
 
