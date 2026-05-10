@@ -39,28 +39,32 @@ SocioNet is segregated into three distinct environments based on strict Role-Bas
 
 <table align="center">
   <tr>
-    <td align="center">
+    <td align="center" colspan="2">
       <img src="screenshots/SocioNet_Splash.jpg" width="200" alt="Splash Screen" /><br />
       <b>Splash Screen</b>
     </td>
-    <td align="center">
+    <td align="center" colspan="2">
       <img src="screenshots/SocioNet_Login.jpg" width="200" alt="Login Screen" /><br />
       <b>Login Screen</b>
     </td>
-    <td align="center">
+    <td align="center" colspan="2">
       <img src="screenshots/SocioNet_ResidentHome.jpg" width="200" alt="Resident Dashboard" /><br />
       <b>Resident Home</b>
     </td>
   </tr>
-  <tr align="center">
-    <td align="center">
+  <tr>
+    <td colspan="1"></td> 
+
+    <td align="center" colspan="2">
       <img src="screenshots/SocioNet_AdminDashboard.jpg" width="200" alt="Admin Console" /><br />
       <b>Admin Dashboard</b>
     </td>
-    <td align="center">
+    <td align="center" colspan="2">
       <img src="screenshots/SocioNet_SecurityScanner.jpg" width="200" alt="Security Scanner" /><br />
       <b>Security Scanner</b>
     </td>
+    
+    <td colspan="1"></td> 
   </tr>
 </table>
 
