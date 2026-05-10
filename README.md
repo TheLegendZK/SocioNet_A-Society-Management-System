@@ -37,36 +37,19 @@ SocioNet is segregated into three distinct environments based on strict Role-Bas
 
 ## 📸 Screenshots
 
-<table align="center">
-  <tr>
-    <td align="center" colspan="2">
-      <img src="screenshots/SocioNet_Splash.jpg" width="200" alt="Splash Screen" /><br />
-      <b>Splash Screen</b>
-    </td>
-    <td align="center" colspan="2">
-      <img src="screenshots/SocioNet_Login.jpg" width="200" alt="Login Screen" /><br />
-      <b>Login Screen</b>
-    </td>
-    <td align="center" colspan="2">
-      <img src="screenshots/SocioNet_ResidentHome.jpg" width="200" alt="Resident Dashboard" /><br />
-      <b>Resident Home</b>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="1"></td> 
+<p align="center">
+  <img src="screenshots/SocioNet_Splash.jpg" width="200" alt="Splash Screen" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/SocioNet_Login.jpg" width="200" alt="Login Screen" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/SocioNet_ResidentHome.jpg" width="200" alt="Resident Dashboard" />
+</p>
 
-    <td align="center" colspan="2">
-      <img src="screenshots/SocioNet_AdminDashboard.jpg" width="200" alt="Admin Console" /><br />
-      <b>Admin Dashboard</b>
-    </td>
-    <td align="center" colspan="2">
-      <img src="screenshots/SocioNet_SecurityScanner.jpg" width="200" alt="Security Scanner" /><br />
-      <b>Security Scanner</b>
-    </td>
-    
-    <td colspan="1"></td> 
-  </tr>
-</table>
+<p align="center">
+  <img src="screenshots/SocioNet_AdminDashboard.jpg" width="200" alt="Admin Console" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/SocioNet_SecurityScanner.jpg" width="200" alt="Security Scanner" />
+</p>
 
 ---
 
